@@ -14,8 +14,6 @@
 </head>
 
 <body>
-
-
 	<div class="header">
 		<div class="logo"><i class="fa fa-graduation-cap"></i> Corvus</div>
 	</div>
@@ -147,7 +145,12 @@
 		</div>
 	</div>
 
-
+	<script>
+		window.nodeRequire = require;
+		delete window.require;
+		delete window.exports;
+		delete window.module;
+	</script>
 	<script src="js/jquery.min.js"></script>
 	<script src="js/what-input.min.js"></script>
 	<script src="js/foundation.js"></script>

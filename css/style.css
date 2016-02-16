@@ -1,13 +1,14 @@
 body {
-	font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
-	-webkit-font-smoothing: antialiased;
+    font-family: "Roboto", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
     -webkit-text-size-adjust: 100%;
 }
+
 .sidebar {
     background-color: #252526;
     position: fixed;
     min-height: 100%;
-	z-index: 3;
+    z-index: 3;
 }
 
 .header {
@@ -20,7 +21,7 @@ body {
     text-align: center;
     border-bottom: 1px solid #000000;
     z-index: 99999;
-	-webkit-app-region: drag;
+    -webkit-app-region: drag;
 }
 
 .logo {
@@ -29,79 +30,84 @@ body {
     font-size: 1.2em;
     padding-top: 5px;
     text-transform: uppercase;
-	font-weight: 300;
+    font-weight: 300;
 }
 
 .logo img {
     width: 32px;
-	height: 32px;
+    height: 32px;
 }
 
 .content {
-	background-color: #efefef;
+    background-color: #efefef;
 }
 
 .question-button-container {
-	display: block;
-	background-color: green;
-	height: 80px;
-	position: fixed;
-	bottom: 0px;
-	left: 0px;
-	width: 100%;
-	padding: 0px;
-	margin: 0px;
-	flex-direction: column;
+    display: block;
+    background-color: green;
+    height: 80px;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    padding: 0px;
+    margin: 0px;
+    flex-direction: column;
 }
+
 .question-button-container .button {
-	border-radius: 0px;
-	width: 100%;
-	height: 100%;
-	font-size: 1.7em;
-	padding: 1em 0 0 0;
-	margin: 0px;
+    border-radius: 0px;
+    width: 100%;
+    height: 100%;
+    font-size: 1.7em;
+    padding: 1em 0 0 0;
+    margin: 0px;
+	outline: none;
 }
+
 .question-button-1 {
-	display: block;
-	float: left;
-	width: 100%;
-	height: 100%;
+    display: block;
+    float: left;
+    width: 100%;
+    height: 100%;
 }
+
 .question-button-2 {
-	display: block;
-	float: left;
-	width: 50%;
-	height: 100%;
+    display: block;
+    float: left;
+    width: 50%;
+    height: 100%;
 }
 
 .button-spacer {
-	display: block;
-	height: 80px;
+    display: block;
+    height: 80px;
 }
 
 @media screen and (max-width: 39.9375em) {
     .content {
         padding-left: 80px;
     }
-	.question-button-container {
-		padding-left: 65px;
-	}
+
+    .question-button-container {
+        padding-left: 65px;
+    }
 }
 
 @media screen and (min-width: 40em) {
     .content {
         padding-left: 214px;
     }
-	.question-button-container {
-		padding-left: 199px;
-	}
-	.search input {
-		display: inline-block;
-		max-width: 300px;
-	}
+
+    .question-button-container {
+        padding-left: 199px;
+    }
+
+    .search input {
+        display: inline-block;
+        max-width: 300px;
+    }
 }
-
-
 
 .content-row {
     min-height: 100%;
@@ -120,23 +126,27 @@ body {
     clear: both;
     margin-bottom: 20px;
     padding: 5px;
-	height: 42px;
+    height: 42px;
     border-radius: 3px;
     color: #999999;
     transition: background .5s ease, color .5s ease;
 }
 
-.sidebar-nav a:hover {
+.sidebar-nav a:hover,
+.sidebar-nav a:focus {
     background-color: #2ba6cb;
     color: #252526;
+    outline: none;
 }
 
 .sidebar-nav a.active {
-	color: #2ba6cb;
+    color: #2ba6cb;
 }
 
-.sidebar-nav a.active:hover {
-	color: #252526;
+.sidebar-nav a.active:hover,
+.sidebar-nav a.active:focus {
+    color: #252526;
+    outline: none;
 }
 
 .sidebar-nav a i {
@@ -165,7 +175,7 @@ body {
 .box-table {
     border-collapse: separate;
     border-spacing: 0px 10px;
-	margin-top: -10px;
+    margin-top: -10px;
 }
 
 .box-table thead {
@@ -177,7 +187,7 @@ body {
     background: transparent;
     color: #000000;
     font-weight: bold;
-	padding: 0 0.625rem 0 0.625rem;
+    padding: 0 0.625rem 0 0.625rem;
 }
 
 .box-table tbody tr {

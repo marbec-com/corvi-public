@@ -31,10 +31,9 @@ body {
 	font-weight: 300;
 }
 
-.logo i {
-    font-size: 1.4em;
-	font-weight: normal;
-    vertical-align: -0.1em;
+.logo img {
+    width: 32px;
+	height: 32px;
 }
 
 .content {
@@ -51,6 +50,10 @@ body {
     .content {
         padding-left: 215px;
     }
+	.search input {
+		display: inline-block;
+		max-width: 300px;
+	}
 }
 
 .content-row {
@@ -70,14 +73,23 @@ body {
     clear: both;
     margin-bottom: 20px;
     padding: 5px;
+	height: 42px;
     border-radius: 3px;
-    color: #2ba6cb;
+    color: #999999;
     transition: background .5s ease, color .5s ease;
 }
 
 .sidebar-nav a:hover {
     background-color: #2ba6cb;
     color: #252526;
+}
+
+.sidebar-nav a.active {
+	color: #2ba6cb;
+}
+
+.sidebar-nav a.active:hover {
+	color: #252526;
 }
 
 .sidebar-nav a i {

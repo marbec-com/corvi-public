@@ -8,6 +8,8 @@ import (
 
 func main() {
 
+	// TODO: Cache Boxes / Keep them in memory
+
 	r := router.NewTreeRouter()
 
 	// Category Routes

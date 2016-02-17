@@ -3,6 +3,10 @@ package models
 type QuestionHeap struct {
 }
 
+func NewQuestionHeap() *QuestionHeap {
+	return &QuestionHeap{}
+}
+
 func (h *QuestionHeap) Add(q *Question) {
 
 }

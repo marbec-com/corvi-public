@@ -5,11 +5,8 @@ type Category struct {
 	Name string
 }
 
-func (c *Category) Boxes() []*Box {
-
-	boxes := make([]*Box, 0)
-
-	// SELECT * FROM Boxes Where CategoryID = c.ID
-
-	return boxes
+func NewCategory(name string) *Category {
+	return &Category{
+		Name: name,
+	}
 }

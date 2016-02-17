@@ -21,15 +21,17 @@ type Question struct {
 	CorrectlyAnswered int
 }
 
-func NewQuestion(b *Box) *Question {
+func NewQuestion(question, answer string, b *Box) *Question {
 	return &Question{
+		Question:          question,
+		Answer:            answer,
 		Box:               b,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
 	}
 }
 
-func (q *Question) calculateNext() {
+func (q *Question) CalculateNext() {
 	result := 0.0
 
 	if q.CorrectlyAnswered < 7 { // Linear increase
@@ -48,16 +50,4 @@ func (q *Question) calculateNext() {
 	fmt.Println(q.CorrectlyAnswered, days, newTime)
 
 	q.Next = newTime
-}
-
-func (q *Question) CorrectAnswerGiven() {
-	q.CorrectlyAnswered++
-	fmt.Println("Correct: ", q.CorrectlyAnswered)
-	q.calculateNext()
-}
-
-func (q *Question) WrongAnswerGiven() {
-	q.CorrectlyAnswered = 0
-	fmt.Println("Wrong: ", q.CorrectlyAnswered)
-	q.calculateNext()
 }

@@ -1,34 +1,32 @@
 package main
 
 import (
-	"fmt"
-	"marb.ec/corvi-backend/models"
+	"marb.ec/corvi-backend/controllers"
+	"marb.ec/maf/router"
+	"net/http"
 )
 
 func main() {
 
-	q := &models.Question{}
-	q.CorrectAnswerGiven()
-	q.WrongAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
-	q.CorrectAnswerGiven()
+	r := router.NewTreeRouter()
 
-	fmt.Println("Hello World!")
+	// Category Routes
+	r.Add(router.GET, "/api/categories", &controllers.CategoryController{})
+	r.Add(router.GET, "/api/category/:id", &controllers.CategoryController{})
+	r.Add(router.GET, "/api/category/:id/boxes", &controllers.CategoryController{})
+
+	// Boxes Routes
+	r.Add(router.GET, "/api/boxes", &controllers.CategoryController{})
+	r.Add(router.GET, "/api/box/:id", &controllers.CategoryController{})
+	r.Add(router.GET, "/api/box/:id/questions", &controllers.CategoryController{})
+	r.Add(router.GET, "/api/box/:id/getQuestionToLearn", &controllers.CategoryController{})
+
+	// Question Routes
+	r.Add(router.GET, "/api/questions", &controllers.CategoryController{})
+	r.Add(router.GET, "/api/question/:id", &controllers.CategoryController{})
+	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", &controllers.CategoryController{})
+	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &controllers.CategoryController{})
+
+	http.ListenAndServe(":8080", r)
+
 }

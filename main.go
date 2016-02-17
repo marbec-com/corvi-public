@@ -8,8 +8,6 @@ import (
 
 func main() {
 
-	// TODO: Cache Boxes / Keep them in memory
-
 	r := router.NewTreeRouter()
 
 	// Category Routes
@@ -28,6 +26,8 @@ func main() {
 	r.Add(router.GET, "/api/question/:id", &controllers.CategoryController{})
 	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", &controllers.CategoryController{})
 	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &controllers.CategoryController{})
+
+	// TODO(mjb): Add Middleware
 
 	http.ListenAndServe(":8080", r)
 

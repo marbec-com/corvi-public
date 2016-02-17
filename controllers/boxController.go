@@ -28,7 +28,7 @@ func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
 
 	// Save in BaxCache
 
-	return nil, nil
+	return []*models.Box{}, nil
 }
 
 func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
@@ -42,7 +42,7 @@ func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 	// Store in Cache
 	//BoxCache[box.ID] = box
 
-	return box, nil
+	return &models.Box{}, nil
 }
 
 func (c *BoxController) refreshBox(box *models.Box) error {

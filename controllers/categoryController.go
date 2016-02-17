@@ -1,10 +1,7 @@
 package controllers
 
 import (
-	"golang.org/x/net/context"
 	"marb.ec/corvi-backend/models"
-	"marb.ec/maf/interfaces"
-	"net/http"
 )
 
 var CategoryControllerSingleton *CategoryController
@@ -21,10 +18,6 @@ func CategoryControllerInstance() *CategoryController {
 
 func NewCategoryController() *CategoryController {
 	return &CategoryController{}
-}
-
-func (c *CategoryController) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
-	rw.Write([]byte("OK"))
 }
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {

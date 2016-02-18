@@ -22,17 +22,17 @@ func NewCategoryController() *CategoryController {
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
 
-	return nil, nil
+	return []*models.Category{}, nil
 }
 
 func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
 
-	return nil, nil
+	return &models.Category{}, nil
 }
 
-func (c *CategoryController) LoadBoxes(id uint) (*[]models.Box, error) {
+func (c *CategoryController) LoadBoxes(id uint) ([]*models.Box, error) {
 
-	return nil, nil
+	return []*models.Box{}, nil
 }
 
 func (c *CategoryController) UpdateCategory(cat *models.Category) error {

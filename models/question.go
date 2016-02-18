@@ -1,7 +1,6 @@
 package models
 
 import (
-	"fmt"
 	"math"
 	"time"
 )
@@ -47,7 +46,6 @@ func (q *Question) CalculateNext() {
 	days := int(result + 0.5)
 
 	newTime := time.Now().AddDate(0, 0, days).Truncate(time.Hour * 24)
-	fmt.Println(q.CorrectlyAnswered, days, newTime)
 
 	q.Next = newTime
 }

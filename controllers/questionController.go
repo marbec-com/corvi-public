@@ -22,13 +22,13 @@ func NewQuestionController() *QuestionController {
 
 func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
 
-	return nil, nil
+	return []*models.Question{}, nil
 }
 
 func (c *QuestionController) LoadQuestion(id uint) (*models.Question, error) {
 	// Get box from cache, otherwise load
 
-	return nil, nil
+	return &models.Question{}, nil
 }
 
 func (c *QuestionController) GiveCorrectAnswer(id uint) error {

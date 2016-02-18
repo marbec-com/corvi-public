@@ -52,9 +52,9 @@ func (c *BoxController) refreshBox(box *models.Box) error {
 	return nil
 }
 
-func (c *BoxController) LoadQuestions(id uint) (*[]models.Question, error) {
+func (c *BoxController) LoadQuestions(id uint) ([]*models.Question, error) {
 
-	return nil, nil
+	return []*models.Question{}, nil
 }
 
 func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {

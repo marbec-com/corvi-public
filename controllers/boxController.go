@@ -105,7 +105,10 @@ func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 		return nil, err
 	}
 
-	return questions[rand.Intn(len(questions))], nil
+	index := rand.Intn(len(questions) + 1)
+	if index < len(questions) {
+		return questions[index], nil
+	}
 
 	/*
 

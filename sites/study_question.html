@@ -1,35 +1,24 @@
-Question
-
 <div class="expanded row">
 	<div class="column">
 		<div class="callout">
-			Wie heißt dein GitHub Account?
+			{{ question.Question }}
 		</div>
-		<div class="callout">
-			Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna
-			aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren,
-			no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam
-			nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo
-			duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum
-			dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam
-			erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata
-			sanctus est Lorem ipsum dolor sit amet.
+		<div class="callout" ng-show="answered">
+			{{ question.Answer }}
 		</div>
 		<div class="button-spacer"></div>
 	</div>
 
 </div>
 
-
-
 <div class="question-button-container">
-	<!-- <div class="question-button-1">
-					<a class="button" href="#">Solution</a>
-				</div> -->
-	<div class="question-button-2">
-		<a class="button success" href="#">Yes</a>
+	<div class="question-button-1" ng-hide="answered">
+		<a class="button" ng-click="showSolution()">Solution</a>
+	</div>
+	<div class="question-button-2" ng-show="answered">
+		<a class="button success" ng-click="giveCorrectAnswer()">Yes</a>
 	</div>
 	<div class="question-button-2">
-		<a class="button alert" href="#">No</a>
+		<a class="button alert" ng-click="giveWrongAnswer()">No</a>
 	</div>
 </div>

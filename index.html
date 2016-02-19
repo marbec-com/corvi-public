@@ -8,6 +8,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
 	
+	<base href="/app/" />
+	
 	<title>marbec Project Corvus</title>
 	
 	<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,300,400italic,300italic,100,100italic,500italic,700,700italic"
@@ -24,13 +26,11 @@
 
 	<div class="expanded row align-stretch content-row">
 		<main-navigation></main-navigation>
-		<div class="content columns">
-			<ng-view></ng-view>
-		</div>
+		<div class="content columns" ng-view></div>
 	</div>
 
 	<script>
-		//window.nodeRequire = require;
+		window.nodeRequire = require;
 		delete window.require;
 		delete window.exports;
 		delete window.module;

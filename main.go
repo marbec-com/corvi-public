@@ -1,6 +1,7 @@
 package main
 
 import (
+	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
 	"marb.ec/maf/router"
 	"net/http"
@@ -9,6 +10,10 @@ import (
 func main() {
 
 	r := router.NewTreeRouter()
+
+	// Static Routes
+	r.Add(router.GET, "/app", &controllers.IndexController{})
+	r.Add(router.GET, "/app/*path", &controllers.FileController{})
 
 	// Category Routes
 	r.Add(router.GET, "/api/categories", &views.CategoriesView{})

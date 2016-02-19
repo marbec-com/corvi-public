@@ -119,6 +119,11 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 		return
 	}
 
+	if question == nil {
+		http.Error(rw, "No question to learn for this box.", http.StatusNoContent)
+		return
+	}
+
 	// Generate JSON response
 	rw.Header().Set("Content-Type", "application/json")
 

@@ -125,7 +125,7 @@ func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 		}
 
 		return question, nil */
-	return nil, errors.New("No question to learn for this box.")
+	return nil, nil
 }
 
 func (c *BoxController) loadQuestionsToLearn(b *models.Box) {

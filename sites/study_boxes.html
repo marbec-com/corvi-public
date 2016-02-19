@@ -1,154 +1,26 @@
 <div class="expanded row">
 	<div class="columns show-for-medium"></div>
 	<div class="columns medium-6 small-12 text-right search">
-		<input placeholder="Search" type="text" />
+		<input placeholder="Search" type="text" ng-model="searchText" />
 	</div>
 </div>
 
 <div class="expanded row">
 	<div class="column">
-		<table class="box-table" ng-repeat="category in categories">
+		<table class="box-table" ng-repeat="category in categories" ng-show="(category.Boxes | filter:searchText).length > 0">
 			<thead>
 				<tr>
 					<th colspan="4">{{ category.Name }}</th>
 				</tr>
 			</thead>
-			<tbody>
+			<tbody ng-repeat="box in category.Boxes | filter:searchText">
 				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
+					<td style="width: 60%;">{{ box.Name }}</td>
+					<td style="width: 15%;" class="todo">{{ box.QuestionsUnlearned }}</td>
+					<td style="width: 15%;" class="total">{{ box.QuestionsLearned }}<span class="primary show-for-medium">/{{ box.QuestionsTotal }}</span></td>
+					<td style="width: 10%;" class="learn"><a href="#/study/{{ box.ID }}" class="expanded button">Learn</a></td>
 				</tr>
 			</tbody>
 		</table>
 	</div>
 </div>
-
-<!-- <div class="expanded row">
-	<div class="column">
-		<table class="box-table">
-			<thead>
-				<tr>
-					<th colspan="4">Category</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-			</tbody>
-		</table>
-
-		<table class="box-table">
-			<thead>
-				<tr>
-					<th colspan="4">Category</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-			</tbody>
-		</table>
-
-		<table class="box-table">
-			<thead>
-				<tr>
-					<th colspan="4">Category</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-			</tbody>
-		</table>
-
-		<table class="box-table">
-			<thead>
-				<tr>
-					<th colspan="4">Category</th>
-				</tr>
-			</thead>
-			<tbody>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-				<tr>
-					<td style="width: 60%;">Kitchen</td>
-					<td style="width: 15%;" class="todo">40</td>
-					<td style="width: 15%;" class="total">66<span class="primary show-for-medium">/100</span></td>
-					<td style="width: 10%;" class="learn"><a href="#" class="expanded button">Learn</a></td>
-				</tr>
-			</tbody>
-		</table>
-	</div>
-</div> -->

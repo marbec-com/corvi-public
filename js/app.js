@@ -7,6 +7,11 @@ corviApp.config(function($routeProvider) {
 		controller: 'studyBoxController',
 		navActive: 'study'
 	})
+	.when('/study/:box', {
+		templateUrl: 'sites/study_question.html',
+		controller: 'mainController',
+		navActive: 'study'
+	})
 	.when('/manage', {
 		templateUrl: 'sites/manage.html',
 		controller: 'mainController',
@@ -38,6 +43,15 @@ corviApp.controller('studyBoxController', function($scope, $http, $log) {
 		}else{
 			$log.error(res);
 		}
+		
+		Object.keys($scope.categories).forEach(function(key) {
+			$http.get("/api/category/" + $scope.categories[key].ID + "/boxes").then(function(res) {
+				if(res.status == 200) {
+					$scope.categories[key].Boxes = res.data;
+				}
+				$log.debug($scope.categories);
+			});
+		});
 		
 	});
 });

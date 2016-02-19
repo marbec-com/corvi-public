@@ -113,7 +113,8 @@ body {
     min-height: 100%;
 }
 
-.content-row > .columns {
+.content-row > .columns,
+.content-row > main-navigation > .columns {
     padding-top: 55px;
 }
 
@@ -132,8 +133,7 @@ body {
     transition: background .5s ease, color .5s ease;
 }
 
-.sidebar-nav a:hover,
-.sidebar-nav a:focus {
+.sidebar-nav a:hover {
     background-color: #2ba6cb;
     color: #252526;
     outline: none;
@@ -143,8 +143,7 @@ body {
     color: #2ba6cb;
 }
 
-.sidebar-nav a.active:hover,
-.sidebar-nav a.active:focus {
+.sidebar-nav a.active:hover {
     color: #252526;
     outline: none;
 }

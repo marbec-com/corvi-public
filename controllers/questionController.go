@@ -1,8 +1,45 @@
 package controllers
 
 import (
+	"errors"
 	"marb.ec/corvi-backend/models"
+	"time"
 )
+
+var mockQuestions = []*models.Question{
+	&models.Question{
+		ID:                1,
+		Question:          "Update Statement?",
+		Answer:            "UPDATE table SET key = value",
+		Box:               mockBoxes[0],
+		Next:              time.Now(),
+		CorrectlyAnswered: 0,
+	},
+	&models.Question{
+		ID:                2,
+		Question:          "Insert Statement?",
+		Answer:            "INSERT INTO table (key, key) VALUES (value, value)",
+		Box:               mockBoxes[0],
+		Next:              time.Now(),
+		CorrectlyAnswered: 1,
+	},
+	&models.Question{
+		ID:                3,
+		Question:          "Küche",
+		Answer:            "Kitchen",
+		Box:               mockBoxes[1],
+		Next:              time.Now(),
+		CorrectlyAnswered: 0,
+	},
+	&models.Question{
+		ID:                4,
+		Question:          "Küche",
+		Answer:            "Cuisine",
+		Box:               mockBoxes[2],
+		Next:              time.Now(),
+		CorrectlyAnswered: 3,
+	},
+}
 
 var QuestionControllerSingleton *QuestionController
 
@@ -21,14 +58,18 @@ func NewQuestionController() *QuestionController {
 }
 
 func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
-
-	return []*models.Question{}, nil
+	return mockQuestions, nil
 }
 
 func (c *QuestionController) LoadQuestion(id uint) (*models.Question, error) {
-	// Get box from cache, otherwise load
 
-	return &models.Question{}, nil
+	for _, q := range mockQuestions {
+		if q.ID == id {
+			return q, nil
+		}
+	}
+
+	return nil, errors.New("Question not found.")
 }
 
 func (c *QuestionController) GiveCorrectAnswer(id uint) error {

@@ -3,7 +3,26 @@ package controllers
 import (
 	"errors"
 	"marb.ec/corvi-backend/models"
+	"math/rand"
 )
+
+var mockBoxes = []*models.Box{
+	&models.Box{
+		ID:       1,
+		Name:     "SQL Statements",
+		Category: mockCategories[0],
+	},
+	&models.Box{
+		ID:       2,
+		Name:     "English - Kitchen",
+		Category: mockCategories[1],
+	},
+	&models.Box{
+		ID:       3,
+		Name:     "French - Cuisine",
+		Category: mockCategories[1],
+	},
+}
 
 var BoxControllerSingleton *BoxController
 
@@ -28,7 +47,7 @@ func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
 
 	// Save in BaxCache
 
-	return []*models.Box{}, nil
+	return mockBoxes, nil
 }
 
 func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
@@ -37,12 +56,18 @@ func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 		return box, nil
 	}
 
+	for _, box := range mockBoxes {
+		if box.ID == id {
+			return box, nil
+		}
+	}
+
 	// Load Box SQL
 
 	// Store in Cache
 	//BoxCache[box.ID] = box
 
-	return &models.Box{}, nil
+	return nil, errors.New("Box not found.")
 }
 
 func (c *BoxController) refreshBox(box *models.Box) error {
@@ -54,28 +79,50 @@ func (c *BoxController) refreshBox(box *models.Box) error {
 
 func (c *BoxController) LoadQuestions(id uint) ([]*models.Question, error) {
 
-	return []*models.Question{}, nil
-}
-
-func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
-	box, err := c.LoadBox(id)
+	_, err := c.LoadBox(id)
 	if err != nil {
 		return nil, err
 	}
 
-	// Load more questions if heap is nil.
-	if box.QuestionsToLearn.Length() == 0 {
-		c.loadQuestionsToLearn(box)
+	questions := []*models.Question{}
+	for _, q := range mockQuestions {
+		if q.Box.ID == id {
+			questions = append(questions, q)
+		}
 	}
 
-	// Get next question in heap. Might be nil if no questions are remaining for this day
-	question := box.QuestionsToLearn.Min()
+	return questions, nil
+}
 
-	if question == nil {
-		return nil, errors.New("No question to learn for this box.")
+func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
+	_, err := c.LoadBox(id)
+	if err != nil {
+		return nil, err
 	}
 
-	return question, nil
+	questions, err := c.LoadQuestions(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return questions[rand.Intn(len(questions))], nil
+
+	/*
+
+		// Load more questions if heap is nil.
+		if box.QuestionsToLearn.Length() == 0 {
+			c.loadQuestionsToLearn(box)
+		}
+
+		// Get next question in heap. Might be nil if no questions are remaining for this day
+		question := box.QuestionsToLearn.Min()
+
+		if question == nil {
+			return nil, errors.New("No question to learn for this box.")
+		}
+
+		return question, nil */
+	return nil, errors.New("No question to learn for this box.")
 }
 
 func (c *BoxController) loadQuestionsToLearn(b *models.Box) {

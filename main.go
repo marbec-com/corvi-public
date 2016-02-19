@@ -29,8 +29,8 @@ func main() {
 	// Question Routes
 	r.Add(router.GET, "/api/questions", &views.QuestionsView{})
 	r.Add(router.GET, "/api/question/:id", &views.QuestionView{})
-	r.Add(router.GET, "/api/question/:id/giveCorrectAnswer", &views.QuestionGiveCorrectAnswerView{})
-	r.Add(router.GET, "/api/question/:id/giveWrongAnswer", &views.QuestionGiveWrongAnswerView{})
+	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", &views.QuestionGiveCorrectAnswerView{})
+	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &views.QuestionGiveWrongAnswerView{})
 
 	// Statistics Routes
 

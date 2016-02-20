@@ -71,7 +71,7 @@ corviApp.controller('studyFinishedController', function($scope, $routeParams, $l
 	
 });
 
-corviApp.controller('studyQuestionController', function($scope, $routeParams, $location, Questions) {
+corviApp.controller('studyQuestionController', function($scope, $routeParams, $log, $location, Questions) {
 	
 	var boxID = parseInt($routeParams.box, 10);
 	if (isNaN(boxID)) {

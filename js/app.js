@@ -19,6 +19,26 @@ corviApp.config(function($routeProvider) {
 	})
 	.when('/manage', {
 		templateUrl: 'sites/manage.html',
+		controller: 'manageBoxesController',
+		navActive: 'manage'
+	})
+	.when('/manage/addBox', {
+		templateUrl: 'sites/manage.html',
+		controller: 'mainController',
+		navActive: 'manage'
+	})
+	.when('/manage/addCategory', {
+		templateUrl: 'sites/manage.html',
+		controller: 'mainController',
+		navActive: 'manage'
+	})
+	.when('/manage/:box/edit', {
+		templateUrl: 'sites/manage.html',
+		controller: 'mainController',
+		navActive: 'manage'
+	})
+	.when('/manage/:box/questions', {
+		templateUrl: 'sites/manage.html',
 		controller: 'mainController',
 		navActive: 'manage'
 	})
@@ -116,6 +136,14 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 
 corviApp.controller('mainController', function($scope) {
 	$scope.message = 'Hello Angular!';
+});
+
+corviApp.controller('manageBoxesController', function($scope, Categories) {
+	$scope.categories = {};
+	
+	Categories.getAllWithBoxes(function(data) {
+		$scope.categories = data;
+	});
 });
 
 corviApp.directive('mainNavigation', function() {

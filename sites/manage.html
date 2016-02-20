@@ -1,3 +1,39 @@
-Manage
+<div class="expanded row">
+	<div clasS="columns medium-6 show-for-medium">
+		<a href="#/manage/addCategory" class="button">New Category</a>
+		<a href="#/manage/addBox" class="button">New Box</a>
+	</div>
+	<div class="columns small-12 show-for-small-only">
+		<a href="#/manage/addCategory" class="button expanded">New Category</a>
+	</div>
+	<div class="columns small-12 show-for-small-only">
+		<a href="#/manage/addBox" class="button expanded">New Box</a>
+	</div>
+	<div class="columns medium-6 small-12 text-right search">
+		<input placeholder="Search" type="text" ng-model="searchText" />
+	</div>
+</div>
 
-{{ message }}
+<div class="expanded row">
+	<div class="column">
+		<table class="box-table" ng-repeat="category in categories" ng-show="(category.Boxes | filter:searchText).length > 0">
+			<thead>
+				<tr>
+					<th colspan="4">{{ category.Name }}</th>
+				</tr>
+			</thead>
+			<tbody ng-repeat="box in category.Boxes | filter:searchText">
+				<tr>
+					<td style="width: 60%;">
+						{{ box.Name }}
+						<span ng-show="box.Description" class="box-description"><br />{{ box.Description }}</span>
+					</td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/{{ box.ID }}/edit" class="expanded button">Edit</a></td>
+					<td style="width: 10%;" class="button-td"><a class="expanded button">Publish</a></td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/{{ box.ID }}/questions" class="expanded button">Questions</a></td>
+					<td style="width: 10%;" class="button-td"><a class="expanded button alert">Delete</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

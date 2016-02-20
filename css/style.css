@@ -190,9 +190,9 @@ body {
 }
 
 .box-table tbody tr {
+	padding: 0px;
     margin-bottom: 10px;
     padding-bottom: 10px;
-    border: 1px solid #000000;
 }
 
 .box-table tbody tr td {
@@ -202,6 +202,8 @@ body {
 .box-table tbody tr td .button {
     margin: 0px;
     border-radius: 0px;
+	border: none;
+	line-height: 1.3em;
 }
 
 .box-table .learn {
@@ -210,7 +212,7 @@ body {
 }
 
 .box-table .todo {
-    color: red;
+    color: #2ba6cb;
 }
 
 .box-table .total {

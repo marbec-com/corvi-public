@@ -41,6 +41,8 @@ corviApp.config(function($routeProvider) {
 	});
 });
 
+// Move $http in service
+
 corviApp.controller('studyBoxController', function($scope, $http, $log) {
 	$scope.categories = {};
 	$http.get("/api/categories").then(function(res) {
@@ -148,4 +150,6 @@ corviApp.directive('mainNavigation', function() {
 
 corviApp.controller('mainNavigationController', function($scope, $route) {
 	$scope.$route = $route;
+	
+	$scope.studyBadge = 3;
 });

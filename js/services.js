@@ -41,6 +41,11 @@ corviServices.factory('Categories', function($http, $log) {
 		});
 	};
 	
+	CategoryService.update = function(category, callback) {
+		delete(category.Boxes);
+		$log.debug(category);
+	};
+	
 	return CategoryService;
 });
 

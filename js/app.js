@@ -64,7 +64,7 @@ corviApp.config(function($routeProvider) {
 // Move $http in service
 
 corviApp.controller('studyBoxController', function($scope, Categories) {
-	$scope.categories = {};
+	$scope.categories = [];
 	
 	Categories.getAllWithBoxes(function(data) {
 		$scope.categories = data;
@@ -138,12 +138,43 @@ corviApp.controller('mainController', function($scope) {
 	$scope.message = 'Hello Angular!';
 });
 
-corviApp.controller('manageBoxesController', function($scope, Categories) {
-	$scope.categories = {};
+corviApp.controller('manageBoxesController', function($scope, $log, Categories) {
+	$scope.categories = [];
+	$scope.form = {};
 	
 	Categories.getAllWithBoxes(function(data) {
 		$scope.categories = data;
 	});
+	
+	$scope.renameCategoryModal = function(catKey) {
+		$(document).foundation();
+		$('#categoryRenameModal').foundation('open');
+		$scope.form.catKey = catKey;
+		$scope.form.category = angular.copy($scope.categories[catKey]);
+	};
+	
+	$scope.renameCategoryReset = function(form) {
+		// Reset form elements
+		if (form) {
+			form.$setPristine();
+			form.$setUntouched();
+		}
+		// Close and reset data
+		$('#categoryRenameModal').foundation('close');
+		$scope.form.catKey = -1;
+		$scope.form.category = {};
+	};
+	
+	$scope.renameCategorySave = function(form) {
+		$log.debug(form);
+		
+		// Save
+		$scope.categories[form.catKey] = angular.copy($scope.form.category);
+		var copy = angular.copy($scope.form.category);
+		Categories.update(copy, function() {});
+		$scope.renameCategoryReset(form);
+	};
+		
 });
 
 corviApp.directive('mainNavigation', function() {

@@ -203,7 +203,8 @@ body {
     background-color: #fff;
 }
 
-.box-table tbody tr td .button {
+.box-table tbody tr td .button,
+.box-table thead tr th .button {
     margin: 0px;
     border-radius: 0px;
 	border: none;

@@ -7,13 +7,13 @@
 
 <div class="expanded row">
 	<div class="column">
-		<table class="box-table" ng-repeat="category in categories" ng-show="(category.Boxes | filter:searchText).length > 0">
+		<table class="box-table" ng-repeat="category in categories | orderBy:'Name'" ng-show="(category.Boxes | filter:searchText).length > 0">
 			<thead>
 				<tr>
 					<th colspan="4">{{ category.Name }}</th>
 				</tr>
 			</thead>
-			<tbody ng-repeat="box in category.Boxes | filter:searchText">
+			<tbody ng-repeat="box in category.Boxes | filter:searchText | orderBy:'-QuestionsToLearn'">
 				<tr>
 					<td style="width: 60%;">{{ box.Name }}</td>
 					<td style="width: 15%;" class="todo">{{ box.QuestionsToLearn }}</td>

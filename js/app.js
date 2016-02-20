@@ -1,4 +1,4 @@
-var corviApp = angular.module('corviApp', ['ngRoute']);
+var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices']);
 
 corviApp.config(function($routeProvider) {
 	$routeProvider
@@ -43,38 +43,25 @@ corviApp.config(function($routeProvider) {
 
 // Move $http in service
 
-corviApp.controller('studyBoxController', function($scope, $http, $log) {
+corviApp.controller('studyBoxController', function($scope, Categories) {
 	$scope.categories = {};
-	$http.get("/api/categories").then(function(res) {
-		$scope.categories = res.data;
-		Object.keys($scope.categories).forEach(loadBoxForCategory);
-	}, function(res) {
-		$log.error(res);
+	
+	Categories.getAllWithBoxes(function(data) {
+		$scope.categories = data;
 	});
-	
-	function loadBoxForCategory(catID) {
-		$http.get("/api/category/" + $scope.categories[catID].ID + "/boxes").then(function(res) {
-			$scope.categories[catID].Boxes = res.data;
-		}, function(res) {
-			$log.error(res);
-		});
-	}
-	
 });
 
-corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, $http) {
+corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, Boxes) {
 	
-	var id = parseInt($routeParams.box, 10)
+	var id = parseInt($routeParams.box, 10);
 	if (isNaN(id)) {
 		$log.error("Invalid ID!");
 	}
 	
 	$scope.box = {};
-	
-	$http.get("/api/box/"+id+"/").then(function(res) {
-		$scope.box = res.data;
+	Boxes.get(id, function(data) {
+		$scope.box = data;
 	}, function(res) {
-		$log.error(res);
 		$location.path("/");
 	});
 	
@@ -84,37 +71,31 @@ corviApp.controller('studyFinishedController', function($scope, $routeParams, $l
 	
 });
 
-corviApp.controller('studyQuestionController', function($scope, $routeParams, $log, $location, $http) {
+corviApp.controller('studyQuestionController', function($scope, $routeParams, $location, Questions) {
 	
-	var boxId = parseInt($routeParams.box, 10)
-	if (isNaN(boxId)) {
+	var boxID = parseInt($routeParams.box, 10);
+	if (isNaN(boxID)) {
 		$log.error("Invalid ID!");
 	}
 
-	loadNewQuestion(boxId);	
+	loadNewQuestion(boxID);	
 	
 	$scope.showSolution = function() {
 		$scope.answered = true;	
 	};
 	
 	$scope.giveCorrectAnswer = function() {
-		// Save correct answer
-		$http.put("/api/question/"+$scope.question.ID+"/giveCorrectAnswer").then(function(res) {
-			// Load next question
-			loadNewQuestion(boxId);	
-		}, function(res) {
-			$log.error(res);
+		Questions.giveCorrectAnswer($scope.question.ID, function() {
+			loadNewQuestion(boxID);	
+		}, function() {
 			$location.path("/");
 		});
 	};
 	
 	$scope.giveWrongAnswer = function() {
-		// Save correct answer
-		$http.put("/api/question/"+$scope.question.ID+"/giveWrongAnswer").then(function(res) {
-			// Load next question
-			loadNewQuestion(boxId);	
-		}, function(res) {
-			$log.error(res);
+		Questions.giveWrongAnswer($scope.question.ID, function() {
+			loadNewQuestion(boxID);	
+		}, function() {
 			$location.path("/");
 		});
 	};
@@ -123,14 +104,11 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 		$scope.answered = false;
 		$scope.question = {};
 		
-		$http.get("/api/box/"+boxID+"/getQuestionToLearn").then(function(res) {
-			if(res.status == 200) {
-				$scope.question = res.data;
-			}else{ // No more questions
-				$location.path("/study/"+boxID+"/finished");
-			}
-		}, function(res) { // Error
-			$log.error(res);
+		Questions.getQuestionToLearn(boxID, function(data) {
+			$scope.question = data;
+		}, function() {
+			$location.path("/study/"+boxID+"/finished");
+		}, function(res) {
 			$location.path("/");
 		});
 	};
@@ -145,7 +123,7 @@ corviApp.directive('mainNavigation', function() {
 		retrict: 'E',
 		templateUrl: 'partials/mainNavigation.html',
 		controller: 'mainNavigationController'
-	}
+	};
 });
 
 corviApp.controller('mainNavigationController', function($scope, $route) {

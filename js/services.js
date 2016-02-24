@@ -1,63 +1,100 @@
 var corviServices = angular.module('corviServices', []);
 
-corviServices.factory('Categories', function($http, $log) {
+corviServices.factory('Categories', function($http, $log, Boxes) {
 	var CategoryService = {};
 	
-	CategoryService.getAll = function(callback) {
+	CategoryService.Categories = [];
+	CategoryService.CategoriesRaw = {};
+	
+	var RawToArray = function() {
+		CategoryService.Categories.length = 0;
+		Object.keys(CategoryService.CategoriesRaw).forEach(function(key) {
+			CategoryService.Categories.push(CategoryService.CategoriesRaw[key]);
+		});
+	};
+	
+	var AssignBoxes = function() {
+		for (var i = 0; i < Boxes.Boxes.length; i++) {
+			CategoryService.CategoriesRaw[Boxes.Boxes[i].Category.ID].Boxes.push(Boxes.Boxes[i]);
+		}
+	};
+	
+	CategoryService.Update = function(callback) {
 		$http.get("/api/categories/").then(function(res) {
-			callback(res.data);
+			CategoryService.CategoriesRaw = {};
+			for (var i = 0; i < res.data.length; i++) {
+				CategoryService.CategoriesRaw[res.data[i].ID] = res.data[i];
+				CategoryService.CategoriesRaw[res.data[i].ID].Boxes = [];
+			}
+			AssignBoxes();
+			RawToArray();
+			$log.debug(CategoryService.Categories);
+			if (callback) {
+				callback();
+			}
 		}, function(res) {
 			$log.error(res);
 		});
 	};
 	
-	CategoryService.getAllWithBoxes = function(callback) {
-		$http.get("/api/categories/").then(function(res) {
-			var categories = res.data;
-			Object.keys(categories).forEach(function(key) {
-				CategoryService.getBoxes(categories[key].ID, function(data) {
-					categories[key].Boxes = data;
-				});
-			});
-			callback(categories);
-		}, function(res) {
-			$log.error(res);
-		});
-	};
-	
-	CategoryService.get = function(catID, callback) {
+	CategoryService.UpdateCategory = function(catID, callback) {
 		$http.get("/api/category/"+catID+"/").then(function(res) {
-			callback(res.data);
+			CategoryService.CategoriesRaw[res.data.ID] = res.data;
+			CategoryService.CategoriesRaw[res.data.ID].Boxes = [];
+			AssignBoxes();
+			RawToArray();
+			callback();
 		}, function(res) {
 			$log.error(res);
 		});
-	};
-	
-	CategoryService.getBoxes = function(catID, callback) {
-		$http.get("/api/category/"+catID+"/boxes/").then(function(res) {
-			callback(res.data);
-		}, function(res) {
-			$log.error(res);
-		});
-	};
-	
-	CategoryService.update = function(category, callback) {
-		delete(category.Boxes);
-		$log.debug(category);
 	};
 	
 	return CategoryService;
 });
 
+// TODO save boxes in arrays by catID, same for questions
+/*
+boxes = {}
+boxes[catID] = [a, b, c]...
+*/
 corviServices.factory('Boxes', function($http, $log) {
 	var BoxService = {};
 	
-	BoxService.get = function(boxID, success, error) {
-		$http.get("/api/box/"+boxID+"/").then(function(res) {
-			success(res.data);
+	BoxService.Boxes = [];
+	BoxService.BoxesRaw = {};
+	
+	var RawToArray = function() {
+		BoxService.Boxes.length = 0;
+		Object.keys(BoxService.BoxesRaw).forEach(function(key) {
+			BoxService.Boxes.push(BoxService.BoxesRaw[key]);
+		});
+	};
+	
+	BoxService.Update = function(callback) {
+		$http.get("/api/boxes/").then(function(res) {
+			BoxService.Boxes = res.data;
+			BoxService.BoxesRaw = {};
+			for (var i = 0; i < res.data.length; i++) {
+				BoxService.BoxesRaw[res.data[i].ID] = res.data[i];
+				// TODO Update Questions
+			}
+			RawToArray();
+			$log.debug(BoxService.Boxes);
+			$log.debug(BoxService.BoxesRaw);
+			callback();
 		}, function(res) {
 			$log.error(res);
-			error(res);
+		});
+	};
+	
+	BoxService.UpdateBox = function(boxID, callback) {
+		$http.get("/api/box/"+boxID+"/").then(function(res) {
+			BoxService.BoxesRaw[res.data.ID] = res.data;
+			// TODO Update Questions
+			RawToArray();
+			callback();
+		}, function(res) {
+			$log.error(res);
 		});
 	};
 	
@@ -115,9 +152,7 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 		switch(res.data) {
 			case "categories":
 				$log.debug("Update categories");
-				Categories.getAll(function(data) {
-					$log.debug(data);
-				});
+				Categories.Update();
 				// load categories
 				break;
 			case "boxes":

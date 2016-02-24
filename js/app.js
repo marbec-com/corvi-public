@@ -69,19 +69,28 @@ corviApp.config(function($routeProvider) {
 	});
 });
 
-// Move $http in service
-
-corviApp.controller('studyBoxController', function($scope, Categories) {
+corviApp.controller('studyBoxController', function($scope, $log, Categories, Boxes) {
 	$scope.categories = [];
 	
-	Categories.getAllWithBoxes(function(data) {
-		$scope.categories = data;
+	$scope.categories = Categories.Categories;
+	
+	Boxes.Update(function() {
+		Categories.Update(function() {
+			
+		});
 	});
+	
+	
+	$log.debug($scope.categories);
+	
+	/* Categories.getAllWithBoxes(function(data) {
+		$scope.categories = data;
+	}); */
 });
 
 corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, Boxes) {
 	
-	var id = parseInt($routeParams.box, 10);
+	/* var id = parseInt($routeParams.box, 10);
 	if (isNaN(id)) {
 		$log.error("Invalid ID!");
 	}
@@ -95,13 +104,13 @@ corviApp.controller('studyFinishedController', function($scope, $routeParams, $l
 	
 	$scope.getBack = function() {
 		$location.path("/");
-	};
+	}; */
 	
 });
 
 corviApp.controller('studyQuestionController', function($scope, $routeParams, $log, $location, Questions) {
 	
-	var boxID = parseInt($routeParams.box, 10);
+	/* var boxID = parseInt($routeParams.box, 10);
 	if (isNaN(boxID)) {
 		$log.error("Invalid ID!");
 	}
@@ -139,14 +148,14 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 		}, function(res) {
 			$location.path("/");
 		});
-	};
+	}; */
 });
 
 corviApp.controller('mainController', function($scope) {
 });
 
 corviApp.controller('manageBoxesController', function($scope, $log, Categories) {
-	$scope.categories = [];
+	/* $scope.categories = [];
 	$scope.form = {};
 	
 	Categories.getAllWithBoxes(function(data) {
@@ -180,7 +189,7 @@ corviApp.controller('manageBoxesController', function($scope, $log, Categories) 
 		var copy = angular.copy($scope.form.category);
 		Categories.update(copy, function() {});
 		$scope.renameCategoryReset(form);
-	};
+	}; */
 		
 });
 

@@ -1,5 +1,13 @@
 var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices']);
 
+corviApp.run(function($window, Notify) {
+	Notify.connect();
+	
+	$window.onbeforeunload = function() {
+		Notify.Destroy();
+	};
+});
+
 corviApp.config(function($routeProvider) {
 	$routeProvider
 	.when('/', {
@@ -135,7 +143,6 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 });
 
 corviApp.controller('mainController', function($scope) {
-	$scope.message = 'Hello Angular!';
 });
 
 corviApp.controller('manageBoxesController', function($scope, $log, Categories) {

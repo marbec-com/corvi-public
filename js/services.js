@@ -101,3 +101,64 @@ corviServices.factory('Questions', function($http, $log) {
 	
 	return QuestionService;
 });
+
+corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questions) {
+	var NotifyService = {};
+	
+	$log.debug("NotifyService");
+	
+	NotifyService.onOpen = function(res) {
+		$log.debug("Open: ", res);
+	};
+	
+	NotifyService.onMessage = function(res) {
+		switch(res.data) {
+			case "categories":
+				$log.debug("Update categories");
+				Categories.getAll(function(data) {
+					$log.debug(data);
+				});
+				// load categories
+				break;
+			case "boxes":
+				$log.debug("Update boxes");
+				// load boxes
+				break;
+			case "questions":
+				$log.debug("Update questions");
+				// load questions
+				break;
+			default:
+				$log.debug("Unknown message: ", res);
+		}
+	};
+	
+	NotifyService.onError = function(res) {
+		$log.debug("Error: ", res);
+	};
+	
+	NotifyService.onClose = function(res) {
+		$log.debug("Close: ", res);
+	};
+	
+	NotifyService.connect = function() {
+		try {
+			NotifyService.sock = new WebSocket("ws://127.0.0.1:8080/sock");
+			$log.debug("Websocket - status: " + NotifyService.sock.readyState);
+			NotifyService.sock.onopen = NotifyService.onOpen;
+			NotifyService.sock.onmessage = NotifyService.onMessage;
+			NotifyService.sock.onerror = NotifyService.onError;
+			NotifyService.sock.onclose = NotifyService.onClose;
+		} catch(exception) {
+			$log.error(exception);
+		}
+	};
+	
+	NotifyService.Destroy = function() {
+		$log.debug("Close ws");
+		NotifyService.onClose = function() {};
+		NotifyService.sock.close();	
+	};
+		
+	return NotifyService;
+});

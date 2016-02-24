@@ -8,19 +8,28 @@ import (
 
 var mockBoxes = []*models.Box{
 	&models.Box{
-		ID:       1,
-		Name:     "SQL Statements",
-		Category: mockCategories[0],
+		ID:               1,
+		Name:             "SQL Statements",
+		Category:         mockCategories[0],
+		QuestionsToLearn: 2,
+		QuestionsTotal:   2,
+		QuestionsLearned: 0,
 	},
 	&models.Box{
-		ID:       2,
-		Name:     "English - Kitchen",
-		Category: mockCategories[1],
+		ID:               2,
+		Name:             "English - Kitchen",
+		Category:         mockCategories[1],
+		QuestionsToLearn: 1,
+		QuestionsTotal:   1,
+		QuestionsLearned: 0,
 	},
 	&models.Box{
-		ID:       3,
-		Name:     "French - Cuisine",
-		Category: mockCategories[1],
+		ID:               3,
+		Name:             "French - Cuisine",
+		Category:         mockCategories[1],
+		QuestionsToLearn: 0,
+		QuestionsTotal:   1,
+		QuestionsLearned: 1,
 	},
 }
 
@@ -133,7 +142,8 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 	// SELECT * FROM Questions WHERE BoxID = b.ID ORDER BY Next DESC LIMIT 20
 
 	// Skip if question.Next.After(time.Now())
-	// TODO: Update to give questions for whole day
+	// TODO(mjb): Update to give questions for whole day
+	// TODO(mjb): Add possibility to let user  learn ahead
 
 	//b.questionsToLearn.Add()
 

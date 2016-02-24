@@ -1,15 +1,34 @@
 package main
 
 import (
+	"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
+	"marb.ec/maf/events"
+	"marb.ec/maf/interfaces"
 	"marb.ec/maf/router"
+	"marb.ec/maf/wsnotify"
 	"net/http"
+	"time"
 )
 
 func main() {
 
 	r := router.NewTreeRouter()
+
+	go func() {
+		eh := events.Events()
+		for _ = range time.Tick(10 * time.Second) {
+			err := eh.Publish(interfaces.Topic("categories"), nil)
+			log.Printf("Publish: %v", err)
+		}
+	}()
+
+	topics := []interfaces.Topic{"categories", "boxes", "questions"}
+	ns := wsnotify.NewWSNotificationService(topics)
+
+	// WS Notify Routes
+	r.Add(router.GET, "/sock", ns)
 
 	// Static Routes
 	r.Add(router.GET, "/app", &controllers.IndexController{})

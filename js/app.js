@@ -71,8 +71,10 @@ corviApp.config(function($routeProvider) {
 
 corviApp.controller('studyBoxController', function($scope, $log, Categories, Boxes) {
 	$scope.categories = Categories.CategoriesAll;
+	$scope.boxesByCatID = Boxes.BoxesByCatID;
 	
 	Categories.Update();
+	Boxes.Update();
 	
 	$log.debug($scope.categories);
 });

@@ -4,4 +4,8 @@ var ClearObject = function(obj) {
 			delete obj[key];
 		}
 	}
-}
+};
+
+var StartsWith = function(str, prefix) {
+	return (str.indexOf(prefix) === 0)
+};

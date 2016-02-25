@@ -27,17 +27,11 @@ corviServices.factory('Categories', function($http, $log) {
 	};
 	
 	CategoryService.UpdateSingle = function(catID) {
-		var id = parseInt(catID, 10);
-		if (isNaN(id)) {
-			$log.error("Invalid catID!");
-			return
-		}
-	
-		$http.get("/api/category/"+id+"/").then(function(res) {
+		$http.get("/api/category/"+catID+"/").then(function(res) {
 			// Update individual entry in CategoryService.CategoriesByID, preserve reference
 			// This also updates the same object in CategoryService.CategoriesAll
 			var newCategory = angular.copy(res.data);
-			angular.copy(newCategory, CategoryService.CategoriesByID[id]);
+			angular.copy(newCategory, CategoryService.CategoriesByID[catID]);
 		}, function(res) {
 			$log.error(res);
 		});	
@@ -76,28 +70,16 @@ corviServices.factory('Boxes', function($http, $log) {
 	};
 	
 	BoxService.UpdateSingle = function(boxID) {
-		var id = parseInt(boxID, 10);
-		if (isNaN(id)) {
-			$log.error("Invalid boxID!");
-			return
-		}
-	
-		$http.get("/api/box/"+id+"/").then(function(res) {
+		$http.get("/api/box/"+boxID+"/").then(function(res) {
 			var newBox = angular.copy(res.data);
-			angular.copy(newBox, BoxService.BoxesByID[id]);
+			angular.copy(newBox, BoxService.BoxesByID[boxID]);
 		}, function(res) {
 			$log.error(res);
 		});	
 	};
 	
 	BoxService.UpdateCategory = function(catID) {
-		var id = parseInt(catID, 10);
-		if (isNaN(id)) {
-			$log.error("Invalid catID!");
-			return
-		}
-		
-		$http.get("/api/category/"+id+"/boxes/").then(function(res) {
+		$http.get("/api/category/"+catID+"/boxes/").then(function(res) {
 			// Clear array of BoxesByCatID object or create a new one, but preserve reference
 			if (!(catID in BoxService.BoxesByCatID)) {
 				BoxService.BoxesByCatID[catID] = [];
@@ -124,6 +106,18 @@ corviServices.factory('Boxes', function($http, $log) {
 
 corviServices.factory('Questions', function($http, $log) {
 	var QuestionService = {};
+	
+	QuestionService.Update = function() {
+		
+	};
+	
+	QuestionService.UpdateSingle = function(qID) {
+		
+	};
+	
+	QuestionService.UpdateBox = function(boxID) {
+		
+	};
 	
 	/* QuestionService.getQuestionToLearn = function(boxID, question, finished, error) {
 		$http.get("/api/box/"+boxID+"/getQuestionToLearn").then(function(res) {
@@ -164,42 +158,67 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 	
 	$log.debug("NotifyService");
 	
+	var parseID = function(message) {
+		var parts = message.split("-");
+		if(parts.length != 2) {
+			return -1
+		}
+		var id = parseInt(parts[1], 10);
+		if (isNaN(id)) {
+			return -1
+		}
+		return id
+	};
+	
 	NotifyService.onOpen = function(res) {
-		$log.debug("Open: ", res);
+		$log.debug("Websocket connection opened: ", res);
 	};
 	
 	NotifyService.onMessage = function(res) {
-		$log.debug("Incoming message: ", res);
-		switch(res.data) {
-			case "categories":
-				$log.debug("Update categories");
-				Categories.Update();
-				// load categories
-				break;
-			case "category-1":
-				Categories.UpdateSingle(1);
-				break;
-			case "boxes":
-				$log.debug("Update boxes");
-				Boxes.Update();
-				// load boxes
-				break;
-			case "box-1":
-				$log.debug("Update boxes");
-				Boxes.UpdateSingle(1);
-				// load boxes
-				break;
-			case "boxcat-1":
-				$log.debug("Update boxes");
-				Boxes.UpdateCategory(1);
-				// load boxes
-				break;
-			case "questions":
-				$log.debug("Update questions");
-				// load questions
-				break;
-			default:
-				$log.debug("Unknown message: ", res);
+		$log.debug("Incoming Websocket notification: ", res);
+		if(res.data == "categories") {
+			Categories.Update();
+		}else if(StartsWith(res.data, "category-")) {
+			var catID = parseID(res.data);
+			if(catID === -1) {
+				$log.error("Invalid ID: ", catID);
+				return
+			}
+			Categories.UpdateSingle(catID);
+		}else if(res.data == "boxes") {
+			Boxes.Update();
+		}else if(StartsWith(res.data, "box-")) {
+			var boxID = parseID(res.data);
+			if(boxID === -1) {
+				$log.error("Invalid ID: ", boxID);
+				return
+			}
+			Boxes.UpdateSingle(boxID);
+		}else if(StartsWith(res.data, "boxcat-")) {
+			var catID = parseID(res.data);
+			if(catID === -1) {
+				$log.error("Invalid ID: ", catID);
+				return
+			}
+			Boxes.UpdateCategory(catID);
+		}else if(res.data == "questions") {
+			Questions.Update();
+		}else if(StartsWith(res.data, "question-")) {
+			var qID = parseID(res.data);
+			if(qID === -1) {
+				$log.error("Invalid ID: ", qID);
+				return
+			}
+			Questions.UpdateSingle(qID);
+		}else if(StartsWith(res.data, "questionbox-")) {
+			var boxID = parseID(res.data);
+			if(boxID === -1) {
+				$log.error("Invalid ID: ", boxID);
+				return
+			}
+			Questions.UpdateBox(boxID);
+		}else{
+			$log.debug("Unknown Websocket notification: ", res);
 		}
 	};
 	
@@ -214,7 +233,6 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 	NotifyService.connect = function() {
 		try {
 			NotifyService.sock = new WebSocket("ws://127.0.0.1:8080/sock");
-			$log.debug("Websocket - status: " + NotifyService.sock.readyState);
 			NotifyService.sock.onopen = NotifyService.onOpen;
 			NotifyService.sock.onmessage = NotifyService.onMessage;
 			NotifyService.sock.onerror = NotifyService.onError;

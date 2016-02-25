@@ -6,8 +6,8 @@
 </div>
 
 <div class="expanded row">
-	<div class="column">
-		<table class="box-table" ng-repeat="category in categories | orderBy:'Name'" ng-show="(category.Boxes | filter:searchText).length > 0">
+	<div class="column"><!--  ng-show="(category.Boxes | filter:searchText).length > 0" -->
+		<table class="box-table" ng-repeat="category in categories | orderBy:'Name'">
 			<thead>
 				<tr>
 					<th colspan="4">{{ category.Name }}</th>

@@ -1,52 +1,56 @@
+/* global angular */
 var corviServices = angular.module('corviServices', []);
 
-corviServices.factory('Categories', function($http, $log, Boxes) {
+corviServices.factory('Categories', function($http, $log) {
 	var CategoryService = {};
 	
-	CategoryService.Categories = [];
-	CategoryService.CategoriesRaw = {};
+	CategoryService.CategoriesAll = [];
+	CategoryService.CategoriesByID = {};
 	
-	var RawToArray = function() {
-		CategoryService.Categories.length = 0;
-		Object.keys(CategoryService.CategoriesRaw).forEach(function(key) {
-			CategoryService.Categories.push(CategoryService.CategoriesRaw[key]);
-		});
-	};
-	
-	var AssignBoxes = function() {
-		for (var i = 0; i < Boxes.Boxes.length; i++) {
-			CategoryService.CategoriesRaw[Boxes.Boxes[i].Category.ID].Boxes.push(Boxes.Boxes[i]);
+	var clearObject = function(obj) {
+		for (var key in obj){
+			if (obj.hasOwnProperty(key)){
+				delete obj[key];
+			}
 		}
-	};
+	}
 	
-	CategoryService.Update = function(callback) {
+	CategoryService.Update = function() {
 		$http.get("/api/categories/").then(function(res) {
-			CategoryService.CategoriesRaw = {};
+			// Clear array and object, but preserve reference
+			CategoryService.CategoriesAll.length = 0;
+			clearObject(CategoryService.CategoriesByID);
+			
+			// Fill with new data
 			for (var i = 0; i < res.data.length; i++) {
-				CategoryService.CategoriesRaw[res.data[i].ID] = res.data[i];
-				CategoryService.CategoriesRaw[res.data[i].ID].Boxes = [];
+				var newCategory = angular.copy(res.data[i]);
+				CategoryService.CategoriesAll.push(newCategory);
+				CategoryService.CategoriesByID[newCategory.ID] = newCategory;				
 			}
-			AssignBoxes();
-			RawToArray();
-			$log.debug(CategoryService.Categories);
-			if (callback) {
-				callback();
-			}
+				
+			$log.debug(CategoryService.CategoriesAll, CategoryService.CategoriesByID);
 		}, function(res) {
 			$log.error(res);
-		});
+		}); 
 	};
 	
-	CategoryService.UpdateCategory = function(catID, callback) {
-		$http.get("/api/category/"+catID+"/").then(function(res) {
-			CategoryService.CategoriesRaw[res.data.ID] = res.data;
-			CategoryService.CategoriesRaw[res.data.ID].Boxes = [];
-			AssignBoxes();
-			RawToArray();
-			callback();
+	CategoryService.UpdateSingle = function(catID) {
+		var id = parseInt(catID, 10);
+		if (isNaN(id)) {
+			$log.error("Invalid catID!");
+			return
+		}
+	
+		$http.get("/api/category/"+id+"/").then(function(res) {
+			// Update individual entry in CategoryService.CategoriesByID, preserve reference
+			// This also updates the same object in CategoryService.CategoriesAll
+			$log.debug("Update category: ", id, res.data);
+			
+			var newCategory = angular.copy(res.data);
+			angular.copy(newCategory, CategoryService.CategoriesByID[id]);
 		}, function(res) {
 			$log.error(res);
-		});
+		});	
 	};
 	
 	return CategoryService;
@@ -60,7 +64,7 @@ boxes[catID] = [a, b, c]...
 corviServices.factory('Boxes', function($http, $log) {
 	var BoxService = {};
 	
-	BoxService.Boxes = [];
+	/* BoxService.Boxes = [];
 	BoxService.BoxesRaw = {};
 	
 	var RawToArray = function() {
@@ -96,7 +100,7 @@ corviServices.factory('Boxes', function($http, $log) {
 		}, function(res) {
 			$log.error(res);
 		});
-	};
+	}; */
 	
 	return BoxService;
 
@@ -105,7 +109,7 @@ corviServices.factory('Boxes', function($http, $log) {
 corviServices.factory('Questions', function($http, $log) {
 	var QuestionService = {};
 	
-	QuestionService.getQuestionToLearn = function(boxID, question, finished, error) {
+	/* QuestionService.getQuestionToLearn = function(boxID, question, finished, error) {
 		$http.get("/api/box/"+boxID+"/getQuestionToLearn").then(function(res) {
 			if(res.status == 200) {
 				question(res.data);
@@ -134,7 +138,7 @@ corviServices.factory('Questions', function($http, $log) {
 			$log.error(res);
 			error();
 		});
-	};
+	}; */
 	
 	return QuestionService;
 });
@@ -149,11 +153,15 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 	};
 	
 	NotifyService.onMessage = function(res) {
+		$log.debug("Incoming message: ", res);
 		switch(res.data) {
 			case "categories":
 				$log.debug("Update categories");
 				Categories.Update();
 				// load categories
+				break;
+			case "category-1":
+				Categories.UpdateSingle(1);
 				break;
 			case "boxes":
 				$log.debug("Update boxes");

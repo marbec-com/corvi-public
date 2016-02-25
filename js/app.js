@@ -70,22 +70,11 @@ corviApp.config(function($routeProvider) {
 });
 
 corviApp.controller('studyBoxController', function($scope, $log, Categories, Boxes) {
-	$scope.categories = [];
+	$scope.categories = Categories.CategoriesAll;
 	
-	$scope.categories = Categories.Categories;
-	
-	Boxes.Update(function() {
-		Categories.Update(function() {
-			
-		});
-	});
-	
+	Categories.Update();
 	
 	$log.debug($scope.categories);
-	
-	/* Categories.getAllWithBoxes(function(data) {
-		$scope.categories = data;
-	}); */
 });
 
 corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, Boxes) {

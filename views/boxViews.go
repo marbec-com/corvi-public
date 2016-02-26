@@ -40,7 +40,7 @@ func (v *BoxView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (v *BoxView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context
 	box, err := controller.LoadBox(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ct
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ct
 	questions, err := controller.LoadQuestions(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -120,7 +120,7 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	}
 
 	if question == nil {
-		http.Error(rw, "No question to learn for this box.", http.StatusNoContent)
+		http.Error(rw, "No questions left for today.", http.StatusNoContent)
 		return
 	}
 

@@ -215,11 +215,9 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 		if capacity <= 0 {
 			return
 		}
-
 		if question.Next.Before(tomorrow) && a {
 			b.QuestionHeap.Add(question)
 			capacity--
-			fmt.Println(capacity)
 		}
 	}
 

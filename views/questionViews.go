@@ -41,7 +41,7 @@ func (v *QuestionView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -50,7 +50,7 @@ func (v *QuestionView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	question, err := controller.LoadQuestion(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *htt
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -83,7 +83,7 @@ func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *htt
 	err = controller.GiveCorrectAnswer(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -103,7 +103,7 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 	err = controller.GiveWrongAnswer(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 

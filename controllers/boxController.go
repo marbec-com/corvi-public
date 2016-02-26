@@ -40,7 +40,8 @@ var mockBoxes = []*models.Box{
 
 // TODO(mjb): Replace with dynamic settings variable
 const (
-	maxToLearn uint = 10
+	maxToLearn               uint = 10
+	relearnUntilAccomplished bool = true
 )
 
 var BoxControllerSingleton *BoxController
@@ -120,6 +121,22 @@ func (c *BoxController) LoadQuestions(id uint) ([]*models.Question, error) {
 	return questions, nil
 }
 
+func (c *BoxController) removeQuestionFromHeap(box *models.Box, question *models.Question) {
+	box.QuestionHeap.Lock()
+	if box.QuestionHeap.Peek() == question {
+		box.QuestionHeap.Min()
+	}
+	box.QuestionHeap.Unlock()
+}
+
+func (c *BoxController) readdQuestionFromHeap(box *models.Box, question *models.Question) {
+	box.QuestionHeap.Lock()
+	if box.QuestionHeap.Peek() == question {
+		box.QuestionHeap.Add(box.QuestionHeap.Min())
+	}
+	box.QuestionHeap.Unlock()
+}
+
 func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 	box, err := c.LoadBox(id)
 	if err != nil {
@@ -132,7 +149,7 @@ func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 
 	fmt.Println(box.QuestionHeap)
 
-	return box.QuestionHeap.Min(), nil
+	return box.QuestionHeap.Peek(), nil
 }
 
 func (c *BoxController) getBeginningOfNextDay() time.Time {

@@ -1,7 +1,12 @@
 package models
 
+import (
+	"sync"
+)
+
 type QuestionHeap struct {
 	questions []*Question
+	sync.Mutex
 }
 
 func NewQuestionHeap() *QuestionHeap {
@@ -27,4 +32,12 @@ func (h *QuestionHeap) Min() *Question {
 	h.questions = h.questions[1:]
 
 	return first
+}
+
+func (h *QuestionHeap) Peek() *Question {
+	if len(h.questions) < 1 {
+		return nil
+	}
+
+	return h.questions[0]
 }

@@ -77,13 +77,11 @@ func (c *QuestionController) LoadQuestion(id uint) (*models.Question, error) {
 }
 
 func (c *QuestionController) GiveCorrectAnswer(id uint) error {
-
-	// Update Numbers in box
-
 	question, err := c.LoadQuestion(id)
 	if err != nil {
 		return err
 	}
+
 	question.CorrectlyAnswered++
 	question.CalculateNext()
 
@@ -95,6 +93,7 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 		return err
 	}
 
+	BoxControllerInstance().removeQuestionFromHeap(question.Box, question)
 	BoxControllerInstance().refreshBox(question.Box)
 
 	return nil
@@ -118,7 +117,11 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 	}
 
 	// TODO(mjb): Put question back in heap, maybe
-
+	if relearnUntilAccomplished {
+		BoxControllerInstance().readdQuestionFromHeap(question.Box, question)
+	} else {
+		BoxControllerInstance().removeQuestionFromHeap(question.Box, question)
+	}
 	BoxControllerInstance().refreshBox(question.Box)
 
 	return nil

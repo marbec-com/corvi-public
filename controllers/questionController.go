@@ -2,7 +2,9 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"marb.ec/corvi-backend/models"
+	"marb.ec/maf/events"
 	"time"
 )
 
@@ -40,6 +42,8 @@ var mockQuestions = []*models.Question{
 		CorrectlyAnswered: 3,
 	},
 }
+
+var mockAnswers = []*models.LearnUnit{}
 
 var QuestionControllerSingleton *QuestionController
 
@@ -83,11 +87,15 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 	question.CorrectlyAnswered++
 	question.CalculateNext()
 
+	c.saveLearnUnit(question, true)
+
 	// Save Question
 	err = c.UpdateQuestion(question)
 	if err != nil {
 		return err
 	}
+
+	BoxControllerInstance().refreshBox(question.Box)
 
 	return nil
 }
@@ -101,21 +109,36 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 	question.CorrectlyAnswered = 0
 	question.CalculateNext()
 
+	c.saveLearnUnit(question, false)
+
 	// Save Question
 	err = c.UpdateQuestion(question)
 	if err != nil {
 		return err
 	}
-	// Update Heap and Numbers in box
+
+	// TODO(mjb): Put question back in heap, maybe
+
+	BoxControllerInstance().refreshBox(question.Box)
 
 	return nil
 }
 
+// TODO(mjb): Move to LearnUnit Controller
+func (c *QuestionController) saveLearnUnit(q *models.Question, correct bool) {
+	unit := models.NewLearnUnit(q, correct)
+	mockAnswers = append(mockAnswers, unit)
+}
+
 func (c *QuestionController) UpdateQuestion(q *models.Question) error {
+	events.Events().Publish(events.Topic(fmt.Sprintf("question-%d", q.ID)), c)
 	return nil
 }
 
 func (c *QuestionController) InsertQuestion(q *models.Question) error {
+	BoxControllerInstance().refreshBox(q.Box)
+	events.Events().Publish(events.Topic("questions"), c)
+
 	// Update Box
 	return nil
 }

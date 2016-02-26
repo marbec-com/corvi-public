@@ -1,21 +1,21 @@
 package main
 
 import (
-	"log"
+	//"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
-	"marb.ec/maf/events"
+	//"marb.ec/maf/events"
 	"marb.ec/maf/router"
 	"marb.ec/maf/wsnotify"
 	"net/http"
-	"time"
+	//"time"
 )
 
 func main() {
 
 	r := router.NewTreeRouter()
 
-	go func() {
+	/* go func() {
 		eh := events.Events()
 		i := 0
 		for _ = range time.Tick(10 * time.Second) {
@@ -31,11 +31,10 @@ func main() {
 				log.Println("Publish Boxcat")
 			}
 		}
-	}()
+	}() */
 
+	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()
-
-	// WS Notify Routes
 	r.Add(router.GET, "/sock", ns)
 
 	// Static Routes

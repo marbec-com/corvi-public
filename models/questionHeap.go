@@ -1,20 +1,30 @@
 package models
 
 type QuestionHeap struct {
+	questions []*Question
 }
 
 func NewQuestionHeap() *QuestionHeap {
-	return &QuestionHeap{}
+	return &QuestionHeap{
+		questions: make([]*Question, 0),
+	}
 }
 
 func (h *QuestionHeap) Add(q *Question) {
-
+	h.questions = append(h.questions, q)
 }
 
 func (h *QuestionHeap) Length() int {
-	return 0
+	return len(h.questions)
 }
 
 func (h *QuestionHeap) Min() *Question {
-	return nil
+	if len(h.questions) < 1 {
+		return nil
+	}
+
+	first := h.questions[0]
+	h.questions = h.questions[1:]
+
+	return first
 }

@@ -5,9 +5,9 @@ type Box struct {
 	Name             string
 	Category         *Category
 	QuestionHeap     *QuestionHeap `json:"-"`
-	QuestionsTotal   int
-	QuestionsToLearn int
-	QuestionsLearned int
+	QuestionsTotal   uint
+	QuestionsToLearn uint
+	QuestionsLearned uint
 }
 
 /*
@@ -25,10 +25,6 @@ Description
 
 
 */
-
-const (
-	maxToLearn uint = 20
-)
 
 func NewBox(name string, cat *Category) *Box {
 	return &Box{

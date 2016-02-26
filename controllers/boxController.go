@@ -2,8 +2,10 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
 	"marb.ec/corvi-backend/models"
-	"math/rand"
+	"marb.ec/maf/events"
+	"time"
 )
 
 var mockBoxes = []*models.Box{
@@ -14,6 +16,7 @@ var mockBoxes = []*models.Box{
 		QuestionsToLearn: 2,
 		QuestionsTotal:   2,
 		QuestionsLearned: 0,
+		QuestionHeap:     models.NewQuestionHeap(),
 	},
 	&models.Box{
 		ID:               2,
@@ -22,6 +25,7 @@ var mockBoxes = []*models.Box{
 		QuestionsToLearn: 1,
 		QuestionsTotal:   1,
 		QuestionsLearned: 0,
+		QuestionHeap:     models.NewQuestionHeap(),
 	},
 	&models.Box{
 		ID:               3,
@@ -30,8 +34,14 @@ var mockBoxes = []*models.Box{
 		QuestionsToLearn: 0,
 		QuestionsTotal:   1,
 		QuestionsLearned: 1,
+		QuestionHeap:     models.NewQuestionHeap(),
 	},
 }
+
+// TODO(mjb): Replace with dynamic settings variable
+const (
+	maxToLearn uint = 10
+)
 
 var BoxControllerSingleton *BoxController
 
@@ -41,6 +51,10 @@ type BoxController struct {
 func BoxControllerInstance() *BoxController {
 	if BoxControllerSingleton == nil {
 		BoxControllerSingleton = NewBoxController()
+		for _, box := range mockBoxes {
+			BoxControllerSingleton.loadQuestionsToLearn(box)
+			BoxControllerSingleton.refreshBox(box)
+		}
 	}
 	return BoxControllerSingleton
 }
@@ -50,12 +64,6 @@ func NewBoxController() *BoxController {
 }
 
 func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
-
-	// Load all form SQL
-	mockBoxes[0].Name = mockBoxes[0].Name + "A"
-
-	// Save in BaxCache
-
 	return mockBoxes, nil
 }
 
@@ -63,22 +71,34 @@ func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 
 	for _, box := range mockBoxes {
 		if box.ID == id {
-			box.Name = box.Name + "D"
 			return box, nil
 		}
 	}
-
-	// Load Box SQL
-
-	// Store in Cache
-	//BoxCache[box.ID] = box
 
 	return nil, errors.New("Box not found.")
 }
 
 func (c *BoxController) refreshBox(box *models.Box) error {
 
-	// Subqueries for numbers
+	// TODO(mjb): Replace with Database query
+
+	box.QuestionsToLearn = uint(box.QuestionHeap.Length())
+	var learned, total uint
+
+	for _, question := range mockQuestions {
+		if question.Box != box {
+			continue
+		}
+		total++
+		if question.CorrectlyAnswered > 0 {
+			learned++
+		}
+	}
+
+	box.QuestionsLearned = learned
+	box.QuestionsTotal = total
+
+	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", box.ID)), c)
 
 	return nil
 }
@@ -101,60 +121,114 @@ func (c *BoxController) LoadQuestions(id uint) ([]*models.Question, error) {
 }
 
 func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
-	_, err := c.LoadBox(id)
+	box, err := c.LoadBox(id)
 	if err != nil {
 		return nil, err
 	}
 
-	questions, err := c.LoadQuestions(id)
-	if err != nil {
-		return nil, err
+	if box.QuestionHeap.Length() == 0 {
+		c.loadQuestionsToLearn(box)
 	}
 
-	index := rand.Intn(len(questions) + 1)
-	if index < len(questions) {
-		return questions[index], nil
-	}
+	fmt.Println(box.QuestionHeap)
 
-	/*
+	return box.QuestionHeap.Min(), nil
+}
 
-		// Load more questions if heap is nil.
-		if box.QuestionsToLearn.Length() == 0 {
-			c.loadQuestionsToLearn(box)
-		}
-
-		// Get next question in heap. Might be nil if no questions are remaining for this day
-		question := box.QuestionsToLearn.Min()
-
-		if question == nil {
-			return nil, errors.New("No question to learn for this box.")
-		}
-
-		return question, nil */
-	return nil, nil
+func (c *BoxController) getBeginningOfNextDay() time.Time {
+	today := time.Now()
+	today = today.Add(24 * time.Hour)
+	year, month, day := today.Date()
+	return time.Date(year, month, day, 0, 0, 0, 0, today.Location())
 }
 
 func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
+	capacity := c.getCapacity(b)
+	if capacity < 0 {
+		return
+	}
 
-	// SELECT * FROM Questions WHERE BoxID = b.ID ORDER BY Next DESC LIMIT 20
+	/*
+		 SELECT *
+		 FROM questions
+		 WHERE boxID = b.ID
+		 AND Next >= BOD
+		 AND questionID NOT IN (
+			 SELECT questionID
+			 FROM learnunit
+			 WHERE boxID = b.ID
+			 AND time = today
+		 )
 
-	// Skip if question.Next.After(time.Now())
-	// TODO(mjb): Update to give questions for whole day
-	// TODO(mjb): Add possibility to let user  learn ahead
+		 -> capacity
 
-	//b.questionsToLearn.Add()
+	*/
 
+	tomorrow := c.getBeginningOfNextDay()
+
+	set := make(map[*models.Question]bool)
+
+	// Add all questions of that box
+	for _, question := range mockQuestions {
+		if question.Box != b {
+			continue
+		}
+		set[question] = true
+	}
+
+	// Mark all questions that were arleady answered today
+	yt, mt, dt := time.Now().Date()
+	for _, unit := range mockAnswers {
+		if unit.Box != b {
+			continue
+		}
+		y, m, d := unit.Time.Date()
+		if y == yt && m == mt && d == dt {
+			set[unit.Question] = false
+		}
+	}
+
+	// Only add unmarked question that are due
+	for question, a := range set {
+		if capacity < 0 {
+			return
+		}
+
+		if question.Next.Before(tomorrow) && a {
+			b.QuestionHeap.Add(question)
+			capacity--
+			fmt.Println(capacity)
+		}
+	}
+
+}
+
+func (c *BoxController) getCapacity(b *models.Box) uint {
+	// TODO(mjb): Update to SQL query to count correct objects
+	capacity := maxToLearn
+	yt, mt, dt := time.Now().Date()
+	for _, unit := range mockAnswers {
+		if unit.Box != b {
+			continue
+		}
+		y, m, d := unit.Time.Date()
+		if y == yt && m == mt && d == dt {
+			capacity--
+		}
+	}
+
+	if capacity < 0 {
+		return 0
+	}
+	return uint(capacity)
 }
 
 func (c *BoxController) UpdateBox(b *models.Box) error {
+	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", b.ID)), c)
 	return nil
 }
 
-func (c *BoxController) Insert(b *models.Box) error {
-
-	// INSERT SQL
-
-	// GET id and store in BoxCache
-
+func (c *BoxController) AddBox(b *models.Box) error {
+	events.Events().Publish(events.Topic("boxes"), c)
 	return nil
 }

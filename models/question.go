@@ -17,7 +17,7 @@ type Question struct {
 	Answer            string
 	Box               *Box
 	Next              time.Time
-	CorrectlyAnswered int
+	CorrectlyAnswered uint
 }
 
 func NewQuestion(question, answer string, b *Box) *Question {

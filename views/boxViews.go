@@ -106,7 +106,7 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -115,7 +115,7 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	question, err := controller.GetQuestionToLearn(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 

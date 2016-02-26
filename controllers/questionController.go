@@ -339,7 +339,7 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 		return err
 	}
 
-	if relearnUntilAccomplished {
+	if SettingsControllerInstance().Get().RelearnUntilAccomplished {
 		BoxControllerInstance().reAddQuestionFromHeap(box, question)
 	} else {
 		BoxControllerInstance().removeQuestionFromHeap(box, question)

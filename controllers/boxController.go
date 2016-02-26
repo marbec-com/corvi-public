@@ -44,10 +44,10 @@ var mockBoxes = []*models.Box{
 // TODO(mjb): Introduce HEAP cache
 
 // TODO(mjb): Replace with dynamic settings variable
-const (
+/* const (
 	maxToLearn               uint = 10
 	relearnUntilAccomplished bool = true
-)
+) */
 
 var BoxControllerSingleton *BoxController
 
@@ -225,7 +225,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 
 func (c *BoxController) getCapacity(b *models.Box) uint {
 	// TODO(mjb): Update to SQL query to count correct objects
-	capacity := maxToLearn
+	capacity := SettingsControllerInstance().Get().MaxDailyQuestionsPerBox
 	yt, mt, dt := time.Now().Date()
 	for _, unit := range mockAnswers {
 		if capacity <= 0 {

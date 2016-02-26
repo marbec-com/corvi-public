@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"log"
+	"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
 	//"marb.ec/maf/events"
@@ -13,6 +13,7 @@ import (
 
 func main() {
 
+	// TODO(mjb): Singletons thread safe? especially settings!
 	// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
 
 	r := router.NewTreeRouter()
@@ -34,6 +35,10 @@ func main() {
 			}
 		}
 	}() */
+
+	settingsCtrl := controllers.SettingsControllerInstance()
+	log.Println(settingsCtrl.Get())
+	settingsCtrl.Update()
 
 	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()

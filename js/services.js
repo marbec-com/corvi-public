@@ -7,7 +7,7 @@ corviServices.factory('Categories', function($http, $log) {
 	CategoryService.CategoriesAll = [];
 	CategoryService.CategoriesByID = {};
 	
-	CategoryService.Update = function() {
+	CategoryService.Refresh = function() {
 		$http.get("/api/categories/").then(function(res) {
 			// Clear array and object, but preserve reference
 			CategoryService.CategoriesAll.length = 0;
@@ -19,14 +19,12 @@ corviServices.factory('Categories', function($http, $log) {
 				CategoryService.CategoriesAll.push(newCategory);
 				CategoryService.CategoriesByID[newCategory.ID] = newCategory;				
 			}
-				
-			$log.debug(CategoryService.CategoriesAll, CategoryService.CategoriesByID);
 		}, function(res) {
 			$log.error(res);
 		}); 
 	};
 	
-	CategoryService.UpdateSingle = function(catID) {
+	CategoryService.RefreshSingle = function(catID) {
 		$http.get("/api/category/"+catID+"/").then(function(res) {
 			// Update individual entry in CategoryService.CategoriesByID, preserve reference
 			// This also updates the same object in CategoryService.CategoriesAll
@@ -47,7 +45,7 @@ corviServices.factory('Boxes', function($http, $log) {
 	BoxService.BoxesByCatID = {};
 	BoxService.BoxesAll = [];
 	
-	BoxService.Update = function() {
+	BoxService.Refresh = function() {
 		$http.get("/api/boxes/").then(function(res) {
 			// Clear array and objects, but preserve reference
 			BoxService.BoxesAll.length = 0;
@@ -69,7 +67,7 @@ corviServices.factory('Boxes', function($http, $log) {
 		}); 
 	};
 	
-	BoxService.UpdateSingle = function(boxID) {
+	BoxService.RefreshSingle = function(boxID) {
 		$http.get("/api/box/"+boxID+"/").then(function(res) {
 			var newBox = angular.copy(res.data);
 			angular.copy(newBox, BoxService.BoxesByID[boxID]);
@@ -78,7 +76,7 @@ corviServices.factory('Boxes', function($http, $log) {
 		});	
 	};
 	
-	BoxService.UpdateCategory = function(catID) {
+	BoxService.RefreshCategory = function(catID) {
 		$http.get("/api/category/"+catID+"/boxes/").then(function(res) {
 			// Clear array of BoxesByCatID object or create a new one, but preserve reference
 			if (!(catID in BoxService.BoxesByCatID)) {
@@ -107,19 +105,65 @@ corviServices.factory('Boxes', function($http, $log) {
 corviServices.factory('Questions', function($http, $log) {
 	var QuestionService = {};
 	
-	QuestionService.Update = function() {
-		
+	QuestionService.QuestionsByID = {};
+	QuestionService.QuestionsByBoxID = {};
+	QuestionService.QuestionsAll = [];
+	
+	
+	QuestionService.Refresh = function() {
+		$http.get("/api/questions/").then(function(res) {
+			// Clear array and objects, but preserve reference
+			QuestionService.QuestionsAll.length = 0;
+			ClearObject(QuestionService.QuestionsByBoxID);
+			ClearObject(QuestionService.QuestionsByID);
+			
+			// Fill with new data
+			for (var i = 0; i < res.data.length; i++) {
+				var newQuestion = angular.copy(res.data[i]);
+				QuestionService.QuestionsAll.push(newQuestion);
+				QuestionService.QuestionsByID[newQuestion.ID] = newQuestion;
+				if(!(newQuestion.Box.ID in QuestionService.QuestionsByBoxID)) {
+					QuestionService.QuestionsByBoxID[newQuestion.Box.ID] = [];
+				}
+				QuestionService.QuestionsByBoxID[newQuestion.Box.ID].push(newQuestion);			
+			}
+		}, function(res) {
+			$log.error(res);
+		}); 
 	};
 	
-	QuestionService.UpdateSingle = function(qID) {
-		
+	QuestionService.RefreshSingle = function(qID) {
+		$http.get("/api/question/"+qID+"/").then(function(res) {
+			var newQuestion = angular.copy(res.data);
+			angular.copy(newQuestion, QuestionService.QuestionsByID[newQuestion]);
+		}, function(res) {
+			$log.error(res);
+		});	
 	};
 	
-	QuestionService.UpdateBox = function(boxID) {
-		
+	QuestionService.RefreshBox = function(boxID) {
+		$http.get("/api/box/"+boxID+"/questions/").then(function(res) {
+			// Clear array of QuestionsByBoxID object or create a new one, but preserve reference
+			if (!(boxID in QuestionService.QuestionsByBoxID)) {
+				QuestionService.QuestionsByBoxID[boxID] = [];
+			}else{
+				QuestionService.QuestionsByBoxID[boxID].length = 0
+			}
+			
+			// Fill with new data
+			for (var i = 0; i < res.data.length; i++) {
+				var newQuestion = angular.copy(res.data[i]);		
+				// Update by id
+				angular.copy(newQuestion, QuestionService.QuestionsByID[newQuestion.ID]);
+				// Add to bycatid
+				QuestionService.QuestionsByBoxID[boxID].push(newQuestion);
+			}
+		}, function(res) {
+			$log.error(res);
+		});
 	};
 	
-	/* QuestionService.getQuestionToLearn = function(boxID, question, finished, error) {
+	QuestionService.GetQuestionToLearn = function(boxID, question, finished, error) {
 		$http.get("/api/box/"+boxID+"/getQuestionToLearn").then(function(res) {
 			if(res.status == 200) {
 				question(res.data);
@@ -131,6 +175,7 @@ corviServices.factory('Questions', function($http, $log) {
 			error(res);
 		});
 	};
+
 	
 	QuestionService.giveCorrectAnswer = function(questionID, success, error) {
 		$http.put("/api/question/"+questionID+"/giveCorrectAnswer").then(function(res) {
@@ -148,8 +193,8 @@ corviServices.factory('Questions', function($http, $log) {
 			$log.error(res);
 			error();
 		});
-	}; */
-	
+	};
+
 	return QuestionService;
 });
 
@@ -177,46 +222,46 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 	NotifyService.onMessage = function(res) {
 		$log.debug("Incoming Websocket notification: ", res);
 		if(res.data == "categories") {
-			Categories.Update();
+			Categories.Refresh();
 		}else if(StartsWith(res.data, "category-")) {
 			var catID = parseID(res.data);
 			if(catID === -1) {
 				$log.error("Invalid ID: ", catID);
 				return
 			}
-			Categories.UpdateSingle(catID);
+			Categories.RefreshSingle(catID);
 		}else if(res.data == "boxes") {
-			Boxes.Update();
+			Boxes.Refresh();
 		}else if(StartsWith(res.data, "box-")) {
 			var boxID = parseID(res.data);
 			if(boxID === -1) {
 				$log.error("Invalid ID: ", boxID);
 				return
 			}
-			Boxes.UpdateSingle(boxID);
+			Boxes.RefreshSingle(boxID);
 		}else if(StartsWith(res.data, "boxcat-")) {
 			var catID = parseID(res.data);
 			if(catID === -1) {
 				$log.error("Invalid ID: ", catID);
 				return
 			}
-			Boxes.UpdateCategory(catID);
+			Boxes.RefreshCategory(catID);
 		}else if(res.data == "questions") {
-			Questions.Update();
+			Questions.Refresh();
 		}else if(StartsWith(res.data, "question-")) {
 			var qID = parseID(res.data);
 			if(qID === -1) {
 				$log.error("Invalid ID: ", qID);
 				return
 			}
-			Questions.UpdateSingle(qID);
+			Questions.RefreshSingle(qID);
 		}else if(StartsWith(res.data, "questionbox-")) {
 			var boxID = parseID(res.data);
 			if(boxID === -1) {
 				$log.error("Invalid ID: ", boxID);
 				return
 			}
-			Questions.UpdateBox(boxID);
+			Questions.RefreshBox(boxID);
 		}else{
 			$log.debug("Unknown Websocket notification: ", res);
 		}

@@ -1,7 +1,11 @@
 var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices']);
 
-corviApp.run(function($window, Notify) {
+corviApp.run(function($window, Notify, Categories, Boxes, Questions) {
 	Notify.connect();
+	
+	Categories.Refresh();
+	Boxes.Refresh();
+	Questions.Refresh();
 	
 	$window.onbeforeunload = function() {
 		Notify.Destroy();
@@ -73,35 +77,28 @@ corviApp.controller('studyBoxController', function($scope, $log, Categories, Box
 	$scope.categories = Categories.CategoriesAll;
 	$scope.boxesByCatID = Boxes.BoxesByCatID;
 	
-	Categories.Update();
-	Boxes.Update();
-	
-	$log.debug($scope.categories);
+	//$log.debug($scope.categories);
 });
 
 corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, Boxes) {
 	
-	/* var id = parseInt($routeParams.box, 10);
+	var id = parseInt($routeParams.box, 10);
 	if (isNaN(id)) {
 		$log.error("Invalid ID!");
 	}
 	
-	$scope.box = {};
-	Boxes.get(id, function(data) {
-		$scope.box = data;
-	}, function(res) {
-		$location.path("/");
-	});
+	$scope.boxID = id;
+	$scope.box = Boxes.BoxesByID[id];
 	
 	$scope.getBack = function() {
 		$location.path("/");
-	}; */
+	};
 	
 });
 
 corviApp.controller('studyQuestionController', function($scope, $routeParams, $log, $location, Questions) {
 	
-	/* var boxID = parseInt($routeParams.box, 10);
+	var boxID = parseInt($routeParams.box, 10);
 	if (isNaN(boxID)) {
 		$log.error("Invalid ID!");
 	}
@@ -132,33 +129,30 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 		$scope.answered = false;
 		$scope.question = {};
 		
-		Questions.getQuestionToLearn(boxID, function(data) {
+		Questions.GetQuestionToLearn(boxID, function(data) {
 			$scope.question = data;
 		}, function() {
 			$location.path("/study/"+boxID+"/finished");
 		}, function(res) {
 			$location.path("/");
 		});
-	}; */
+	};
+	
 });
 
 corviApp.controller('mainController', function($scope) {
 });
 
-corviApp.controller('manageBoxesController', function($scope, $log, Categories) {
-	/* $scope.categories = [];
-	$scope.form = {};
+corviApp.controller('manageBoxesController', function($scope, $log, Categories, Boxes) {
+	$scope.categories = Categories.CategoriesAll;
+	$scope.boxesByCatID = Boxes.BoxesByCatID;
 	
-	Categories.getAllWithBoxes(function(data) {
-		$scope.categories = data;
-	});
-	
-	$scope.renameCategoryModal = function(catKey) {
+	/* $scope.renameCategoryModal = function(catKey) {
 		$(document).foundation();
 		$('#categoryRenameModal').foundation('open');
 		$scope.form.catKey = catKey;
 		$scope.form.category = angular.copy($scope.categories[catKey]);
-	};
+	}; 
 	
 	$scope.renameCategoryReset = function(form) {
 		// Reset form elements
@@ -180,7 +174,9 @@ corviApp.controller('manageBoxesController', function($scope, $log, Categories) 
 		var copy = angular.copy($scope.form.category);
 		Categories.update(copy, function() {});
 		$scope.renameCategoryReset(form);
-	}; */
+	};
+	
+	*/
 		
 });
 

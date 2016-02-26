@@ -16,7 +16,7 @@
 
 <div class="expanded row">
 	<div class="column">
-		<table class="box-table" ng-repeat="(catKey, category) in categories | orderBy:'Name'" ng-show="(category.Boxes | filter:searchText).length > 0">
+		<table class="box-table" ng-repeat="(catKey, category) in categories | orderBy:'Name'" ng-show="(boxesByCatID[category.ID] | filter:searchText).length > 0">
 			<thead>
 				<tr>
 					<th style="width: 80%;" colspan="3">{{ category.Name }}</th>
@@ -24,7 +24,7 @@
 					<th style="width: 10%;" class="button-td"><a class="expanded small button alert">Delete</a></th>
 				</tr>
 			</thead>
-			<tbody ng-repeat="box in category.Boxes | filter:searchText | orderBy:'Name'">
+			<tbody ng-repeat="box in boxesByCatID[category.ID] | filter:searchText | orderBy:'Name'">
 				<tr>
 					<td style="width: 60%;">
 						{{ box.Name }}

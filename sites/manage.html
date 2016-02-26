@@ -16,7 +16,7 @@
 
 <div class="expanded row">
 	<div class="column">
-		<table class="box-table" ng-repeat="(catKey, category) in categories | orderBy:'Name'" ng-show="(boxesByCatID[category.ID] | filter:searchText).length > 0">
+		<table class="box-table" ng-repeat="(catKey, category) in categories | orderBy:'Name'" ng-show="(boxesByCatID[category.ID] | filter:searchText).length > 0 || !searchText">
 			<thead>
 				<tr>
 					<th style="width: 80%;" colspan="3">{{ category.Name }}</th>

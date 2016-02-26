@@ -1,0 +1,29 @@
+<div class="expanded row">
+	<div class="column">
+		<form name="categoryAdd">
+			<div class="callout">
+				<div class="callout alert" ng-show="error">
+					<h5>Errors</h5> {{ error }}
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormName" class="text-right middle">Name:</label>
+					</div>
+					<div class="small-9 columns">
+						<input type="text" name="Name" id="FormName" ng-model="category.Name" required />
+						<span ng-show="categoryAdd.Name.$touched && categoryAdd.Name.$invalid">The name field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+					</div>
+					<div class="small-9 columns">
+						<button type="submit" ng-class="{'disabled': categoryAdd.$invalid, 'success': categoryAdd.$valid}" ng-disabled="categoryAdd.$invalid"
+						class="button" style="margin: 0px;" ng-click="save()">Add</button>
+						<button type="button" class="alert button" ng-click="back()" style="margin: 0px;">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

@@ -35,8 +35,8 @@ corviApp.config(function($routeProvider) {
 		navActive: 'manage'
 	})
 	.when('/manage/category/add', {
-		templateUrl: 'sites/manage.html',
-		controller: 'mainController',
+		templateUrl: 'sites/category_add.html',
+		controller: 'categoryAddController',
 		navActive: 'manage'
 	})
 	.when('/manage/category/:category/edit', {
@@ -150,39 +150,7 @@ corviApp.controller('mainController', function($scope) {
 
 corviApp.controller('manageBoxesController', function($scope, $log, Categories, Boxes) {
 	$scope.categories = Categories.CategoriesAll;
-	$scope.boxesByCatID = Boxes.BoxesByCatID;
-	
-	/* $scope.renameCategoryModal = function(catKey) {
-		$(document).foundation();
-		$('#categoryRenameModal').foundation('open');
-		$scope.form.catKey = catKey;
-		$scope.form.category = angular.copy($scope.categories[catKey]);
-	}; 
-	
-	$scope.renameCategoryReset = function(form) {
-		// Reset form elements
-		if (form) {
-			form.$setPristine();
-			form.$setUntouched();
-		}
-		// Close and reset data
-		$('#categoryRenameModal').foundation('close');
-		$scope.form.catKey = -1;
-		$scope.form.category = {};
-	};
-	
-	$scope.renameCategorySave = function(form) {
-		$log.debug(form);
-		
-		// Save
-		$scope.categories[form.catKey] = angular.copy($scope.form.category);
-		var copy = angular.copy($scope.form.category);
-		Categories.update(copy, function() {});
-		$scope.renameCategoryReset(form);
-	};
-	
-	*/
-		
+	$scope.boxesByCatID = Boxes.BoxesByCatID;		
 });
 
 corviApp.controller('categoryEditController', function($scope, $routeParams, $log, $location, Categories) {
@@ -191,7 +159,7 @@ corviApp.controller('categoryEditController', function($scope, $routeParams, $lo
 		$log.error("Invalid ID!");
 	}
 	
-	$scope.category = angular.copy(Categories.CategoriesByID[id])
+	$scope.category = angular.copy(Categories.CategoriesByID[id]);
 	$scope.error = "";
 	
 	$scope.back = function() {
@@ -200,6 +168,24 @@ corviApp.controller('categoryEditController', function($scope, $routeParams, $lo
 	
 	$scope.save = function() {
 		Categories.Update(id, $scope.category, function(data) {
+			$location.path("/manage");
+		}, function(err) {
+			$scope.error = err;
+		});
+	};
+	
+});
+
+corviApp.controller('categoryAddController', function($scope, $log, $location, Categories) {
+	$scope.category = {};
+	$scope.error = "";
+	
+	$scope.back = function() {
+		$location.path("/manage");
+	};
+	
+	$scope.save = function() {
+		Categories.Add($scope.category, function(data) {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;

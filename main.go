@@ -72,6 +72,8 @@ func main() {
 	// Discovery / Cloud Routes
 
 	// Settings Routes
+	r.Add(router.GET, "/api/settings", &views.SettingsView{})
+	r.Add(router.PUT, "/api/settings", &views.SettingsUpdateView{})
 
 	// TODO(mjb): Add Middleware
 	// TODO(mjb): Restrict access to electron (via header field?)

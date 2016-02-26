@@ -62,6 +62,16 @@ corviServices.factory('Boxes', function($http, $log) {
 	BoxService.BoxesByID = {};
 	BoxService.BoxesByCatID = {};
 	BoxService.BoxesAll = [];
+	BoxService.Metadata = {'QuestionsToLearnTotal': 0};
+	
+	BoxService._refreshQuestionsToLearnTotal = function() {
+		var total = 0;
+		for (var i = 0; i < BoxService.BoxesAll.length; i++) {
+			total += BoxService.BoxesAll[i].QuestionsToLearn;
+		}
+		BoxService.Metadata['QuestionsToLearnTotal'] = total;
+		$log.debug("New total ", BoxService.Metadata);
+	};
 	
 	BoxService.Refresh = function() {
 		$http.get("/api/boxes/").then(function(res) {
@@ -80,6 +90,7 @@ corviServices.factory('Boxes', function($http, $log) {
 				}
 				BoxService.BoxesByCatID[newBox.Category.ID].push(newBox);			
 			}
+			BoxService._refreshQuestionsToLearnTotal();
 		}, function(res) {
 			$log.error(res);
 		}); 
@@ -89,6 +100,7 @@ corviServices.factory('Boxes', function($http, $log) {
 		$http.get("/api/box/"+boxID+"/").then(function(res) {
 			var newBox = angular.copy(res.data);
 			angular.copy(newBox, BoxService.BoxesByID[boxID]);
+			BoxService._refreshQuestionsToLearnTotal();
 		}, function(res) {
 			$log.error(res);
 		});	
@@ -111,6 +123,7 @@ corviServices.factory('Boxes', function($http, $log) {
 				// Add to bycatid
 				BoxService.BoxesByCatID[catID].push(newBox);
 			}
+			BoxService._refreshQuestionsToLearnTotal();
 		}, function(res) {
 			$log.error(res);
 		}); 	

@@ -202,8 +202,7 @@ corviApp.directive('mainNavigation', function() {
 	};
 });
 
-corviApp.controller('mainNavigationController', function($scope, $route) {
+corviApp.controller('mainNavigationController', function($scope, $route, Boxes) {
 	$scope.$route = $route;
-	
-	$scope.studyBadge = 3;
+	$scope.boxMetadata = Boxes.Metadata;
 });

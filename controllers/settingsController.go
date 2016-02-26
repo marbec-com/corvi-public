@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"marb.ec/corvi-backend/models"
+	"marb.ec/maf/events"
 	"os"
 	"sync"
 )
@@ -65,7 +66,16 @@ func (c *SettingsController) Update() error {
 		return err
 	}
 
-	return saveToFile(c.settings, settingsFile)
+	err = saveToFile(c.settings, settingsFile)
+
+	if err != nil {
+		return err
+	}
+
+	events.Events().Publish(events.Topic("settings"), c)
+
+	return nil
+
 }
 
 func (c *SettingsController) Get() *models.Settings {

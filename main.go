@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	//"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
 	//"marb.ec/maf/events"
@@ -35,10 +35,6 @@ func main() {
 			}
 		}
 	}() */
-
-	settingsCtrl := controllers.SettingsControllerInstance()
-	log.Println(settingsCtrl.Get())
-	settingsCtrl.Update()
 
 	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()

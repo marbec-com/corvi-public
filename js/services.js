@@ -35,6 +35,26 @@ corviServices.factory('Categories', function($http, $log) {
 		});	
 	};
 	
+	CategoryService.Update = function(catID, cat, success, error) {
+		$http.put("/api/category/"+catID+"/", cat).then(function(res) {
+			$log.debug(res);
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
+	CategoryService.Add = function(cat, success, error) {
+		$http.post("/api/categories", cat).then(function(res) {
+			$log.debug(res);
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
 	return CategoryService;
 });
 

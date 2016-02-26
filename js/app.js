@@ -34,22 +34,27 @@ corviApp.config(function($routeProvider) {
 		controller: 'manageBoxesController',
 		navActive: 'manage'
 	})
-	.when('/manage/addBox', {
+	.when('/manage/category/add', {
 		templateUrl: 'sites/manage.html',
 		controller: 'mainController',
 		navActive: 'manage'
 	})
-	.when('/manage/addCategory', {
+	.when('/manage/category/:category/edit', {
+		templateUrl: 'sites/category_edit.html',
+		controller: 'categoryEditController',
+		navActive: 'manage'
+	})
+	.when('/manage/box/add', {
 		templateUrl: 'sites/manage.html',
 		controller: 'mainController',
 		navActive: 'manage'
 	})
-	.when('/manage/:box/edit', {
+	.when('/manage/box/:box/edit', {
 		templateUrl: 'sites/manage.html',
 		controller: 'mainController',
 		navActive: 'manage'
 	})
-	.when('/manage/:box/questions', {
+	.when('/manage/box/:box/questions', {
 		templateUrl: 'sites/manage.html',
 		controller: 'mainController',
 		navActive: 'manage'
@@ -178,6 +183,29 @@ corviApp.controller('manageBoxesController', function($scope, $log, Categories, 
 	
 	*/
 		
+});
+
+corviApp.controller('categoryEditController', function($scope, $routeParams, $log, $location, Categories) {
+	var id = parseInt($routeParams.category, 10);
+	if (isNaN(id)) {
+		$log.error("Invalid ID!");
+	}
+	
+	$scope.category = angular.copy(Categories.CategoriesByID[id])
+	$scope.error = "";
+	
+	$scope.back = function() {
+		$location.path("/manage");
+	};
+	
+	$scope.save = function() {
+		Categories.Update(id, $scope.category, function(data) {
+			$location.path("/manage");
+		}, function(err) {
+			$scope.error = err;
+		});
+	};
+	
 });
 
 corviApp.directive('mainNavigation', function() {

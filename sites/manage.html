@@ -1,13 +1,13 @@
 <div class="expanded row">
 	<div clasS="columns medium-6 show-for-medium">
-		<a href="#/manage/addCategory" class="button">New Category</a>
-		<a href="#/manage/addBox" class="button">New Box</a>
+		<a href="#/manage/category/add" class="button">New Category</a>
+		<a href="#/manage/box/add" class="button">New Box</a>
 	</div>
 	<div class="columns small-12 show-for-small-only">
-		<a href="#/manage/addCategory" class="button expanded">New Category</a>
+		<a href="#/manage/category/add" class="button expanded">New Category</a>
 	</div>
 	<div class="columns small-12 show-for-small-only">
-		<a href="#/manage/addBox" class="button expanded">New Box</a>
+		<a href="#/manage/box/add" class="button expanded">New Box</a>
 	</div>
 	<div class="columns medium-6 small-12 text-right search">
 		<input placeholder="Search" type="text" ng-model="searchText" />
@@ -20,7 +20,7 @@
 			<thead>
 				<tr>
 					<th style="width: 80%;" colspan="3">{{ category.Name }}</th>
-					<th style="width: 10%;" class="button-td"><a ng-click="renameCategoryModal(catKey)" class="expanded small button">Rename</a></th>
+					<th style="width: 10%;" class="button-td"><a ng-href="#/manage/category/{{ category.ID }}/edit" class="expanded small button">Rename</a></th>
 					<th style="width: 10%;" class="button-td"><a class="expanded small button alert">Delete</a></th>
 				</tr>
 			</thead>
@@ -30,37 +30,12 @@
 						{{ box.Name }}
 						<span ng-show="box.Description" class="box-description"><br />{{ box.Description }}</span>
 					</td>
-					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/{{ box.ID }}/edit" class="expanded button">Edit</a></td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/box/{{ box.ID }}/edit" class="expanded button">Edit</a></td>
 					<td style="width: 10%;" class="button-td"><a class="expanded button">Publish</a></td>
-					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/{{ box.ID }}/questions" class="expanded button">Questions</a></td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/box/{{ box.ID }}/questions" class="expanded button">Questions</a></td>
 					<td style="width: 10%;" class="button-td"><a class="expanded button alert">Delete</a></td>
 				</tr>
 			</tbody>
 		</table>
 	</div>
-</div>
-
-<div class="reveal" id="categoryRenameModal" data-reveal>
-	<h4>Rename Category</h4>
-
-	<form name="form" novalidate>
-		<div class="row">
-			<div class="medium-12 columns">
-				<label>Name
-					<input type="text" name="Name" ng-model="form.category.Name" required />
-					<p ng-show="form.category.Name.$invalid" class="help-block">The name cannot be emoty!</p>
-				</label>
-			</div>
-		</div>
-		<div class="row">
-			<div class="medium-12 columns">
-				<button type="submit" class="button" ng-click="renameCategorySave(form)">Save</button>
-				<button type="button" class="alert button" ng-click="renameCategoryReset(form)">Cancel</button>
-			</div>
-		</div>
-	</form>
-
-	<button class="close-button" data-close aria-label="Close modal" type="button" ng-click="renameCategoryReset(form)">
-		<span aria-hidden="true">&times;</span>
-	</button>
 </div>

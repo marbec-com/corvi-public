@@ -70,7 +70,6 @@ corviServices.factory('Boxes', function($http, $log) {
 			total += BoxService.BoxesAll[i].QuestionsToLearn;
 		}
 		BoxService.Metadata['QuestionsToLearnTotal'] = total;
-		$log.debug("New total ", BoxService.Metadata);
 	};
 	
 	BoxService.Refresh = function() {
@@ -85,10 +84,10 @@ corviServices.factory('Boxes', function($http, $log) {
 				var newBox = angular.copy(res.data[i]);
 				BoxService.BoxesAll.push(newBox);
 				BoxService.BoxesByID[newBox.ID] = newBox;
-				if(!(newBox.Category.ID in BoxService.BoxesByCatID)) {
-					BoxService.BoxesByCatID[newBox.Category.ID] = [];
+				if(!(newBox.CategoryID in BoxService.BoxesByCatID)) {
+					BoxService.BoxesByCatID[newBox.CategoryID] = [];
 				}
-				BoxService.BoxesByCatID[newBox.Category.ID].push(newBox);			
+				BoxService.BoxesByCatID[newBox.CategoryID].push(newBox);			
 			}
 			BoxService._refreshQuestionsToLearnTotal();
 		}, function(res) {
@@ -153,10 +152,10 @@ corviServices.factory('Questions', function($http, $log) {
 				var newQuestion = angular.copy(res.data[i]);
 				QuestionService.QuestionsAll.push(newQuestion);
 				QuestionService.QuestionsByID[newQuestion.ID] = newQuestion;
-				if(!(newQuestion.Box.ID in QuestionService.QuestionsByBoxID)) {
-					QuestionService.QuestionsByBoxID[newQuestion.Box.ID] = [];
+				if(!(newQuestion.BoxID in QuestionService.QuestionsByBoxID)) {
+					QuestionService.QuestionsByBoxID[newQuestion.BoxID] = [];
 				}
-				QuestionService.QuestionsByBoxID[newQuestion.Box.ID].push(newQuestion);			
+				QuestionService.QuestionsByBoxID[newQuestion.BoxID].push(newQuestion);			
 			}
 		}, function(res) {
 			$log.error(res);

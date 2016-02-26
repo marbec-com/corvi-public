@@ -5,7 +5,6 @@ import (
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
 	"marb.ec/maf/events"
-	"marb.ec/maf/interfaces"
 	"marb.ec/maf/router"
 	"marb.ec/maf/wsnotify"
 	"net/http"
@@ -18,14 +17,23 @@ func main() {
 
 	go func() {
 		eh := events.Events()
+		i := 0
 		for _ = range time.Tick(10 * time.Second) {
-			err := eh.Publish(interfaces.Topic("categories"), nil)
-			log.Printf("Publish: %v", err)
+			i++
+			if i%3 == 0 {
+				eh.Publish(events.Topic("boxes"), nil)
+				log.Println("Publish All")
+			} else if i%3 == 1 {
+				eh.Publish(events.Topic("box-1"), nil)
+				log.Println("Publish Single")
+			} else {
+				eh.Publish(events.Topic("boxcat-1"), nil)
+				log.Println("Publish Boxcat")
+			}
 		}
 	}()
 
-	topics := []interfaces.Topic{"categories", "boxes", "questions"}
-	ns := wsnotify.NewWSNotificationService(topics)
+	ns := wsnotify.NewWSNotificationService()
 
 	// WS Notify Routes
 	r.Add(router.GET, "/sock", ns)
@@ -36,7 +44,9 @@ func main() {
 
 	// Category Routes
 	r.Add(router.GET, "/api/categories", &views.CategoriesView{})
+	r.Add(router.POST, "/api/categories", &views.CategoryAddView{})
 	r.Add(router.GET, "/api/category/:id", &views.CategoryView{})
+	r.Add(router.PUT, "/api/category/:id", &views.CategoryUpdateView{})
 	r.Add(router.GET, "/api/category/:id/boxes", &views.CategoryBoxesView{})
 
 	// Boxes Routes

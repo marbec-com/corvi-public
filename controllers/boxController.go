@@ -36,7 +36,6 @@ var mockBoxes = []*models.Box{
 var BoxControllerSingleton *BoxController
 
 type BoxController struct {
-	BoxCache map[uint]*models.Box // TODO: Monitor Memory Consumption
 }
 
 func BoxControllerInstance() *BoxController {
@@ -53,6 +52,7 @@ func NewBoxController() *BoxController {
 func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
 
 	// Load all form SQL
+	mockBoxes[0].Name = mockBoxes[0].Name + "A"
 
 	// Save in BaxCache
 
@@ -60,13 +60,10 @@ func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
 }
 
 func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
-	box, ok := c.BoxCache[id]
-	if ok {
-		return box, nil
-	}
 
 	for _, box := range mockBoxes {
 		if box.ID == id {
+			box.Name = box.Name + "D"
 			return box, nil
 		}
 	}
@@ -150,7 +147,6 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 }
 
 func (c *BoxController) UpdateBox(b *models.Box) error {
-	c.BoxCache[b.ID] = b
 	return nil
 }
 

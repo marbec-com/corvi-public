@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"golang.org/x/net/context"
 	"marb.ec/corvi-backend/controllers"
+	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/interfaces"
 	"net/http"
 	"strconv"
@@ -40,7 +41,7 @@ func (v *CategoryView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -49,7 +50,7 @@ func (v *CategoryView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	category, err := controller.LoadCategory(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -73,7 +74,7 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	id, err := strconv.ParseUint(idRaw, 10, 32)
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -82,7 +83,7 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	boxes, err := controller.LoadBoxes(uint(id))
 
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
@@ -95,4 +96,61 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	if n != nil {
 		n(rw, r, ctx)
 	}
+}
+
+type CategoryUpdateView struct{}
+
+func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	defer r.Body.Close()
+
+	// Parse and convert ID
+	idRaw := ctx.Value("id").(string)
+	id, err := strconv.ParseUint(idRaw, 10, 32)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	// Construct object via JSON
+	cat := &models.Category{}
+
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&cat)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+
+	controller := controllers.CategoryControllerInstance()
+	err = controller.UpdateCategory(uint(id), cat)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+	}
+
+	rw.WriteHeader(http.StatusOK)
+
+}
+
+type CategoryAddView struct{}
+
+func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	defer r.Body.Close()
+
+	// Construct object via JSON
+	cat := &models.Category{}
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&cat)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+
+	controller := controllers.CategoryControllerInstance()
+	err = controller.AddCategory(cat)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+	}
+
+	rw.WriteHeader(http.StatusCreated)
+
 }

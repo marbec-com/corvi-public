@@ -228,7 +228,35 @@ corviServices.factory('Questions', function($http, $log) {
 	return QuestionService;
 });
 
-corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questions) {
+corviServices.factory('Settings', function($http, $log) {
+	var SettingsService = {};
+	
+	SettingsService.Settings = {};
+	
+	SettingsService.Refresh = function() {
+		$http.get("/api/settings/").then(function(res) {
+			var newSettings = angular.copy(res.data);
+			angular.copy(newSettings, SettingsService.Settings);
+			$log.debug(SettingsService.Settings);
+		}, function(res) {
+			$log.error(res);
+		});	
+	};
+	
+	SettingsService.Update = function(settings, success, error) {
+		$http.put("/api/settings", settings).then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
+	return SettingsService;
+	
+});
+
+corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questions, Settings) {
 	var NotifyService = {};
 	
 	$log.debug("NotifyService");
@@ -292,6 +320,8 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 				return
 			}
 			Questions.RefreshBox(boxID);
+		}else if(res.data == "settings") {
+			Settings.Refresh();
 		}else{
 			$log.debug("Unknown Websocket notification: ", res);
 		}

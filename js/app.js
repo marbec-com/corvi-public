@@ -1,11 +1,12 @@
 var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices']);
 
-corviApp.run(function($window, Notify, Categories, Boxes, Questions) {
+corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings) {
 	Notify.connect();
 	
 	Categories.Refresh();
 	Boxes.Refresh();
 	Questions.Refresh();
+	Settings.Refresh();
 	
 	$window.onbeforeunload = function() {
 		Notify.Destroy();
@@ -71,18 +72,16 @@ corviApp.config(function($routeProvider) {
 	})
 	.when('/settings', {
 		templateUrl: 'sites/settings.html',
-		controller: 'mainController',
+		controller: 'settingsEditController',
 		navActive: 'settings'
 	}).otherwise({
 		redirectTo: '/'
 	});
 });
 
-corviApp.controller('studyBoxController', function($scope, $log, Categories, Boxes) {
+corviApp.controller('studyBoxController', function($scope, $log, Categories, Boxes, Settings) {
 	$scope.categories = Categories.CategoriesAll;
 	$scope.boxesByCatID = Boxes.BoxesByCatID;
-	
-	//$log.debug($scope.categories);
 });
 
 corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, Boxes) {
@@ -205,4 +204,19 @@ corviApp.directive('mainNavigation', function() {
 corviApp.controller('mainNavigationController', function($scope, $route, Boxes) {
 	$scope.$route = $route;
 	$scope.boxMetadata = Boxes.Metadata;
+});
+
+corviApp.controller('settingsEditController', function($scope, $log, $location, Settings) {
+	
+	$scope.settings = angular.copy(Settings.Settings);
+	$scope.error = "";
+	
+	$scope.save = function() {
+		Settings.Update($scope.settings, function(data) {
+			$location.path("/settings");
+		}, function(err) {
+			$scope.error = err;
+		});
+	};
+	
 });

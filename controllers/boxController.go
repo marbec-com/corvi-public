@@ -166,7 +166,7 @@ func (c *BoxController) getBeginningOfNextDay() time.Time {
 
 func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 	capacity := c.getCapacity(b)
-	if capacity < 0 {
+	if capacity <= 0 {
 		return
 	}
 
@@ -212,7 +212,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 
 	// Only add unmarked question that are due
 	for question, a := range set {
-		if capacity < 0 {
+		if capacity <= 0 {
 			return
 		}
 
@@ -230,6 +230,9 @@ func (c *BoxController) getCapacity(b *models.Box) uint {
 	capacity := maxToLearn
 	yt, mt, dt := time.Now().Date()
 	for _, unit := range mockAnswers {
+		if capacity <= 0 {
+			return 0
+		}
 		if unit.BoxID != b.ID {
 			continue
 		}
@@ -239,10 +242,7 @@ func (c *BoxController) getCapacity(b *models.Box) uint {
 		}
 	}
 
-	if capacity < 0 {
-		return 0
-	}
-	return uint(capacity)
+	return capacity
 }
 
 func (c *BoxController) UpdateBox(b *models.Box) error {

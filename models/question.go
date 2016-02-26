@@ -15,7 +15,8 @@ type Question struct {
 	ID                uint
 	Question          string
 	Answer            string
-	Box               *Box
+	BoxID             uint
+	Box               *Box `json:"-"`
 	Next              time.Time
 	CorrectlyAnswered uint
 }
@@ -24,6 +25,7 @@ func NewQuestion(question, answer string, b *Box) *Question {
 	return &Question{
 		Question:          question,
 		Answer:            answer,
+		BoxID:             b.ID,
 		Box:               b,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,

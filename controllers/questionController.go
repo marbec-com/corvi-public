@@ -13,6 +13,7 @@ var mockQuestions = []*models.Question{
 		ID:                1,
 		Question:          "Update Statement?",
 		Answer:            "UPDATE table SET key = value",
+		BoxID:             1,
 		Box:               mockBoxes[0],
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
@@ -21,6 +22,7 @@ var mockQuestions = []*models.Question{
 		ID:                2,
 		Question:          "Insert Statement?",
 		Answer:            "INSERT INTO table (key, key) VALUES (value, value)",
+		BoxID:             1,
 		Box:               mockBoxes[0],
 		Next:              time.Now(),
 		CorrectlyAnswered: 1,
@@ -29,6 +31,7 @@ var mockQuestions = []*models.Question{
 		ID:                3,
 		Question:          "Küche",
 		Answer:            "Kitchen",
+		BoxID:             2,
 		Box:               mockBoxes[1],
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
@@ -37,6 +40,7 @@ var mockQuestions = []*models.Question{
 		ID:                4,
 		Question:          "Küche",
 		Answer:            "Cuisine",
+		BoxID:             3,
 		Box:               mockBoxes[2],
 		Next:              time.Now(),
 		CorrectlyAnswered: 3,
@@ -93,8 +97,14 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 		return err
 	}
 
-	BoxControllerInstance().removeQuestionFromHeap(question.Box, question)
-	BoxControllerInstance().refreshBox(question.Box)
+	// TODO(mjb): Rethink architecture here
+	box, err := BoxControllerInstance().LoadBox(question.BoxID)
+	if err != nil {
+		return err
+	}
+
+	BoxControllerInstance().removeQuestionFromHeap(box, question)
+	BoxControllerInstance().refreshBox(box)
 
 	return nil
 }
@@ -116,13 +126,18 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 		return err
 	}
 
-	// TODO(mjb): Put question back in heap, maybe
-	if relearnUntilAccomplished {
-		BoxControllerInstance().readdQuestionFromHeap(question.Box, question)
-	} else {
-		BoxControllerInstance().removeQuestionFromHeap(question.Box, question)
+	// TODO(mjb): Rethink architecture here
+	box, err := BoxControllerInstance().LoadBox(question.BoxID)
+	if err != nil {
+		return err
 	}
-	BoxControllerInstance().refreshBox(question.Box)
+
+	if relearnUntilAccomplished {
+		BoxControllerInstance().reAddQuestionFromHeap(box, question)
+	} else {
+		BoxControllerInstance().removeQuestionFromHeap(box, question)
+	}
+	BoxControllerInstance().refreshBox(box)
 
 	return nil
 }

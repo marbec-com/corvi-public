@@ -3,7 +3,8 @@ package models
 type Box struct {
 	ID               uint
 	Name             string
-	Category         *Category
+	CategoryID       uint
+	Category         *Category     `json:"-"`
 	QuestionHeap     *QuestionHeap `json:"-"`
 	QuestionsTotal   uint
 	QuestionsToLearn uint
@@ -29,6 +30,7 @@ Description
 func NewBox(name string, cat *Category) *Box {
 	return &Box{
 		Name:         name,
+		CategoryID:   cat.ID,
 		Category:     cat,
 		QuestionHeap: NewQuestionHeap(),
 	}

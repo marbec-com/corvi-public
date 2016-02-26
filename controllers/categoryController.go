@@ -58,7 +58,7 @@ func (c *CategoryController) LoadBoxes(id uint) ([]*models.Box, error) {
 
 	boxes := []*models.Box{}
 	for _, box := range mockBoxes {
-		if box.Category.ID == id {
+		if box.CategoryID == id {
 			boxes = append(boxes, box)
 		}
 	}

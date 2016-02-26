@@ -12,6 +12,7 @@ var mockBoxes = []*models.Box{
 	&models.Box{
 		ID:               1,
 		Name:             "SQL Statements",
+		CategoryID:       1,
 		Category:         mockCategories[0],
 		QuestionsToLearn: 2,
 		QuestionsTotal:   2,
@@ -21,6 +22,7 @@ var mockBoxes = []*models.Box{
 	&models.Box{
 		ID:               2,
 		Name:             "English - Kitchen",
+		CategoryID:       2,
 		Category:         mockCategories[1],
 		QuestionsToLearn: 1,
 		QuestionsTotal:   1,
@@ -30,6 +32,7 @@ var mockBoxes = []*models.Box{
 	&models.Box{
 		ID:               3,
 		Name:             "French - Cuisine",
+		CategoryID:       2,
 		Category:         mockCategories[1],
 		QuestionsToLearn: 0,
 		QuestionsTotal:   1,
@@ -37,6 +40,8 @@ var mockBoxes = []*models.Box{
 		QuestionHeap:     models.NewQuestionHeap(),
 	},
 }
+
+// TODO(mjb): Introduce HEAP cache
 
 // TODO(mjb): Replace with dynamic settings variable
 const (
@@ -87,7 +92,7 @@ func (c *BoxController) refreshBox(box *models.Box) error {
 	var learned, total uint
 
 	for _, question := range mockQuestions {
-		if question.Box != box {
+		if question.BoxID != box.ID {
 			continue
 		}
 		total++
@@ -113,7 +118,7 @@ func (c *BoxController) LoadQuestions(id uint) ([]*models.Question, error) {
 
 	questions := []*models.Question{}
 	for _, q := range mockQuestions {
-		if q.Box.ID == id {
+		if q.BoxID == id {
 			questions = append(questions, q)
 		}
 	}
@@ -129,7 +134,7 @@ func (c *BoxController) removeQuestionFromHeap(box *models.Box, question *models
 	box.QuestionHeap.Unlock()
 }
 
-func (c *BoxController) readdQuestionFromHeap(box *models.Box, question *models.Question) {
+func (c *BoxController) reAddQuestionFromHeap(box *models.Box, question *models.Question) {
 	box.QuestionHeap.Lock()
 	if box.QuestionHeap.Peek() == question {
 		box.QuestionHeap.Add(box.QuestionHeap.Min())
@@ -187,7 +192,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 
 	// Add all questions of that box
 	for _, question := range mockQuestions {
-		if question.Box != b {
+		if question.BoxID != b.ID {
 			continue
 		}
 		set[question] = true
@@ -196,7 +201,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 	// Mark all questions that were arleady answered today
 	yt, mt, dt := time.Now().Date()
 	for _, unit := range mockAnswers {
-		if unit.Box != b {
+		if unit.BoxID != b.ID {
 			continue
 		}
 		y, m, d := unit.Time.Date()
@@ -225,7 +230,7 @@ func (c *BoxController) getCapacity(b *models.Box) uint {
 	capacity := maxToLearn
 	yt, mt, dt := time.Now().Date()
 	for _, unit := range mockAnswers {
-		if unit.Box != b {
+		if unit.BoxID != b.ID {
 			continue
 		}
 		y, m, d := unit.Time.Date()

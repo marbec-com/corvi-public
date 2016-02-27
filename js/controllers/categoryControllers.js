@@ -6,6 +6,7 @@ corviApp.controller('categoryEditController', function($scope, $routeParams, $lo
 	var id = parseInt($routeParams.category, 10);
 	if (isNaN(id)) {
 		$log.error("Invalid ID!");
+		return
 	}
 	
 	$scope.category = angular.copy(Categories.CategoriesByID[id]);

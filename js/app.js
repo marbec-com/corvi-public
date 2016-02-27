@@ -1,6 +1,6 @@
 (function() {
 
-var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers']);
+var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
 
 corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings) {
 	Notify.connect();
@@ -58,8 +58,18 @@ corviApp.config(function($routeProvider) {
 		navActive: 'manage'
 	})
 	.when('/manage/box/:box/questions', {
-		templateUrl: 'sites/manage.html',
-		controller: 'mainController',
+		templateUrl: 'sites/questions.html',
+		controller: 'questionsController',
+		navActive: 'manage'
+	})
+	.when('/manage/box/:box/questions/add', {
+		templateUrl: 'sites/questions.html',
+		controller: 'questionsController',
+		navActive: 'manage'
+	})
+	.when('/manage/question/:question/edit', {
+		templateUrl: 'sites/questions.html',
+		controller: 'questionsController',
 		navActive: 'manage'
 	})
 	.when('/discover', {
@@ -91,6 +101,7 @@ corviApp.controller('studyFinishedController', function($scope, $routeParams, $l
 	var id = parseInt($routeParams.box, 10);
 	if (isNaN(id)) {
 		$log.error("Invalid ID!");
+		return
 	}
 	
 	$scope.boxID = id;
@@ -107,6 +118,7 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 	var boxID = parseInt($routeParams.box, 10);
 	if (isNaN(boxID)) {
 		$log.error("Invalid ID!");
+		return
 	}
 
 	loadNewQuestion(boxID);	

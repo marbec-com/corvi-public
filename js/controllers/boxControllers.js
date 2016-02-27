@@ -6,6 +6,7 @@ corviApp.controller('boxEditController', function($scope, $routeParams, $log, $l
 	var id = parseInt($routeParams.box, 10);
 	if (isNaN(id)) {
 		$log.error("Invalid ID!");
+		return
 	}
 	
 	$scope.box = angular.copy(Boxes.BoxesByID[id]);

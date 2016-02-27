@@ -40,6 +40,9 @@
 					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/question/{{ question.ID }}/edit" class="expanded button">Edit</a></td>
 					<td style="width: 10%;" class="button-td"><a class="expanded button alert">Delete</a></td>
 				</tr>
+				<tr ng-if="(questions | filter:searchText).length <= 0">
+					<td colspan="6" class="text-center">No questions found.</td>
+				</tr>
 			</tbody>
 		</table>
 	</div>

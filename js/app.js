@@ -1,6 +1,6 @@
 (function() {
 
-var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
+var corviApp = angular.module('corviApp', ['ngRoute', 'angularMoment', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
 
 corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings) {
 	Notify.connect();

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"golang.org/x/net/context"
 	"marb.ec/corvi-backend/controllers"
+	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/interfaces"
 	"net/http"
 	"strconv"
@@ -133,4 +134,60 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	if n != nil {
 		n(rw, r, ctx)
 	}
+}
+
+type BoxUpdateView struct{}
+
+func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	defer r.Body.Close()
+
+	// Parse and convert ID
+	idRaw := ctx.Value("id").(string)
+	id, err := strconv.ParseUint(idRaw, 10, 32)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	// Construct object via JSON
+	box := &models.Box{}
+
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&box)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+
+	controller := controllers.BoxControllerInstance()
+	err = controller.UpdateBox(uint(id), box)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+	}
+
+	rw.WriteHeader(http.StatusOK)
+
+}
+
+type BoxAddView struct{}
+
+func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	defer r.Body.Close()
+
+	// Construct object via JSON
+	box := &models.Box{}
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&box)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+
+	controller := controllers.BoxControllerInstance()
+	err = controller.AddBox(box)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+	}
+
+	rw.WriteHeader(http.StatusCreated)
 }

@@ -53,7 +53,9 @@ func main() {
 
 	// Boxes Routes
 	r.Add(router.GET, "/api/boxes", &views.BoxesView{})
+	r.Add(router.POST, "/api/boxes", &views.BoxAddView{})
 	r.Add(router.GET, "/api/box/:id", &views.BoxView{})
+	r.Add(router.PUT, "/api/box/:id", &views.BoxUpdateView{})
 	r.Add(router.GET, "/api/box/:id/questions", &views.BoxQuestionsView{})
 	r.Add(router.GET, "/api/box/:id/getQuestionToLearn", &views.BoxGetQuestionToLearnView{})
 

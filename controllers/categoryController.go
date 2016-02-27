@@ -30,18 +30,12 @@ func NewCategoryController() *CategoryController {
 }
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
-
-	mockCategories[0].Name = mockCategories[0].Name + "B"
-
 	return mockCategories, nil
 }
 
 func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
 	for _, cat := range mockCategories {
 		if id == cat.ID {
-			if id == 1 {
-				cat.Name = cat.Name + "C"
-			}
 			return cat, nil
 		}
 	}
@@ -63,19 +57,17 @@ func (c *CategoryController) LoadBoxes(id uint) ([]*models.Box, error) {
 		}
 	}
 
-	boxes[0].Name = boxes[0].Name + "E"
-
 	return boxes, nil
 }
 
 func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) error {
 	// Find category to update
-	for k := range mockCategories {
-		if cat.ID == catID {
+	for k, c := range mockCategories {
+		if c.ID == catID {
 			// Upate category
 			mockCategories[k] = cat
 			// Publish event to force client refresh
-			events.Events().Publish(events.Topic(fmt.Sprintf("category-%d", cat.ID)), c)
+			events.Events().Publish(events.Topic(fmt.Sprintf("category-%d", catID)), c)
 			return nil
 		}
 	}

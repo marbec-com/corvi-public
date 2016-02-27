@@ -41,6 +41,8 @@ var mockBoxes = []*models.Box{
 	},
 }
 
+var mockBoxesID uint = 4
+
 // TODO(mjb): Introduce HEAP cache
 
 // TODO(mjb): Replace with dynamic settings variable
@@ -243,12 +245,28 @@ func (c *BoxController) getCapacity(b *models.Box) uint {
 	return capacity
 }
 
-func (c *BoxController) UpdateBox(b *models.Box) error {
-	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", b.ID)), c)
-	return nil
+func (c *BoxController) UpdateBox(boxID uint, box *models.Box) error {
+
+	for k, b := range mockBoxes {
+		if b.ID == boxID {
+			mockBoxes[k] = box
+			events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)
+			return nil
+		}
+	}
+
+	return errors.New("Box to update was not found.")
 }
 
-func (c *BoxController) AddBox(b *models.Box) error {
+func (c *BoxController) AddBox(box *models.Box) error {
+	box.ID = mockBoxesID
+	mockBoxesID++
+
+	//TODO(mjb): Add category object?
+
+	mockBoxes = append(mockBoxes, box)
+
 	events.Events().Publish(events.Topic("boxes"), c)
+
 	return nil
 }

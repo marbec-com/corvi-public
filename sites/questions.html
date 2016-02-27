@@ -35,7 +35,7 @@
 				<tr ng-repeat="question in questions | filter:searchText | orderBy:'Question'">
 					<td style="width: 60%;">{{ question.Question }}</td>
 					<td class="text-center"><span class="label" ng-class="{'warning': !compareToNow(question.Next)}"><span am-time-ago="question.Next"></span></span></td>
-					<td class="text-center"><span class="label" ng-class="{'success': question.CorrectlyAnswered > 0, 'alert': question.CorrectlyAnswered == 0}">{{ question.CorrectlyAnswered }}</span></td>
+					<td class="text-center"><span class="label" ng-class="{'success': question.CorrectlyAnswered > 7, 'warning': 7 >= question.CorrectlyAnswered && question.CorrectlyAnswered > 0, 'alert': question.CorrectlyAnswered == 0}">{{ question.CorrectlyAnswered }}</span></td>
 					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/question/{{ question.ID }}/edit" class="expanded button">Edit</a></td>
 					<td style="width: 10%;" class="button-td"><a class="expanded button alert">Delete</a></td>
 				</tr>

@@ -16,7 +16,7 @@
 			<tbody ng-repeat="box in boxesByCatID[category.ID] | filter:searchText | orderBy:'-QuestionsToLearn'">
 				<tr>
 					<td style="width: 60%;">{{ box.Name }}</td>
-					<td style="width: 15%;"><span class="label" ng-class="{'success': box.QuestionsToLearn == 0, 'warning': box.QuestionsToLearn > 0}">{{ box.QuestionsToLearn }}</span></td>
+					<td style="width: 15%;"><span class="warning label" ng-if="box.QuestionsToLearn > 0">{{ box.QuestionsToLearn }}</span></td>
 					<td style="width: 15%;" class="total">{{ box.QuestionsLearned }}<span class="primary show-for-medium">/{{ box.QuestionsTotal }}</span></td>
 					<td style="width: 10%;" class="learn" ng-hide="box.QuestionsToLearn == 0"><a ng-href="#/study/{{ box.ID }}" class="expanded button">Learn</a></td>
 					<td style="width: 10%;" class="learn" ng-show="box.QuestionsToLearn == 0"><button type="button" class="expanded button disabled">Done</button></td>

@@ -1,4 +1,8 @@
+/* global StartsWith */
+/* global ClearObject */
 /* global angular */
+(function() {
+
 var corviServices = angular.module('corviServices', []);
 
 corviServices.factory('Categories', function($http, $log) {
@@ -64,12 +68,13 @@ corviServices.factory('Boxes', function($http, $log) {
 	BoxService.BoxesAll = [];
 	BoxService.Metadata = {'QuestionsToLearnTotal': 0};
 	
-	BoxService._refreshQuestionsToLearnTotal = function() {
+	BoxService.refreshQuestionsToLearnTotal = function() {
 		var total = 0;
 		for (var i = 0; i < BoxService.BoxesAll.length; i++) {
 			total += BoxService.BoxesAll[i].QuestionsToLearn;
 		}
 		BoxService.Metadata['QuestionsToLearnTotal'] = total;
+		$log.debug(BoxService.Metadata);
 	};
 	
 	BoxService.Refresh = function() {
@@ -89,7 +94,7 @@ corviServices.factory('Boxes', function($http, $log) {
 				}
 				BoxService.BoxesByCatID[newBox.CategoryID].push(newBox);			
 			}
-			BoxService._refreshQuestionsToLearnTotal();
+			BoxService.refreshQuestionsToLearnTotal();
 		}, function(res) {
 			$log.error(res);
 		}); 
@@ -99,7 +104,7 @@ corviServices.factory('Boxes', function($http, $log) {
 		$http.get("/api/box/"+boxID+"/").then(function(res) {
 			var newBox = angular.copy(res.data);
 			angular.copy(newBox, BoxService.BoxesByID[boxID]);
-			BoxService._refreshQuestionsToLearnTotal();
+			BoxService.refreshQuestionsToLearnTotal();
 		}, function(res) {
 			$log.error(res);
 		});	
@@ -122,10 +127,28 @@ corviServices.factory('Boxes', function($http, $log) {
 				// Add to bycatid
 				BoxService.BoxesByCatID[catID].push(newBox);
 			}
-			BoxService._refreshQuestionsToLearnTotal();
+			BoxService.refreshQuestionsToLearnTotal();
 		}, function(res) {
 			$log.error(res);
 		}); 	
+	};
+	
+	BoxService.Update = function(boxID, box, success, error) {
+		$http.put("/api/box/"+boxID+"/", box).then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
+	BoxService.Add = function(box, success, error) {
+		$http.post("/api/boxes", box).then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
 	};
 	
 	return BoxService;
@@ -355,3 +378,5 @@ corviServices.factory('Notify', function($http, $log, Categories, Boxes, Questio
 		
 	return NotifyService;
 });
+
+})();

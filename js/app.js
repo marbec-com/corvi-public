@@ -1,4 +1,6 @@
-var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices']);
+(function() {
+
+var corviApp = angular.module('corviApp', ['ngRoute', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers']);
 
 corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings) {
 	Notify.connect();
@@ -46,13 +48,13 @@ corviApp.config(function($routeProvider) {
 		navActive: 'manage'
 	})
 	.when('/manage/box/add', {
-		templateUrl: 'sites/manage.html',
-		controller: 'mainController',
+		templateUrl: 'sites/box_add.html',
+		controller: 'boxAddController',
 		navActive: 'manage'
 	})
 	.when('/manage/box/:box/edit', {
-		templateUrl: 'sites/manage.html',
-		controller: 'mainController',
+		templateUrl: 'sites/box_edit.html',
+		controller: 'boxEditController',
 		navActive: 'manage'
 	})
 	.when('/manage/box/:box/questions', {
@@ -152,47 +154,6 @@ corviApp.controller('manageBoxesController', function($scope, $log, Categories, 
 	$scope.boxesByCatID = Boxes.BoxesByCatID;		
 });
 
-corviApp.controller('categoryEditController', function($scope, $routeParams, $log, $location, Categories) {
-	var id = parseInt($routeParams.category, 10);
-	if (isNaN(id)) {
-		$log.error("Invalid ID!");
-	}
-	
-	$scope.category = angular.copy(Categories.CategoriesByID[id]);
-	$scope.error = "";
-	
-	$scope.back = function() {
-		$location.path("/manage");
-	};
-	
-	$scope.save = function() {
-		Categories.Update(id, $scope.category, function(data) {
-			$location.path("/manage");
-		}, function(err) {
-			$scope.error = err;
-		});
-	};
-	
-});
-
-corviApp.controller('categoryAddController', function($scope, $log, $location, Categories) {
-	$scope.category = {};
-	$scope.error = "";
-	
-	$scope.back = function() {
-		$location.path("/manage");
-	};
-	
-	$scope.save = function() {
-		Categories.Add($scope.category, function(data) {
-			$location.path("/manage");
-		}, function(err) {
-			$scope.error = err;
-		});
-	};
-	
-});
-
 corviApp.directive('mainNavigation', function() {
 	return {
 		retrict: 'E',
@@ -220,3 +181,5 @@ corviApp.controller('settingsEditController', function($scope, $log, $location, 
 	};
 	
 });
+
+})();

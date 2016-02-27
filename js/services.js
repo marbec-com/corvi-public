@@ -82,7 +82,7 @@ corviServices.factory('Boxes', function($http, $log) {
 			// Clear array and objects, but preserve reference
 			BoxService.BoxesAll.length = 0;
 			ClearObject(BoxService.BoxesByID);
-			ClearObject(BoxService.BoxesByCatID);
+			ClearObjectArray(BoxService.BoxesByCatID);
 			
 			// Fill with new data
 			for (var i = 0; i < res.data.length; i++) {
@@ -167,7 +167,7 @@ corviServices.factory('Questions', function($http, $log) {
 		$http.get("/api/questions/").then(function(res) {
 			// Clear array and objects, but preserve reference
 			QuestionService.QuestionsAll.length = 0;
-			ClearObject(QuestionService.QuestionsByBoxID);
+			ClearObjectArray(QuestionService.QuestionsByBoxID);
 			ClearObject(QuestionService.QuestionsByID);
 			
 			// Fill with new data
@@ -188,7 +188,7 @@ corviServices.factory('Questions', function($http, $log) {
 	QuestionService.RefreshSingle = function(qID) {
 		$http.get("/api/question/"+qID+"/").then(function(res) {
 			var newQuestion = angular.copy(res.data);
-			angular.copy(newQuestion, QuestionService.QuestionsByID[newQuestion]);
+			angular.copy(newQuestion, QuestionService.QuestionsByID[newQuestion.ID]);
 		}, function(res) {
 			$log.error(res);
 		});	

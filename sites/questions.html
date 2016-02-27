@@ -34,8 +34,8 @@
 			<tbody>
 				<tr ng-repeat="question in questions | filter:searchText | orderBy:'Question'">
 					<td style="width: 60%;">{{ question.Question }}</td>
-					<td ng-if="compareToNow(question.Next)" class="text-center">{{ question.Next | date:'shortDate'}}</td>
-					<td ng-if="!compareToNow(question.Next)" class="text-center">Due</td>
+					<td ng-if="compareToNow(question.Next)" class="text-center"><span class="success label">{{ question.Next | date:'shortDate'}}</span></td>
+					<td ng-if="!compareToNow(question.Next)" class="text-center"><span class="warning label">Due</span></td>
 					<td class="text-center">{{ question.CorrectlyAnswered }}</td>
 					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/question/{{ question.ID }}/edit" class="expanded button">Edit</a></td>
 					<td style="width: 10%;" class="button-td"><a class="expanded button alert">Delete</a></td>

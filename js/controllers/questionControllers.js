@@ -17,8 +17,9 @@ corviApp.controller('questionsController', function($scope, $routeParams, $log, 
 	}
 	
 	$scope.box = Boxes.BoxesByID[id];
+	$scope.boxID = id;
 	
-	$scope.questions = Questions.QuestionsByBoxID[id] || [];
+	$scope.questions = Questions.QuestionsByBoxID[id];
 });
 
 })();

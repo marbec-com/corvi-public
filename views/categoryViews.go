@@ -137,7 +137,7 @@ func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 	defer r.Body.Close()
 
 	// Construct object via JSON
-	cat := &models.Category{}
+	cat := models.NewCategory()
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&cat)

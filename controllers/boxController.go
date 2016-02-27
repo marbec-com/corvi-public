@@ -250,7 +250,8 @@ func (c *BoxController) UpdateBox(boxID uint, box *models.Box) error {
 	for k, b := range mockBoxes {
 		if b.ID == boxID {
 			mockBoxes[k] = box
-			events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)
+			// Update Box, Previous cat, new cat
+			events.Events().Publish(events.Topic("boxes"), c)
 			return nil
 		}
 	}

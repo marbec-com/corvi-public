@@ -3,6 +3,7 @@ package models
 type Box struct {
 	ID               uint
 	Name             string
+	Description      string
 	CategoryID       uint
 	Category         *Category     `json:"-"`
 	QuestionHeap     *QuestionHeap `json:"-"`
@@ -13,7 +14,6 @@ type Box struct {
 
 /*
  Published bool
- Description string
 */
 
 /*
@@ -27,11 +27,8 @@ Description
 
 */
 
-func NewBox(name string, cat *Category) *Box {
+func NewBox() *Box {
 	return &Box{
-		Name:         name,
-		CategoryID:   cat.ID,
-		Category:     cat,
 		QuestionHeap: NewQuestionHeap(),
 	}
 }

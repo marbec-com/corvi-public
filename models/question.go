@@ -21,12 +21,8 @@ type Question struct {
 	CorrectlyAnswered uint
 }
 
-func NewQuestion(question, answer string, b *Box) *Question {
+func NewQuestion() *Question {
 	return &Question{
-		Question:          question,
-		Answer:            answer,
-		BoxID:             b.ID,
-		Box:               b,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
 	}

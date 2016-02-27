@@ -175,7 +175,7 @@ func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx cont
 	defer r.Body.Close()
 
 	// Construct object via JSON
-	box := &models.Box{}
+	box := models.NewBox()
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&box)

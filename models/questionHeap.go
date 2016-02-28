@@ -34,6 +34,14 @@ func (h *QuestionHeap) Min() *Question {
 	return first
 }
 
+func (h *QuestionHeap) Clear() {
+	h.questions = make([]*Question, 0)
+}
+
+func (h *QuestionHeap) Empty() bool {
+	return h.Length() == 0
+}
+
 func (h *QuestionHeap) Peek() *Question {
 	if len(h.questions) < 1 {
 		return nil

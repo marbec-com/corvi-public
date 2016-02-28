@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"fmt"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
 	"time"
@@ -374,10 +373,24 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 
 	for k, q := range mockQuestions {
 		if q.ID == qID {
+			prevBox := mockQuestions[k].BoxID
 			mockQuestions[k] = question
+
 			// Question might have been moved
-			events.Events().Publish(events.Topic("boxes"), c)
-			events.Events().Publish(events.Topic(fmt.Sprintf("question-%d", question.ID)), c)
+			if prevBox != question.BoxID {
+				// Refresh both boxes
+				if prevBoxInstance, err := BoxControllerInstance().LoadBox(question.BoxID); err == nil {
+					BoxControllerInstance().rebuildQuestionHeap(prevBoxInstance)
+					BoxControllerInstance().refreshBox(prevBoxInstance)
+				}
+				if curBoxInstance, err := BoxControllerInstance().LoadBox(prevBox); err == nil {
+					BoxControllerInstance().rebuildQuestionHeap(curBoxInstance)
+					BoxControllerInstance().refreshBox(curBoxInstance)
+				}
+				events.Events().Publish(events.Topic("boxes"), c)
+			}
+			events.Events().Publish(events.Topic("questions"), c)
+
 			return nil
 		}
 	}
@@ -386,12 +399,20 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 }
 
 func (c *QuestionController) AddQuestion(q *models.Question) error {
+	box, err := BoxControllerInstance().LoadBox(q.BoxID)
+	if err != nil {
+		return errors.New("Box for this question does not exist.")
+	}
+
+	// Insert question
 	q.ID = mockQuestionsID
 	mockQuestionsID++
-
 	mockQuestions = append(mockQuestions, q)
 
-	BoxControllerInstance().refreshBox(q.Box)
+	// Rebuild heap and refresh stats
+	BoxControllerInstance().rebuildQuestionHeap(box)
+	BoxControllerInstance().refreshBox(box)
+
 	events.Events().Publish(events.Topic("questions"), c)
 
 	return nil

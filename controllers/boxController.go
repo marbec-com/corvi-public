@@ -144,6 +144,11 @@ func (c *BoxController) reAddQuestionFromHeap(box *models.Box, question *models.
 	box.QuestionHeap.Unlock()
 }
 
+func (c *BoxController) rebuildQuestionHeap(box *models.Box) {
+	box.QuestionHeap.Clear()
+	c.loadQuestionsToLearn(box)
+}
+
 func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 	box, err := c.LoadBox(id)
 	if err != nil {

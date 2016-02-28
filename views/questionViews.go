@@ -140,12 +140,14 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 
 	controller := controllers.QuestionControllerInstance()
 
+	// TODO(mjb): Update when we load question from database
 	// Load existing object to update
-	question, err := controller.LoadQuestion(uint(id))
+	/* question, err := controller.LoadQuestion(uint(id))
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
-	}
+	} */
+	question := models.NewQuestion()
 
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&question)

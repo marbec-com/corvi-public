@@ -10,7 +10,7 @@ corviApp.controller('boxEditController', function($scope, $routeParams, $log, $l
 	}
 	
 	$scope.box = angular.copy(Boxes.BoxesByID[id]);
-	$scope.categories = Categories.CategoriesByID;
+	$scope.categories = Categories.CategoriesAll;
 	$scope.error = "";
 	
 	$scope.back = function() {
@@ -29,7 +29,7 @@ corviApp.controller('boxEditController', function($scope, $routeParams, $log, $l
 
 corviApp.controller('boxAddController', function($scope, $log, $location, Boxes, Categories) {
 	$scope.box = {};
-	$scope.categories = Categories.CategoriesByID;
+	$scope.categories = Categories.CategoriesAll;
 	$scope.error = "";
 	
 	$scope.back = function() {

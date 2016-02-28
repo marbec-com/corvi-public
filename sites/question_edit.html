@@ -1,0 +1,49 @@
+<div class="expanded row">
+	<div class="column">
+		<form name="questionEdit">
+			<h4>Edit Question</h4>
+			<div class="callout">
+				<div class="callout alert" ng-show="error">
+					<h5>Errors</h5> {{ error }}
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormQuestion" class="text-right middle">Question:</label>
+					</div>
+					<div class="small-9 columns">
+						<input type="text" name="Question" id="FormQuestion" ng-model="question.Question" required />
+						<span ng-show="questionEdit.Question.$touched && questionEdit.Question.$invalid">The question field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormBox" class="text-right middle">Box:</label>
+					</div>
+					<div class="small-9 columns">
+						<select name="Box" id="FormBox" ng-model="question.BoxID" ng-options="box.ID as box.Name for box in boxes" required>
+						</select>
+						<span ng-show="questionEdit.Box.$touched && questionEdit.Box.$invalid">The box field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormAnswer" class="text-right middle">Answer:</label>
+					</div>
+					<div class="small-9 columns">
+						<textarea name="Answer" id="FormAnswer" ng-model="question.Answer" required /></textarea>
+						<span ng-show="questionEdit.Answer.$touched && questionEdit.Answer.$invalid">The answer field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+					</div>
+					<div class="small-9 columns">
+						<button type="submit" ng-class="{'disabled': questionEdit.$invalid, 'success': questionEdit.$valid}" ng-disabled="questionEdit.$invalid"
+						class="button" style="margin: 0px;" ng-click="save()">Save</button>
+						<button type="button" class="alert button" ng-click="back()" style="margin: 0px;">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

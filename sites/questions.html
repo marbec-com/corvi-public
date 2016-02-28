@@ -7,13 +7,13 @@
 <div class="expanded row">
 	<div clasS="columns medium-6 show-for-medium">
 		<a href="#/manage" class="button"><i class="fa fa-chevron-left"></i> Back</a>
-		<a href="#/manage/category/add" class="button">New Question</a>
+		<a ng-href="#/manage/box/{{ boxID }}/questions/add" class="button">New Question</a>
 	</div>
 	<div class="columns small-12 show-for-small-only">
 		<a href="#/manag" class="button expanded"><i class="fa fa-chevron-left"></i> Back</a>
 	</div>
 	<div class="columns small-12 show-for-small-only">
-		<a href="#/manage/category/add" class="button expanded">New Question</a>
+		<a ng-href="#/manage/box/{{ boxID }}/questions/add" class="button expanded">New Question</a>
 	</div>
 	<div class="columns medium-6 small-12 text-right search">
 		<input placeholder="Search" type="text" ng-model="searchText" />

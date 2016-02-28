@@ -63,13 +63,13 @@ corviApp.config(function($routeProvider) {
 		navActive: 'manage'
 	})
 	.when('/manage/box/:box/questions/add', {
-		templateUrl: 'sites/questions.html',
-		controller: 'questionsController',
+		templateUrl: 'sites/question_add.html',
+		controller: 'questionAddController',
 		navActive: 'manage'
 	})
 	.when('/manage/question/:question/edit', {
-		templateUrl: 'sites/questions.html',
-		controller: 'questionsController',
+		templateUrl: 'sites/question_edit.html',
+		controller: 'questionEditController',
 		navActive: 'manage'
 	})
 	.when('/discover', {

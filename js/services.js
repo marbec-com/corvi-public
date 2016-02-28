@@ -228,7 +228,6 @@ corviServices.factory('Questions', function($http, $log) {
 			error(res);
 		});
 	};
-
 	
 	QuestionService.giveCorrectAnswer = function(questionID, success, error) {
 		$http.put("/api/question/"+questionID+"/giveCorrectAnswer").then(function(res) {
@@ -245,6 +244,24 @@ corviServices.factory('Questions', function($http, $log) {
 		}, function(res) {
 			$log.error(res);
 			error();
+		});
+	};
+	
+	QuestionService.Update = function(questionID, question, success, error) {
+		$http.put("/api/question/"+questionID+"/", question).then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
+	QuestionService.Add = function(question, success, error) {
+		$http.post("/api/questions", question).then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
 		});
 	};
 

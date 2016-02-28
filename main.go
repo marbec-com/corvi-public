@@ -23,15 +23,12 @@ func main() {
 		i := 0
 		for _ = range time.Tick(10 * time.Second) {
 			i++
-			if i%3 == 0 {
-				eh.Publish(events.Topic("boxes"), nil)
-				log.Println("Publish All")
-			} else if i%3 == 1 {
-				eh.Publish(events.Topic("box-1"), nil)
-				log.Println("Publish Single")
+			if i%2 == 0 {
+				eh.Publish(events.Topic("questions"), nil)
+				log.Println("Publish Questions")
 			} else {
-				eh.Publish(events.Topic("boxcat-1"), nil)
-				log.Println("Publish Boxcat")
+				eh.Publish(events.Topic("question-1"), nil)
+				log.Println("Publish Question #1")
 			}
 		}
 	}() */

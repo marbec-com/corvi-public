@@ -11,7 +11,7 @@ import (
 var mockQuestions = []*models.Question{
 	&models.Question{
 		ID:                1,
-		Question:          "Update Statement?",
+		Question:          "A Update Statement?",
 		Answer:            "UPDATE table SET key = value",
 		BoxID:             1,
 		Box:               mockBoxes[0],
@@ -25,7 +25,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Box:               mockBoxes[0],
 		Next:              time.Now(),
-		CorrectlyAnswered: 0,
+		CorrectlyAnswered: 5,
 	},
 	&models.Question{
 		ID:                4,
@@ -34,7 +34,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Box:               mockBoxes[0],
 		Next:              time.Now(),
-		CorrectlyAnswered: 0,
+		CorrectlyAnswered: 20,
 	},
 	&models.Question{
 		ID:                5,
@@ -293,10 +293,16 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 		return err
 	}
 
+	if question.CorrectlyAnswered == 0 {
+		// Answer correct for a previously unlearned question
+		c.saveLearnUnit(question, true, false)
+	} else {
+		// Answer correct for a previously learned question
+		c.saveLearnUnit(question, true, true)
+	}
+
 	question.CorrectlyAnswered++
 	question.CalculateNext()
-
-	c.saveLearnUnit(question, true)
 
 	// Save Question
 	err = c.UpdateQuestion(question)
@@ -322,10 +328,17 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 	if err != nil {
 		return err
 	}
+
+	if question.CorrectlyAnswered == 0 {
+		// Answer false for a previously unlearned question
+		c.saveLearnUnit(question, false, false)
+	} else {
+		// Answer false for a previously learned question
+		c.saveLearnUnit(question, false, true)
+	}
+
 	question.CorrectlyAnswered = 0
 	question.CalculateNext()
-
-	c.saveLearnUnit(question, false)
 
 	// Save Question
 	err = c.UpdateQuestion(question)
@@ -350,12 +363,14 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 }
 
 // TODO(mjb): Move to LearnUnit Controller
-func (c *QuestionController) saveLearnUnit(q *models.Question, correct bool) {
-	unit := models.NewLearnUnit(q, correct)
+func (c *QuestionController) saveLearnUnit(q *models.Question, correct, prev bool) {
+	unit := models.NewLearnUnit(q, correct, prev)
 	mockAnswers = append(mockAnswers, unit)
 }
 
 func (c *QuestionController) UpdateQuestion(q *models.Question) error {
+	// Question might have been moved
+	events.Events().Publish(events.Topic("boxes"), c)
 	events.Events().Publish(events.Topic(fmt.Sprintf("question-%d", q.ID)), c)
 	return nil
 }

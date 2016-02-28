@@ -276,3 +276,29 @@ func (c *BoxController) AddBox(box *models.Box) error {
 
 	return nil
 }
+
+func (c *BoxController) DeleteBox(boxID uint) error {
+	// Delete all questions of that box
+	qIndexes := []int{}
+	for k, q := range mockQuestions {
+		if q.BoxID == boxID {
+			qIndexes = append(qIndexes, k)
+		}
+	}
+	for _, i := range qIndexes {
+		mockQuestions, mockQuestions[len(mockQuestions)-1] = append(mockQuestions[:i], mockQuestions[i+1:]...), nil
+	}
+
+	// Delete box
+	for k, b := range mockBoxes {
+		if b.ID == boxID {
+			mockBoxes, mockBoxes[len(mockBoxes)-1] = append(mockBoxes[:k], mockBoxes[k+1:]...), nil
+
+			events.Events().Publish(events.Topic("questions"), c)
+			events.Events().Publish(events.Topic("boxes"), c)
+			return nil
+		}
+	}
+
+	return errors.New("Box not found")
+}

@@ -89,3 +89,24 @@ func (c *CategoryController) AddCategory(cat *models.Category) error {
 
 	return nil
 }
+
+func (c *CategoryController) DeleteCategory(catID uint) error {
+	for _, box := range mockBoxes {
+		if box.CategoryID == catID {
+			return errors.New("Cannot delete category that still has boxes assigned.")
+		}
+	}
+
+	for k, c := range mockCategories {
+		if c.ID == catID {
+			mockCategories, mockCategories[len(mockCategories)-1] = append(mockCategories[:k], mockCategories[k+1:]...), nil
+
+			// Publish event to force client refresh
+			events.Events().Publish(events.Topic("categories"), c)
+
+			return nil
+		}
+	}
+
+	return errors.New("Category not found.")
+}

@@ -417,3 +417,23 @@ func (c *QuestionController) AddQuestion(q *models.Question) error {
 
 	return nil
 }
+
+func (c *QuestionController) DeleteQuestion(qID uint) error {
+	for k, q := range mockQuestions {
+		if q.ID == qID {
+			boxID := q.BoxID
+			mockQuestions, mockQuestions[len(mockQuestions)-1] = append(mockQuestions[:k], mockQuestions[k+1:]...), nil
+
+			// Refresh box of deleted question
+			box, _ := BoxControllerInstance().LoadBox(boxID)
+			BoxControllerInstance().rebuildQuestionHeap(box)
+			BoxControllerInstance().refreshBox(box)
+
+			events.Events().Publish(events.Topic("questions"), c)
+
+			return nil
+		}
+	}
+
+	return errors.New("Question not found.")
+}

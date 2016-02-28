@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"golang.org/x/net/context"
 	"marb.ec/corvi-backend/controllers"
+	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/interfaces"
 	"net/http"
 	"strconv"
@@ -121,4 +122,66 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 	if n != nil {
 		n(rw, r, ctx)
 	}
+}
+
+type QuestionUpdateView struct{}
+
+func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	defer r.Body.Close()
+
+	// Parse and convert ID
+	idRaw := ctx.Value("id").(string)
+	id, err := strconv.ParseUint(idRaw, 10, 32)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	controller := controllers.QuestionControllerInstance()
+
+	// Load existing object to update
+	question, err := controller.LoadQuestion(uint(id))
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	err = decoder.Decode(&question)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+
+	err = controller.UpdateQuestion(uint(id), question)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+	}
+
+	rw.WriteHeader(http.StatusOK)
+
+}
+
+type QuestionAddView struct{}
+
+func (v *QuestionAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	defer r.Body.Close()
+
+	// Construct object via JSON
+	question := models.NewQuestion()
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&question)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusBadRequest)
+	}
+
+	controller := controllers.QuestionControllerInstance()
+	err = controller.AddQuestion(question)
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+	}
+
+	rw.WriteHeader(http.StatusCreated)
+
 }

@@ -150,8 +150,14 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		return
 	}
 
-	// Construct object via JSON
-	box := &models.Box{}
+	controller := controllers.BoxControllerInstance()
+
+	// Load existing object to update
+	box, err := controller.LoadBox(uint(id))
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
 
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&box)
@@ -159,7 +165,6 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 	}
 
-	controller := controllers.BoxControllerInstance()
 	err = controller.UpdateBox(uint(id), box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

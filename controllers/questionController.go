@@ -254,6 +254,8 @@ var mockQuestions = []*models.Question{
 	},
 }
 
+var mockQuestionsID uint = 28
+
 var mockAnswers = []*models.LearnUnit{}
 
 var QuestionControllerSingleton *QuestionController
@@ -305,7 +307,7 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 	question.CalculateNext()
 
 	// Save Question
-	err = c.UpdateQuestion(question)
+	err = c.UpdateQuestion(question.ID, question)
 	if err != nil {
 		return err
 	}
@@ -341,7 +343,7 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 	question.CalculateNext()
 
 	// Save Question
-	err = c.UpdateQuestion(question)
+	err = c.UpdateQuestion(question.ID, question)
 	if err != nil {
 		return err
 	}
@@ -368,17 +370,29 @@ func (c *QuestionController) saveLearnUnit(q *models.Question, correct, prev boo
 	mockAnswers = append(mockAnswers, unit)
 }
 
-func (c *QuestionController) UpdateQuestion(q *models.Question) error {
-	// Question might have been moved
-	events.Events().Publish(events.Topic("boxes"), c)
-	events.Events().Publish(events.Topic(fmt.Sprintf("question-%d", q.ID)), c)
-	return nil
+func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question) error {
+
+	for k, q := range mockQuestions {
+		if q.ID == qID {
+			mockQuestions[k] = question
+			// Question might have been moved
+			events.Events().Publish(events.Topic("boxes"), c)
+			events.Events().Publish(events.Topic(fmt.Sprintf("question-%d", question.ID)), c)
+			return nil
+		}
+	}
+
+	return errors.New("Question to update was not found.")
 }
 
-func (c *QuestionController) InsertQuestion(q *models.Question) error {
+func (c *QuestionController) AddQuestion(q *models.Question) error {
+	q.ID = mockQuestionsID
+	mockQuestionsID++
+
+	mockQuestions = append(mockQuestions, q)
+
 	BoxControllerInstance().refreshBox(q.Box)
 	events.Events().Publish(events.Topic("questions"), c)
 
-	// Update Box
 	return nil
 }

@@ -112,8 +112,14 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	// Construct object via JSON
-	cat := &models.Category{}
+	controller := controllers.CategoryControllerInstance()
+
+	// Load existing object to update
+	cat, err := controller.LoadCategory(uint(id))
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
 
 	decoder := json.NewDecoder(r.Body)
 	err = decoder.Decode(&cat)
@@ -121,7 +127,6 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 	}
 
-	controller := controllers.CategoryControllerInstance()
 	err = controller.UpdateCategory(uint(id), cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

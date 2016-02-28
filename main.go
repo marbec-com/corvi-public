@@ -58,7 +58,9 @@ func main() {
 
 	// Question Routes
 	r.Add(router.GET, "/api/questions", &views.QuestionsView{})
+	r.Add(router.POST, "/api/questions", &views.QuestionAddView{})
 	r.Add(router.GET, "/api/question/:id", &views.QuestionView{})
+	r.Add(router.PUT, "/api/question/:id", &views.QuestionUpdateView{})
 	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", &views.QuestionGiveCorrectAnswerView{})
 	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &views.QuestionGiveWrongAnswerView{})
 

@@ -36,3 +36,4 @@
 * electron-builder
 * python + pip
 * aws-cli
+* zip

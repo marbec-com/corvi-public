@@ -1,0 +1,136 @@
+image: herzog31/corvi-build:latest
+
+variables:
+  CGO_ENABLED: "0"
+  GO_EXTLINK_ENABLED: "0"
+  ELECTRON_VERSION: "0.36.9"
+  PRODUCT_NAME: "Corvi"
+  APP_BUNDLE_ID: "com.marbec.corvi"
+  APP_CATEGORY_TYPE: "public.app-category.education"
+  APP_COPYRIGHT: "Copyright 2016 by marb.ec"
+  APP_VERSION: "0.0.1"
+  ELECTRON_CACHE: "/cache/electron"
+
+cache:
+  paths:
+    - /cache/electron
+
+stages:
+  - test
+  - build
+
+backend_test:
+  stage: test
+  script:
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "ls -aslh"
+    - "go get -t -v -insecure ./..."
+    - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"
+
+build_darwin:
+  stage: build
+  script:
+    - "# Cleanup"
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "# Copy Backend"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "ls -aslh"
+    - "# Build Backend"
+    - "go get -t -v -insecure ./..."
+    - "gox -osarch=\"darwin/amd64\" -output=\"dist-darwin64/corvi-backend\""
+    - "cd dist-darwin64"
+    - "ls -aslh"
+    - "# Prepare electron build"
+    - "rm -rf $CI_PROJECT_DIR/build-darwin"
+    - "mkdir -p $CI_PROJECT_DIR/build-darwin/src"
+    - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-darwin/src/frontend"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-darwin64/corvi-backend $CI_PROJECT_DIR/build-darwin/src"
+    - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-darwin/src"
+    - "mv $CI_PROJECT_DIR/build-darwin/src/package.json $CI_PROJECT_DIR/build-darwin/"
+    - "cd $CI_PROJECT_DIR/build-darwin"
+    - "# Electron build"
+    - "ls -aslh"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=darwin --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "cd out/Corvi-darwin-x64"
+    - "zip -r Corvi-$APP_VERSION.zip * >/dev/null"
+    - "ls -aslh"
+    - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/darwin-x64/Corvi-$APP_VERSION.zip"
+    - "# Cleanup"
+    - "rm -rf $CI_PROJECT_DIR/build-darwin"
+  only:
+    - master
+
+build_win:
+  stage: build
+  script:
+    - "# Cleanup"
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "# Copy Backend"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "ls -aslh"
+    - "# Build Backend"
+    - "go get -t -v -insecure ./..."
+    - "gox -osarch=\"windows/amd64\" -output=\"dist-win/corvi-backend\""
+    - "cd dist-win"
+    - "ls -aslh"
+    - "# Prepare electron build"
+    - "rm -rf $CI_PROJECT_DIR/build-win"
+    - "mkdir -p $CI_PROJECT_DIR/build-win/src"
+    - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-win/src/frontend"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-win/corvi-backend.exe $CI_PROJECT_DIR/build-win/src"
+    - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-win/src"
+    - "mv $CI_PROJECT_DIR/build-win/src/package.json $CI_PROJECT_DIR/build-win/"
+    - "cd $CI_PROJECT_DIR/build-win"
+    - "# Electron build"
+    - "ls -aslh"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=win32 --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "cd out/Corvi-win32-x64"
+    - "zip -r Corvi-$APP_VERSION.zip * >/dev/null"
+    - "ls -aslh"
+    - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/win-x64/Corvi-$APP_VERSION.zip"
+    - "# Cleanup"
+    - "rm -rf $CI_PROJECT_DIR/build-win"
+  only:
+    - master
+
+build_linux:
+  stage: build
+  script:
+    - "# Cleanup"
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "# Copy Backend"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "ls -aslh"
+    - "# Build Backend"
+    - "go get -t -v -insecure ./..."
+    - "gox -osarch=\"linux/amd64\" -output=\"dist-linux/corvi-backend\""
+    - "cd dist-linux"
+    - "ls -aslh"
+    - "# Prepare electron build"
+    - "rm -rf $CI_PROJECT_DIR/build-linux"
+    - "mkdir -p $CI_PROJECT_DIR/build-linux/src"
+    - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-linux/src/frontend"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-linux/corvi-backend $CI_PROJECT_DIR/build-linux/src"
+    - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-linux/src"
+    - "mv $CI_PROJECT_DIR/build-linux/src/package.json $CI_PROJECT_DIR/build-linux/"
+    - "cd $CI_PROJECT_DIR/build-linux"
+    - "# Electron build"
+    - "ls -aslh"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=linux --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "cd out/Corvi-linux-x64"
+    - "zip -r Corvi-$APP_VERSION.zip * >/dev/null"
+    - "ls -aslh"
+    - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/linux-x64/Corvi-$APP_VERSION.zip"
+    - "# Cleanup"
+    - "rm -rf $CI_PROJECT_DIR/build-win"
+  only:
+    - master

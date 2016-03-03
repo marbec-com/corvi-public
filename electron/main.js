@@ -36,11 +36,11 @@ function createWindow () {
 function startBackend() {
 	
 	if (process.platform === 'darwin') {
-		backend = spawn('./darwin_amd64_corvi-backend', [], {cwd: __dirname});
+		backend = spawn('./corvi-backend', [], {cwd: __dirname});
 	}else if (process.platform === 'win32') {
-		backend = spawn('./windows_amd64_corvi-backend.exe', [], {cwd: __dirname});
+		backend = spawn('./corvi-backend.exe', [], {cwd: __dirname});
 	}else if (process.platform === 'linux') {
-		backend = spawn('./linux_amd64_corvi-backend', [], {cwd: __dirname});
+		backend = spawn('./corvi-backend', [], {cwd: __dirname});
 	}else{
 		throw new Error("Incompatible operating system: ", process.platform);
 	}

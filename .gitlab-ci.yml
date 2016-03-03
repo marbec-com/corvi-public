@@ -43,5 +43,6 @@ build_darwin:
     - "mv $CI_PROJECT_DIR/build-darwin/src/package.json $CI_PROJECT_DIR/build-darwin/"
     - "cd $CI_PROJECT_DIR/build-darwin"
     - "# Electron build"
+    - "ls -aslh"
     - "electron-packager . Corvi --platform=darwin --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
     - "ls -aslhR"

@@ -9,6 +9,11 @@ variables:
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
   APP_VERSION: "0.0.1"
+  ELECTRON_CACHE: "/cache/electron"
+
+cache:
+  paths:
+    - /cache/electron
 
 stages:
   - test
@@ -50,7 +55,7 @@ build_darwin:
     - "cd $CI_PROJECT_DIR/build-darwin"
     - "# Electron build"
     - "ls -aslh"
-    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=darwin --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=darwin --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-darwin-x64"
     - "zip -r Corvi.zip * >/dev/null"
     - "ls -aslh"
@@ -83,7 +88,7 @@ build_win:
     - "cd $CI_PROJECT_DIR/build-win"
     - "# Electron build"
     - "ls -aslh"
-    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=win32 --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=win32 --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-win32-x64"
     - "zip -r Corvi.zip * >/dev/null"
     - "ls -aslh"
@@ -110,13 +115,13 @@ build_linux:
     - "rm -rf $CI_PROJECT_DIR/build-linux"
     - "mkdir -p $CI_PROJECT_DIR/build-linux/src"
     - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-linux/src/frontend"
-    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-linux/corvi-backend.exe $CI_PROJECT_DIR/build-linux/src"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-linux/corvi-backend $CI_PROJECT_DIR/build-linux/src"
     - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-linux/src"
     - "mv $CI_PROJECT_DIR/build-linux/src/package.json $CI_PROJECT_DIR/build-linux/"
     - "cd $CI_PROJECT_DIR/build-linux"
     - "# Electron build"
     - "ls -aslh"
-    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=linux --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=linux --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-linux-x64"
     - "zip -r Corvi.zip *"
     - "ls -aslh"

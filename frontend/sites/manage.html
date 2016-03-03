@@ -1,0 +1,41 @@
+<div class="expanded row">
+	<div clasS="columns medium-6 show-for-medium">
+		<a href="#/manage/category/add" class="button">New Category</a>
+		<a href="#/manage/box/add" class="button">New Box</a>
+	</div>
+	<div class="columns small-12 show-for-small-only">
+		<a href="#/manage/category/add" class="button expanded">New Category</a>
+	</div>
+	<div class="columns small-12 show-for-small-only">
+		<a href="#/manage/box/add" class="button expanded">New Box</a>
+	</div>
+	<div class="columns medium-6 small-12 text-right search">
+		<input placeholder="Search" type="text" ng-model="searchText" />
+	</div>
+</div>
+
+<div class="expanded row">
+	<div class="column">
+		<table class="box-table" ng-repeat="(catKey, category) in categories | orderBy:'Name'" ng-show="(boxesByCatID[category.ID] | filter:searchText).length > 0 || !searchText">
+			<thead>
+				<tr>
+					<th style="width: 80%;" colspan="3">{{ category.Name }}</th>
+					<th style="width: 10%;" class="button-td"><a ng-href="#/manage/category/{{ category.ID }}/edit" class="expanded small button">Rename</a></th>
+					<th style="width: 10%;" class="button-td"><a class="expanded small button alert" ng-class="{'disabled': (boxesByCatID[category.ID].length > 0)}">Delete</a></th>
+				</tr>
+			</thead>
+			<tbody ng-repeat="box in boxesByCatID[category.ID] | filter:searchText | orderBy:'Name'">
+				<tr>
+					<td style="width: 60%;">
+						{{ box.Name }}
+						<span ng-show="box.Description" class="box-description"><br />{{ box.Description }}</span>
+					</td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/box/{{ box.ID }}/edit" class="expanded button">Edit</a></td>
+					<td style="width: 10%;" class="button-td"><a class="expanded button">Publish</a></td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/box/{{ box.ID }}/questions" class="expanded button">Questions</a></td>
+					<td style="width: 10%;" class="button-td"><a class="expanded button alert">Delete</a></td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

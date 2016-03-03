@@ -1,0 +1,50 @@
+<div class="expanded row">
+	<div class="column">
+		<form name="boxAdd">
+			<h4>Add New Box</h4>
+			<div class="callout">
+				<div class="callout alert" ng-show="error">
+					<h5>Errors</h5> {{ error }}
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormName" class="text-right middle">Name:</label>
+					</div>
+					<div class="small-9 columns">
+						<input type="text" name="Name" id="FormName" ng-model="box.Name" required />
+						<span ng-show="boxAdd.Name.$touched && boxAdd.Name.$invalid">The name field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormCategory" class="text-right middle">Category:</label>
+					</div>
+					<div class="small-9 columns">
+						<select name="Category" id="FormCategory" ng-model="box.CategoryID" ng-options="category.ID as category.Name for category in categories" required>
+							<option value="" selected>-- Select a category --</option>
+						</select>
+						<span ng-show="boxAdd.Category.$touched && boxAdd.Category.$invalid">The category field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormDescription" class="text-right middle">Description:</label>
+					</div>
+					<div class="small-9 columns">
+						<textarea name="Description" id="FormDescription" ng-model="box.Description" /></textarea>
+						<span ng-show="boxAdd.Description.$touched && boxAdd.Description.$invalid">The description field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+					</div>
+					<div class="small-9 columns">
+						<button type="submit" ng-class="{'disabled': boxAdd.$invalid, 'success': boxAdd.$valid}" ng-disabled="boxAdd.$invalid"
+						class="button" style="margin: 0px;" ng-click="save()">Add</button>
+						<button type="button" class="alert button" ng-click="back()" style="margin: 0px;">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

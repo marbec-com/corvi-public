@@ -1,0 +1,49 @@
+<div class="expanded row">
+	<div class="column">
+		<form name="boxEdit">
+			<h4>Edit Box</h4>
+			<div class="callout">
+				<div class="callout alert" ng-show="error">
+					<h5>Errors</h5> {{ error }}
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormName" class="text-right middle">Name:</label>
+					</div>
+					<div class="small-9 columns">
+						<input type="text" name="Name" id="FormName" ng-model="box.Name" required />
+						<span ng-show="boxEdit.Name.$touched && boxEdit.Name.$invalid">The name field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormCategory" class="text-right middle">Category:</label>
+					</div>
+					<div class="small-9 columns">
+						<select name="Category" id="FormCategory" ng-model="box.CategoryID" ng-options="category.ID as category.Name for category in categories" required>
+						</select>
+						<span ng-show="boxEdit.Category.$touched && boxEdit.Category.$invalid">The category field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+						<label for="FormDescription" class="text-right middle">Description:</label>
+					</div>
+					<div class="small-9 columns">
+						<textarea name="Description" id="FormDescription" ng-model="box.Description" /></textarea>
+						<span ng-show="boxEdit.Description.$touched && boxEdit.Description.$invalid">The description field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-3 columns">
+					</div>
+					<div class="small-9 columns">
+						<button type="submit" ng-class="{'disabled': boxEdit.$invalid, 'success': boxEdit.$valid}" ng-disabled="boxEdit.$invalid"
+						class="button" style="margin: 0px;" ng-click="save()">Save</button>
+						<button type="button" class="alert button" ng-click="back()" style="margin: 0px;">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

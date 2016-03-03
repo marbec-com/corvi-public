@@ -1,0 +1,24 @@
+<div class="expanded row">
+	<div class="column">
+		<div class="callout">
+			{{ question.Question }}
+		</div>
+		<div class="callout" ng-show="answered">
+			{{ question.Answer }}
+		</div>
+		<div class="button-spacer"></div>
+	</div>
+
+</div>
+
+<div class="question-button-container">
+	<div class="question-button-1" ng-hide="answered">
+		<a class="button" ng-click="showSolution()">Solution</a>
+	</div>
+	<div class="question-button-2" ng-show="answered">
+		<a class="button success" ng-click="giveCorrectAnswer()">Yes</a>
+	</div>
+	<div class="question-button-2">
+		<a class="button alert" ng-click="giveWrongAnswer()">No</a>
+	</div>
+</div>

@@ -48,5 +48,5 @@ build_darwin:
     - "ls -aslh"
     - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --platform=darwin --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-darwin-x64"
-    - "zip Corvi.zip Corvi.app"
+    - "zip -r Corvi.zip Corvi.app"
     - "ls -aslh"

@@ -1,28 +1,15 @@
 image: herzog31/corvi-build:latest
 
 stages:
-  - setup
   - test
-  - build-backend
-  - build-electron
-  - deploy
-  
-cleanup:
-  stage: setup
-  script:
-    - "rm -rf $GOPATH/src/marb.ec"
-
-setup_go_project:
-  stage: setup
-  script:
-    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
-    - "mv /builds/marbec/corvi/backend/* $GOPATH/src/marb.ec/corvi-backend"
-    - "cd $GOPATH/src/marb.ec/corvi-backend"
-    - "ls -a"
+  - build
 
 backend_test:
   stage: test
   script:
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv /builds/marbec/corvi/backend/* $GOPATH/src/marb.ec/corvi-backend"
     - "cd $GOPATH/src/marb.ec/corvi-backend"
     - "ls -a"
     - "go get -t -v -insecure ./..."

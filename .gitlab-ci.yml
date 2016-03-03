@@ -33,7 +33,7 @@ build_darwin:
     - "ls -aslh"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
     - "mkdir -p $CI_PROJECT_DIR/build-darwin/src"
-    - "mv $CI_PROJECT_DIR/frontent $CI_PROJECT_DIR/build-darwin/src"
+    - "mv $CI_PROJECT_DIR/frontend $CI_PROJECT_DIR/build-darwin/src"
     - "mv $GOPATH/src/marb.ec/corvi-backend/dist/corvi-backend $CI_PROJECT_DIR/build-darwin/src"
     - "mv $CI_PROJECT_DIR/electron/* $CI_PROJECT_DIR/build-darwin/src"
     - "cd $CI_PROJECT_DIR/build-darwin"

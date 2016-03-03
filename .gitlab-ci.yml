@@ -1,8 +1,8 @@
 image: herzog31/corvi-build:latest
 
 variables:
-  - CGO_ENABLED: 0
-  - GO_EXTLINK_ENABLED: 0
+  CGO_ENABLED: "0"
+  GO_EXTLINK_ENABLED: "0"
 
 stages:
   - test
@@ -18,7 +18,7 @@ backend_test:
     - "ls -aslh"
     - "go get -t -v -insecure ./..."
     - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"
-	
+
 build_darwin:
   stage: build
   script:
@@ -30,10 +30,4 @@ build_darwin:
     - "go get -t -v -insecure ./..."
     - "gox -osarch=darwin/amd64 -output=dist/corvi-backend"
     - "cd dist"
-    - "ls -aslh"	
-
-build_linux:
-  stage: build
-
-build_windows:
-  stage: build
+    - "ls -aslh"

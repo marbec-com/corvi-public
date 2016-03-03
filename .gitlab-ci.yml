@@ -62,6 +62,8 @@ build_darwin:
     - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/darwin-x64/Corvi-$APP_VERSION.zip"
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
+  only:
+    - master
 
 build_win:
   stage: build
@@ -95,6 +97,8 @@ build_win:
     - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/win-x64/Corvi-$APP_VERSION.zip"
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
+  only:
+    - master
 
 build_linux:
   stage: build
@@ -128,3 +132,5 @@ build_linux:
     - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/linux-x64/Corvi-$APP_VERSION.zip"
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
+  only:
+    - master

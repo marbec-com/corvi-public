@@ -70,7 +70,7 @@ build_win:
     - "ls -aslh"
     - "# Build Backend"
     - "go get -t -v -insecure ./..."
-    - "gox -osarch=\"windows/amd64\" -output=\"dist-win/corvi-backend.exe\""
+    - "gox -osarch=\"windows/amd64\" -output=\"dist-win/corvi-backend\""
     - "cd dist-win"
     - "ls -aslh"
     - "# Prepare electron build"

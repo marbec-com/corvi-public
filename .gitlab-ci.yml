@@ -23,5 +23,6 @@ setup_go_project:
 backend_test:
   stage: test
   script:
+    - "ls -a"
     - "go get -t -v -insecure ./..."
     - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"

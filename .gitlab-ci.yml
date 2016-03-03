@@ -50,3 +50,6 @@ build_darwin:
     - "cd out/Corvi-darwin-x64"
     - "zip -r Corvi.zip Corvi.app"
     - "ls -aslh"
+    - "aws s3 cp Corvi.zip s3://corvi-deploy/darwin-x64/Corvi.zip"
+    - "# Cleanup"
+    - "rm -rf $CI_PROJECT_DIR/build-darwin"

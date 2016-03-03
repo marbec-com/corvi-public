@@ -13,7 +13,7 @@ backend_test:
   script:
     - "rm -rf $GOPATH/src/marb.ec"
     - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
-    - "mv /builds/marbec/corvi/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
     - "cd $GOPATH/src/marb.ec/corvi-backend"
     - "ls -aslh"
     - "go get -t -v -insecure ./..."
@@ -24,7 +24,7 @@ build_darwin:
   script:
     - "rm -rf $GOPATH/src/marb.ec"
     - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
-    - "mv /builds/marbec/corvi/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
     - "cd $GOPATH/src/marb.ec/corvi-backend"
     - "ls -aslh"
     - "go get -t -v -insecure ./..."

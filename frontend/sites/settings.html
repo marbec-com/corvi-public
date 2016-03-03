@@ -1,0 +1,39 @@
+<div class="expanded row">
+	<div class="column">
+		<form name="settingsEdit">
+			<div class="callout">
+				<div class="callout alert" ng-show="error">
+					<h5>Errors</h5> {{ error }}
+				</div>
+				<div class="row">
+					<div class="medium-5 small-12 columns">
+						<label for="FormMaxDailyQuestionsPerBox" class="text-right middle">Max. Daily Questions per Box</label>
+					</div>
+					<div class="medium-7 small-12 columns">
+						<input type="number" min="1" max="999" aria-describedby="MaxDailyQuestionsPerBoxHelpText" name="MaxDailyQuestionsPerBox" id="FormMaxDailyQuestionsPerBox" ng-model="settings.MaxDailyQuestionsPerBox" required />
+						<p class="help-text" id="MaxDailyQuestionsPerBoxHelpText">You can choose between 1 and 999 questions per day per box. Is applied after the next restart.</p>
+						<span ng-show="settingsEdit.MaxDailyQuestionsPerBox.$touched && settingsEdit.MaxDailyQuestionsPerBox.$invalid">This field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="medium-5 small-8 columns">
+						<label for="FormName" class="text-right middle">Learn Until Accomplished?</label>
+					</div>
+					<div class="medium-7 small-4 columns">
+						<input id="FormRelearnUntilAccomplished" name="RelearnUntilAccomplished" ng-model="settings.RelearnUntilAccomplished" type="checkbox" style="margin-top: 0.9em;" />
+						<!-- <input type="text" name="RelearnUntilAccomplished" id="FormRelearnUntilAccomplished" ng-model="settings.RelearnUntilAccomplished" required /> -->
+						<span ng-show="settingsEdit.RelearnUntilAccomplished.$touched && settingsEdit.RelearnUntilAccomplished.$invalid">This field is required.</span>
+					</div>
+				</div>
+				<div class="row">
+					<div class="medium-5 small-12 columns">
+					</div>
+					<div class="medium-7 small-12 columns">
+						<button type="submit" ng-class="{'disabled': settingsEdit.$invalid, 'success': settingsEdit.$valid}" ng-disabled="settingsEdit.$invalid"
+						class="button" style="margin: 0px;" ng-click="save()">Save</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

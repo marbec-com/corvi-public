@@ -1,0 +1,57 @@
+<!-- Copyright 2016 by Mark J. Becker, marb.ec -->
+<!doctype html>
+<html class="no-js" lang="en" ng-app="corviApp">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+	
+	<base href="/app/" />
+	
+	<title>marbec Project Corvus</title>
+	
+	<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,300,400italic,300italic,100,100italic,500italic,700,700italic"
+	rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" />
+	<link rel="stylesheet" href="css/foundation-flex.css" />
+	<link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+	<div class="header">
+		<div class="logo"><img src="img/crow.svg" alt="" /> Corvi</div>
+	</div>
+
+	<div class="expanded row align-stretch content-row">
+		<main-navigation></main-navigation>
+		<div class="content columns" ng-view></div>
+	</div>
+
+	<script>
+		window.nodeRequire = require;
+		delete window.require;
+		delete window.exports;
+		delete window.module;
+	</script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js"></script>
+	<script src="js/angular.min.js"></script>
+	<script src="js/angular-route.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/angular-moment/1.0.0-beta.4/angular-moment.min.js"></script>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/what-input.min.js"></script>
+	<script src="js/foundation.js"></script>
+	<script src="js/helper.js"></script>
+	<script src="js/app.js"></script>
+	<script src="js/services.js"></script>
+	<script src="js/controllers/boxControllers.js"></script>
+	<script src="js/controllers/categoryControllers.js"></script>
+	<script src="js/controllers/questionControllers.js"></script>
+	<script>
+		$(document).foundation();
+	</script>
+
+</body>
+
+</html>

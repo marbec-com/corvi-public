@@ -3,6 +3,8 @@ image: herzog31/corvi-build:latest
 variables:
   CGO_ENABLED: "0"
   GO_EXTLINK_ENABLED: "0"
+  ELECTRON_VERSION: "0.36.9"
+  PRODUCT_NAME: "Corvi"
 
 stages:
   - test
@@ -44,5 +46,5 @@ build_darwin:
     - "cd $CI_PROJECT_DIR/build-darwin"
     - "# Electron build"
     - "ls -aslh"
-    - "electron-packager . Corvi --platform=darwin --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --platform=darwin --arch=x64 --out=out/ --ignore=\"(/node_modules|/out)\" --asar=false"
     - "ls -aslhR"

@@ -10,7 +10,6 @@
   "license": "Copyright by marb.ec",
   "homepage": "https://corvi.org",
   "devDependencies": {
-    "electron-packager": "^5.2.1",
     "electron-prebuilt": "^0.36.0"
   }
 }

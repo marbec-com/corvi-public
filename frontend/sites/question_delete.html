@@ -1,0 +1,24 @@
+<div class="expanded row">
+	<div class="column">
+			<h4>Delete Question</h4>
+			<div class="callout">
+				<div class="callout alert" ng-show="error">
+					<h5>Errors</h5> {{ error }}
+				</div>
+				<div class="row">
+					<div class="small-12 column">
+						<p>
+							Are you sure to delete the question <strong>{{ question.Question }}</strong> in box {{ box.Name }}?
+						</p>
+					</div>
+				</div>
+				<div class="row">
+					<div class="small-12 column">
+						<button type="submit" class="success button" style="margin: 0px;" ng-click="submit()">Delete</button>
+						<button type="button" class="alert button" ng-click="back()" style="margin: 0px;">Cancel</button>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div>
+</div>

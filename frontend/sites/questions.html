@@ -1,0 +1,48 @@
+<div class="expanded row">
+	<div class="column">
+		<h4>Questions in {{ box.Name }}</h4>
+	</div>
+</div>
+
+<div class="expanded row">
+	<div clasS="columns medium-6 show-for-medium">
+		<a href="#/manage" class="button"><i class="fa fa-chevron-left"></i> Back</a>
+		<a ng-href="#/manage/box/{{ boxID }}/questions/add" class="button">New Question</a>
+	</div>
+	<div class="columns small-12 show-for-small-only">
+		<a href="#/manag" class="button expanded"><i class="fa fa-chevron-left"></i> Back</a>
+	</div>
+	<div class="columns small-12 show-for-small-only">
+		<a ng-href="#/manage/box/{{ boxID }}/questions/add" class="button expanded">New Question</a>
+	</div>
+	<div class="columns medium-6 small-12 text-right search">
+		<input placeholder="Search" type="text" ng-model="searchText" />
+	</div>
+</div>
+
+<div class="expanded row">
+	<div class="column">
+		<table class="box-table">
+			<thead>
+				<tr>
+					<th style="width: 60%;">Name</th>
+					<th style="width: 10%;" class="text-center">Due</th>
+					<th style="width: 10%;" class="text-center"># Correct</th>
+					<th style="width: 20%;" colspan="2"></th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr ng-repeat="question in questions | filter:searchText | orderBy:'Question'">
+					<td style="width: 60%;">{{ question.Question }}</td>
+					<td class="text-center"><span class="label" ng-class="{'warning': !compareToNow(question.Next)}"><span am-time-ago="question.Next"></span></span></td>
+					<td class="text-center"><span class="label" ng-class="{'success': question.CorrectlyAnswered > 7, 'warning': 7 >= question.CorrectlyAnswered && question.CorrectlyAnswered > 0, 'alert': question.CorrectlyAnswered == 0}">{{ question.CorrectlyAnswered }}</span></td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/question/{{ question.ID }}/edit" class="expanded button">Edit</a></td>
+					<td style="width: 10%;" class="button-td"><a ng-href="#/manage/question/{{ question.ID }}/delete" class="expanded button alert">Delete</a></td>
+				</tr>
+				<tr ng-if="(questions | filter:searchText).length <= 0">
+					<td colspan="6" class="text-center">No questions found.</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+</div>

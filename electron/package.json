@@ -1,0 +1,16 @@
+{
+  "name": "corvi",
+  "version": "0.0.1",
+  "productName": "Corvi",
+  "description": "Project Corvi",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron src/main.js"
+  },
+  "author": "Mark J. Becker - marb.ec",
+  "license": "Copyright by marb.ec",
+  "homepage": "https://corvi.org",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.0"
+  }
+}

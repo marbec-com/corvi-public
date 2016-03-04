@@ -5,7 +5,6 @@ type Box struct {
 	Name             string
 	Description      string
 	CategoryID       uint
-	Category         *Category     `json:"-"`
 	QuestionHeap     *QuestionHeap `json:"-"`
 	QuestionsTotal   uint
 	QuestionsToLearn uint

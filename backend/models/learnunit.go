@@ -6,20 +6,16 @@ import (
 
 type LearnUnit struct {
 	BoxID       uint
-	Box         *Box `json:"-"`
 	QuestionID  uint
-	Question    *Question `json:"-"`
 	Time        time.Time
 	Correct     bool
 	PrevCorrect bool
 }
 
-func NewLearnUnit(q *Question, c, prev bool) *LearnUnit {
+func NewLearnUnit(qID, boxID uint, c, prev bool) *LearnUnit {
 	return &LearnUnit{
-		BoxID:       q.BoxID,
-		Box:         q.Box,
-		QuestionID:  q.ID,
-		Question:    q,
+		BoxID:       boxID,
+		QuestionID:  qID,
 		Time:        time.Now(),
 		Correct:     c,
 		PrevCorrect: prev,

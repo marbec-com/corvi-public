@@ -16,7 +16,6 @@ type Question struct {
 	Question          string
 	Answer            string
 	BoxID             uint
-	Box               *Box `json:"-"`
 	Next              time.Time
 	CorrectlyAnswered uint
 }

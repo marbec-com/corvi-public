@@ -13,7 +13,6 @@ var mockBoxes = []*models.Box{
 		ID:               1,
 		Name:             "SQL Statements",
 		CategoryID:       1,
-		Category:         mockCategories[0],
 		QuestionsToLearn: 2,
 		QuestionsTotal:   2,
 		QuestionsLearned: 0,
@@ -23,7 +22,6 @@ var mockBoxes = []*models.Box{
 		ID:               2,
 		Name:             "English - Kitchen",
 		CategoryID:       2,
-		Category:         mockCategories[1],
 		QuestionsToLearn: 1,
 		QuestionsTotal:   1,
 		QuestionsLearned: 0,
@@ -33,7 +31,6 @@ var mockBoxes = []*models.Box{
 		ID:               3,
 		Name:             "French - Cuisine",
 		CategoryID:       2,
-		Category:         mockCategories[1],
 		QuestionsToLearn: 0,
 		QuestionsTotal:   1,
 		QuestionsLearned: 1,
@@ -195,17 +192,17 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 
 	tomorrow := c.getBeginningOfNextDay()
 
-	set := make(map[*models.Question]bool)
+	set := make(map[uint]*models.Question)
 
 	// Add all questions of that box
 	for _, question := range mockQuestions {
 		if question.BoxID != b.ID {
 			continue
 		}
-		set[question] = true
+		set[question.ID] = question
 	}
 
-	// Mark all questions that were arleady answered today
+	// Set all questions that were arleady answered today to nil
 	yt, mt, dt := time.Now().Date()
 	for _, unit := range mockAnswers {
 		if unit.BoxID != b.ID {
@@ -213,16 +210,16 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 		}
 		y, m, d := unit.Time.Date()
 		if y == yt && m == mt && d == dt {
-			set[unit.Question] = false
+			set[unit.QuestionID] = nil
 		}
 	}
 
-	// Only add unmarked question that are due
-	for question, a := range set {
+	// Only add not nil question that are due
+	for _, question := range set {
 		if capacity <= 0 {
 			return
 		}
-		if question.Next.Before(tomorrow) && a {
+		if question != nil && question.Next.Before(tomorrow) {
 			b.QuestionHeap.Add(question)
 			capacity--
 		}
@@ -278,13 +275,14 @@ func (c *BoxController) AddBox(box *models.Box) error {
 }
 
 func (c *BoxController) DeleteBox(boxID uint) error {
-	// Delete all questions of that box
+	// Delete all questions of that box, start with highest index so that following indexes do not move
 	qIndexes := []int{}
-	for k, q := range mockQuestions {
-		if q.BoxID == boxID {
+	for k := len(mockQuestions) - 1; k >= 0; k-- {
+		if mockQuestions[k].BoxID == boxID {
 			qIndexes = append(qIndexes, k)
 		}
 	}
+
 	for _, i := range qIndexes {
 		mockQuestions, mockQuestions[len(mockQuestions)-1] = append(mockQuestions[:i], mockQuestions[i+1:]...), nil
 	}

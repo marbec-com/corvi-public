@@ -160,6 +160,15 @@ corviServices.factory('Boxes', function($http, $log) {
 		});
 	};
 	
+	BoxService.Delete = function(boxID, success, error) {
+		$http.delete("/api/box/"+boxID+"/").then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
 	return BoxService;
 
 });
@@ -267,6 +276,15 @@ corviServices.factory('Questions', function($http, $log) {
 	
 	QuestionService.Add = function(question, success, error) {
 		$http.post("/api/questions", question).then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
+	QuestionService.Delete = function(qID, success, error) {
+		$http.delete("/api/question/"+qID+"/").then(function(res) {
 			success();
 		}, function(res) {
 			$log.error(res);

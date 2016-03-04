@@ -73,4 +73,30 @@ corviApp.controller('questionAddController', function($scope, $routeParams, $log
 	
 });
 
+corviApp.controller('questionDeleteController', function($scope, $routeParams, $log, $location, Questions, Boxes) {
+	var id = parseInt($routeParams.question, 10);
+	if (isNaN(id)) {
+		$log.error("Invalid ID!");
+		return
+	}	
+	
+	$scope.question = angular.copy(Questions.QuestionsByID[id]);
+	var BoxID = $scope.question.BoxID;
+	$scope.box = angular.copy(Boxes.BoxesByID[BoxID]);
+	$scope.error = "";
+	
+	$scope.back = function() {
+		$location.path("/manage/box/"+BoxID+"/questions");
+	};
+	
+	$scope.submit = function() {
+		Questions.Delete(id, function(data) {
+			$location.path("/manage/box/"+BoxID+"/questions");
+		}, function(err) {
+			$scope.error = err;
+		});
+	};
+	
+});
+
 })();

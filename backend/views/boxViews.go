@@ -196,3 +196,26 @@ func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx cont
 
 	rw.WriteHeader(http.StatusCreated)
 }
+
+type BoxDeleteView struct{}
+
+func (v *BoxDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	// Parse and convert ID
+	idRaw := ctx.Value("id").(string)
+	id, err := strconv.ParseUint(idRaw, 10, 32)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	controller := controllers.BoxControllerInstance()
+	err = controller.DeleteBox(uint(id))
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
+}

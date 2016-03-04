@@ -62,6 +62,11 @@ corviApp.config(function($routeProvider) {
 		controller: 'boxEditController',
 		navActive: 'manage'
 	})
+	.when('/manage/box/:box/delete', {
+		templateUrl: 'sites/box_delete.html',
+		controller: 'boxDeleteController',
+		navActive: 'manage'
+	})
 	.when('/manage/box/:box/questions', {
 		templateUrl: 'sites/questions.html',
 		controller: 'questionsController',
@@ -75,6 +80,11 @@ corviApp.config(function($routeProvider) {
 	.when('/manage/question/:question/edit', {
 		templateUrl: 'sites/question_edit.html',
 		controller: 'questionEditController',
+		navActive: 'manage'
+	})
+	.when('/manage/question/:question/delete', {
+		templateUrl: 'sites/question_delete.html',
+		controller: 'questionDeleteController',
 		navActive: 'manage'
 	})
 	.when('/discover', {

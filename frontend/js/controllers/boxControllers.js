@@ -46,4 +46,28 @@ corviApp.controller('boxAddController', function($scope, $log, $location, Boxes,
 	
 });
 
+corviApp.controller('boxDeleteController', function($scope, $routeParams, $log, $location, Boxes) {
+	var id = parseInt($routeParams.box, 10);
+	if (isNaN(id)) {
+		$log.error("Invalid ID!");
+		return
+	}
+	
+	$scope.box = angular.copy(Boxes.BoxesByID[id]);
+	$scope.error = "";
+	
+	$scope.back = function() {
+		$location.path("/manage");
+	};
+	
+	$scope.submit = function() {
+		Boxes.Delete(id, function(data) {
+			$location.path("/manage");
+		}, function(err) {
+			$scope.error = err;
+		});
+	};
+	
+});
+
 })();

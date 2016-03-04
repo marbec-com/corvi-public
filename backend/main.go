@@ -54,6 +54,7 @@ func main() {
 	r.Add(router.POST, "/api/boxes", &views.BoxAddView{})
 	r.Add(router.GET, "/api/box/:id", &views.BoxView{})
 	r.Add(router.PUT, "/api/box/:id", &views.BoxUpdateView{})
+	r.Add(router.DELETE, "/api/box/:id", &views.BoxDeleteView{})
 	r.Add(router.GET, "/api/box/:id/questions", &views.BoxQuestionsView{})
 	r.Add(router.GET, "/api/box/:id/getQuestionToLearn", &views.BoxGetQuestionToLearnView{})
 
@@ -62,6 +63,7 @@ func main() {
 	r.Add(router.POST, "/api/questions", &views.QuestionAddView{})
 	r.Add(router.GET, "/api/question/:id", &views.QuestionView{})
 	r.Add(router.PUT, "/api/question/:id", &views.QuestionUpdateView{})
+	r.Add(router.DELETE, "/api/question/:id", &views.QuestionDeleteView{})
 	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", &views.QuestionGiveCorrectAnswerView{})
 	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &views.QuestionGiveWrongAnswerView{})
 

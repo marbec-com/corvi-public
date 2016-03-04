@@ -371,10 +371,10 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 	return errors.New("Question to update was not found.")
 }
 
-func (c *QuestionController) AddQuestion(q *models.Question) error {
+func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, error) {
 	box, err := BoxControllerInstance().LoadBox(q.BoxID)
 	if err != nil {
-		return errors.New("Box for this question does not exist.")
+		return nil, errors.New("Box for this question does not exist.")
 	}
 
 	// Insert question
@@ -388,7 +388,7 @@ func (c *QuestionController) AddQuestion(q *models.Question) error {
 
 	events.Events().Publish(events.Topic("questions"), c)
 
-	return nil
+	return q, nil
 }
 
 func (c *QuestionController) DeleteQuestion(qID uint) error {

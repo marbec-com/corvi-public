@@ -18,7 +18,7 @@ corviApp.controller('boxEditController', function($scope, $routeParams, $log, $l
 	};
 	
 	$scope.save = function() {
-		Boxes.Update(id, $scope.box, function(data) {
+		Boxes.Update(id, $scope.box, function() {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;
@@ -27,7 +27,7 @@ corviApp.controller('boxEditController', function($scope, $routeParams, $log, $l
 	
 });
 
-corviApp.controller('boxAddController', function($scope, $log, $location, Boxes, Categories) {
+corviApp.controller('boxAddController', function($scope, $log, $location, Boxes, Categories, Questions) {
 	$scope.box = {};
 	$scope.categories = Categories.CategoriesAll;
 	$scope.error = "";
@@ -37,7 +37,8 @@ corviApp.controller('boxAddController', function($scope, $log, $location, Boxes,
 	};
 	
 	$scope.save = function() {
-		Boxes.Add($scope.box, function(data) {
+		Boxes.Add($scope.box, function(box) {
+			Questions.RefreshBox(box.ID);
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;
@@ -61,7 +62,7 @@ corviApp.controller('boxDeleteController', function($scope, $routeParams, $log, 
 	};
 	
 	$scope.submit = function() {
-		Boxes.Delete(id, function(data) {
+		Boxes.Delete(id, function() {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;

@@ -163,11 +163,13 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 	err = decoder.Decode(&box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	err = controller.UpdateBox(uint(id), box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	rw.WriteHeader(http.StatusOK)
@@ -186,15 +188,22 @@ func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx cont
 	err := decoder.Decode(&box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	controller := controllers.BoxControllerInstance()
-	err = controller.AddBox(box)
+	box, err = controller.AddBox(box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	rw.WriteHeader(http.StatusCreated)
+	rw.Header().Set("Content-Type", "application/json")
+
+	enc := json.NewEncoder(rw)
+	enc.Encode(box)
+
 }
 
 type BoxDeleteView struct{}

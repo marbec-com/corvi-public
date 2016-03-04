@@ -18,7 +18,7 @@ corviApp.controller('categoryEditController', function($scope, $routeParams, $lo
 	};
 	
 	$scope.save = function() {
-		Categories.Update(id, $scope.category, function(data) {
+		Categories.Update(id, $scope.category, function() {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;
@@ -36,7 +36,7 @@ corviApp.controller('categoryAddController', function($scope, $log, $location, C
 	};
 	
 	$scope.save = function() {
-		Categories.Add($scope.category, function(data) {
+		Categories.Add($scope.category, function(cat) {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;
@@ -60,7 +60,7 @@ corviApp.controller('categoryDeleteController', function($scope, $routeParams, $
 	};
 	
 	$scope.submit = function() {
-		Categories.Delete(id, function(data) {
+		Categories.Delete(id, function() {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;

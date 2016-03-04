@@ -1,3 +1,4 @@
+/* global ClearObjectArray */
 /* global StartsWith */
 /* global ClearObject */
 /* global angular */
@@ -50,7 +51,7 @@ corviServices.factory('Categories', function($http, $log) {
 	
 	CategoryService.Add = function(cat, success, error) {
 		$http.post("/api/categories", cat).then(function(res) {
-			success();
+			success(res.data);
 		}, function(res) {
 			$log.error(res);
 			error(res.status + ": "+res.statusText+"\n"+res.data);
@@ -153,7 +154,7 @@ corviServices.factory('Boxes', function($http, $log) {
 	
 	BoxService.Add = function(box, success, error) {
 		$http.post("/api/boxes", box).then(function(res) {
-			success();
+			success(res.data);
 		}, function(res) {
 			$log.error(res);
 			error(res.status + ": "+res.statusText+"\n"+res.data);
@@ -173,13 +174,12 @@ corviServices.factory('Boxes', function($http, $log) {
 
 });
 
-corviServices.factory('Questions', function($http, $log) {
+corviServices.factory('Questions', function($http, $log, Boxes) {
 	var QuestionService = {};
 	
 	QuestionService.QuestionsByID = {};
 	QuestionService.QuestionsByBoxID = {};
 	QuestionService.QuestionsAll = [];
-	
 	
 	QuestionService.Refresh = function() {
 		$http.get("/api/questions/").then(function(res) {
@@ -276,7 +276,7 @@ corviServices.factory('Questions', function($http, $log) {
 	
 	QuestionService.Add = function(question, success, error) {
 		$http.post("/api/questions", question).then(function(res) {
-			success();
+			success(res.data);
 		}, function(res) {
 			$log.error(res);
 			error(res.status + ": "+res.statusText+"\n"+res.data);

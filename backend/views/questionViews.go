@@ -153,11 +153,13 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 	err = decoder.Decode(&question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	err = controller.UpdateQuestion(uint(id), question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	rw.WriteHeader(http.StatusOK)
@@ -176,15 +178,21 @@ func (v *QuestionAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 	err := decoder.Decode(&question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	controller := controllers.QuestionControllerInstance()
-	err = controller.AddQuestion(question)
+	question, err = controller.AddQuestion(question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	rw.WriteHeader(http.StatusCreated)
+	rw.Header().Set("Content-Type", "application/json")
+
+	enc := json.NewEncoder(rw)
+	enc.Encode(question)
 
 }
 

@@ -125,6 +125,7 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 	err = decoder.Decode(&cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	err = controller.UpdateCategory(uint(id), cat)
@@ -149,16 +150,21 @@ func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 	err := decoder.Decode(&cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	controller := controllers.CategoryControllerInstance()
-	err = controller.AddCategory(cat)
+	cat, err = controller.AddCategory(cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}
 
 	rw.WriteHeader(http.StatusCreated)
+	rw.Header().Set("Content-Type", "application/json")
+
+	enc := json.NewEncoder(rw)
+	enc.Encode(cat)
 
 }
 

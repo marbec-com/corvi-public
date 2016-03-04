@@ -76,7 +76,7 @@ func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) er
 	return errors.New("Category to update was not found.")
 }
 
-func (c *CategoryController) AddCategory(cat *models.Category) error {
+func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category, error) {
 	// Temporary - not thread safe!
 	cat.ID = mockCategoriesID
 	mockCategoriesID++
@@ -87,7 +87,7 @@ func (c *CategoryController) AddCategory(cat *models.Category) error {
 	// Publish event to force client refresh
 	events.Events().Publish(events.Topic("categories"), c)
 
-	return nil
+	return cat, nil
 }
 
 func (c *CategoryController) DeleteCategory(catID uint) error {

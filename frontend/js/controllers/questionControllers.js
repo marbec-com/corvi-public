@@ -39,7 +39,7 @@ corviApp.controller('questionEditController', function($scope, $routeParams, $lo
 	};
 	
 	$scope.save = function() {
-		Questions.Update(id, $scope.question, function(data) {
+		Questions.Update(id, $scope.question, function() {
 			$location.path("/manage/box/"+$scope.orgBoxID+"/questions");
 		}, function(err) {
 			$scope.error = err;
@@ -64,8 +64,8 @@ corviApp.controller('questionAddController', function($scope, $routeParams, $log
 	};
 	
 	$scope.save = function() {
-		Questions.Add($scope.question, function(data) {
-			$location.path("/manage/box/"+boxID+"/questions");
+		Questions.Add($scope.question, function(question) {
+			$location.path("/manage/box/"+question.BoxID+"/questions");
 		}, function(err) {
 			$scope.error = err;
 		});
@@ -90,7 +90,7 @@ corviApp.controller('questionDeleteController', function($scope, $routeParams, $
 	};
 	
 	$scope.submit = function() {
-		Questions.Delete(id, function(data) {
+		Questions.Delete(id, function() {
 			$location.path("/manage/box/"+BoxID+"/questions");
 		}, function(err) {
 			$scope.error = err;

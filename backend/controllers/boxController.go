@@ -261,17 +261,15 @@ func (c *BoxController) UpdateBox(boxID uint, box *models.Box) error {
 	return errors.New("Box to update was not found.")
 }
 
-func (c *BoxController) AddBox(box *models.Box) error {
+func (c *BoxController) AddBox(box *models.Box) (*models.Box, error) {
 	box.ID = mockBoxesID
 	mockBoxesID++
-
-	//TODO(mjb): Add category object?
 
 	mockBoxes = append(mockBoxes, box)
 
 	events.Events().Publish(events.Topic("boxes"), c)
 
-	return nil
+	return box, nil
 }
 
 func (c *BoxController) DeleteBox(boxID uint) error {

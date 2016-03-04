@@ -8,7 +8,7 @@ variables:
   APP_BUNDLE_ID: "com.marbec.corvi"
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
-  APP_VERSION: "0.0.1"
+  APP_VERSION: "v0.0.1"
   ELECTRON_CACHE: "/cache/electron"
 
 cache:
@@ -29,6 +29,11 @@ backend_test:
     - "ls -aslh"
     - "go get -t -v -insecure ./..."
     - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"
+
+create_release:
+  stage: build
+  script:
+    - "github-release release -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi $APP_VERSION\" --description \"Latest Corvi release\" --target \"master\""
 
 build_darwin:
   stage: build
@@ -59,11 +64,9 @@ build_darwin:
     - "cd out/Corvi-darwin-x64"
     - "zip -r Corvi-$APP_VERSION.zip * >/dev/null"
     - "ls -aslh"
-    - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/darwin-x64/Corvi-$APP_VERSION.zip"
+    - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-darwin64-$APP_VERSION.zip\" --label \"Corvi (MacOSX 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
-  only:
-    - master
 
 build_win:
   stage: build
@@ -94,11 +97,9 @@ build_win:
     - "cd out/Corvi-win32-x64"
     - "zip -r Corvi-$APP_VERSION.zip * >/dev/null"
     - "ls -aslh"
-    - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/win-x64/Corvi-$APP_VERSION.zip"
+    - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-win64-$APP_VERSION.zip\" --label \"Corvi (Windows 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
-  only:
-    - master
 
 build_linux:
   stage: build
@@ -129,8 +130,6 @@ build_linux:
     - "cd out/Corvi-linux-x64"
     - "zip -r Corvi-$APP_VERSION.zip * >/dev/null"
     - "ls -aslh"
-    - "aws s3 cp Corvi-$APP_VERSION.zip s3://corvi-deploy/linux-x64/Corvi-$APP_VERSION.zip"
+    - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-linux64-$APP_VERSION.zip\" --label \"Corvi (Linux 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
-  only:
-    - master

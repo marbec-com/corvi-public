@@ -8,12 +8,20 @@ import (
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
 	"os"
+	"path"
 	"sync"
 )
 
-const (
+var (
 	settingsFileName string = "settings.yml"
 )
+
+func init() {
+	userPath := os.Getenv("USER_DATA")
+	if userPath != "" {
+		settingsFileName = path.Join(userPath, settingsFileName)
+	}
+}
 
 var SettingsControllerSingleton *SettingsController
 

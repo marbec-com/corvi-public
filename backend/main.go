@@ -1,7 +1,7 @@
 package main
 
 import (
-	//"log"
+	"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
 	//"marb.ec/maf/events"
@@ -79,6 +79,6 @@ func main() {
 	// TODO(mjb): Restrict access to electron (via header field?)
 
 	// Only bind to localhost for electron
-	http.ListenAndServe("127.0.0.1:8080", r)
+	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
 
 }

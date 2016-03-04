@@ -1,6 +1,7 @@
 {
   "name": "corvi",
   "version": "0.0.1",
+  "productName": "Corvi",
   "description": "Project Corvi",
   "main": "src/main.js",
   "scripts": {

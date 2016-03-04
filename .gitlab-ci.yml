@@ -8,7 +8,7 @@ variables:
   APP_BUNDLE_ID: "com.marbec.corvi"
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
-  APP_VERSION: "v0.0.2"
+  APP_VERSION: "v0.0.1"
   ELECTRON_CACHE: "/cache/electron"
 
 cache:
@@ -34,6 +34,8 @@ create_release:
   stage: build
   script:
     - "github-release release -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi $APP_VERSION\" --description \"Latest Corvi release\" --target \"master\""
+  only:
+    - master
 
 build_darwin:
   stage: build
@@ -67,6 +69,8 @@ build_darwin:
     - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-darwin64-$APP_VERSION.zip\" --label \"Corvi (MacOSX 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
+  only:
+    - master
 
 build_win:
   stage: build
@@ -100,6 +104,8 @@ build_win:
     - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-win64-$APP_VERSION.zip\" --label \"Corvi (Windows 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
+  only:
+    - master
 
 build_linux:
   stage: build
@@ -133,3 +139,5 @@ build_linux:
     - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-linux64-$APP_VERSION.zip\" --label \"Corvi (Linux 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
+  only:
+    - master

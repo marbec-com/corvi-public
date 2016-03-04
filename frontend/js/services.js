@@ -57,6 +57,15 @@ corviServices.factory('Categories', function($http, $log) {
 		});
 	};
 	
+	CategoryService.Delete = function(catID, success, error) {
+		$http.delete("/api/category/"+catID+"/").then(function(res) {
+			success();
+		}, function(res) {
+			$log.error(res);
+			error(res.status + ": "+res.statusText+"\n"+res.data);
+		});
+	};
+	
 	return CategoryService;
 });
 

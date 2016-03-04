@@ -47,6 +47,11 @@ corviApp.config(function($routeProvider) {
 		controller: 'categoryEditController',
 		navActive: 'manage'
 	})
+	.when('/manage/category/:category/delete', {
+		templateUrl: 'sites/category_delete.html',
+		controller: 'categoryDeleteController',
+		navActive: 'manage'
+	})
 	.when('/manage/box/add', {
 		templateUrl: 'sites/box_add.html',
 		controller: 'boxAddController',

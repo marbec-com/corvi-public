@@ -46,6 +46,7 @@ func main() {
 	r.Add(router.POST, "/api/categories", &views.CategoryAddView{})
 	r.Add(router.GET, "/api/category/:id", &views.CategoryView{})
 	r.Add(router.PUT, "/api/category/:id", &views.CategoryUpdateView{})
+	r.Add(router.DELETE, "/api/category/:id", &views.CategoryDeleteView{})
 	r.Add(router.GET, "/api/category/:id/boxes", &views.CategoryBoxesView{})
 
 	// Boxes Routes

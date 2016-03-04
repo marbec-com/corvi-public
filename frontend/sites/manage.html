@@ -21,7 +21,7 @@
 				<tr>
 					<th style="width: 80%;" colspan="3">{{ category.Name }}</th>
 					<th style="width: 10%;" class="button-td"><a ng-href="#/manage/category/{{ category.ID }}/edit" class="expanded small button">Rename</a></th>
-					<th style="width: 10%;" class="button-td"><a class="expanded small button alert" ng-class="{'disabled': (boxesByCatID[category.ID].length > 0)}">Delete</a></th>
+					<th style="width: 10%;" class="button-td"><a ng-href="#/manage/category/{{ category.ID }}/delete" class="expanded small button alert" ng-class="{'disabled': (boxesByCatID[category.ID].length > 0)}">Delete</a></th>
 				</tr>
 			</thead>
 			<tbody ng-repeat="box in boxesByCatID[category.ID] | filter:searchText | orderBy:'Name'">

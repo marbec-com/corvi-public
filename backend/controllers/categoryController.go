@@ -102,6 +102,7 @@ func (c *CategoryController) DeleteCategory(catID uint) error {
 			mockCategories, mockCategories[len(mockCategories)-1] = append(mockCategories[:k], mockCategories[k+1:]...), nil
 
 			// Publish event to force client refresh
+			// We don't need to refresh the boxes, sind there shouldn't be any boxes in that category
 			events.Events().Publish(events.Topic("categories"), c)
 
 			return nil

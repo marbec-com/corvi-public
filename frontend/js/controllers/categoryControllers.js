@@ -1,3 +1,4 @@
+/* global angular */
 (function() {
 
 var corviApp = angular.module('corviCategoryControllers', ['ngRoute', 'corviServices']);
@@ -36,6 +37,30 @@ corviApp.controller('categoryAddController', function($scope, $log, $location, C
 	
 	$scope.save = function() {
 		Categories.Add($scope.category, function(data) {
+			$location.path("/manage");
+		}, function(err) {
+			$scope.error = err;
+		});
+	};
+	
+});
+
+corviApp.controller('categoryDeleteController', function($scope, $routeParams, $log, $location, Categories) {
+	var id = parseInt($routeParams.category, 10);
+	if (isNaN(id)) {
+		$log.error("Invalid ID!");
+		return
+	}
+	
+	$scope.category = angular.copy(Categories.CategoriesByID[id]);
+	$scope.error = "";
+	
+	$scope.back = function() {
+		$location.path("/manage");
+	};
+	
+	$scope.submit = function() {
+		Categories.Delete(id, function(data) {
 			$location.path("/manage");
 		}, function(err) {
 			$scope.error = err;

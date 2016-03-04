@@ -130,6 +130,7 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 	err = controller.UpdateCategory(uint(id), cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	rw.WriteHeader(http.StatusOK)
@@ -154,8 +155,33 @@ func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 	err = controller.AddCategory(cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
 	}
 
 	rw.WriteHeader(http.StatusCreated)
+
+}
+
+type CategoryDeleteView struct{}
+
+func (v *CategoryDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
+	// Parse and convert ID
+	idRaw := ctx.Value("id").(string)
+	id, err := strconv.ParseUint(idRaw, 10, 32)
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	controller := controllers.CategoryControllerInstance()
+	err = controller.DeleteCategory(uint(id))
+
+	if err != nil {
+		http.Error(rw, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	rw.WriteHeader(http.StatusOK)
 
 }

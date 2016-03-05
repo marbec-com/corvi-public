@@ -32,7 +32,51 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 		RangeTo:   to,
 	}
 
-	// TODO(mjb): Fill object
+	// TODO(mjb): Replace with correct SQL
+
+	for _, question := range mockQuestions {
+		if question.CreatedAt.After(from) && question.CreatedAt.Before(to) {
+			stats.TotalQuestions++
+			if question.CorrectlyAnswered > 0 {
+				stats.TotalLearned++
+			} else if question.CorrectlyAnswered == 0 && question.CreatedAt == question.Next {
+				stats.TotalUntouched++
+			} else {
+				stats.TotalUnlearned++
+			}
+		}
+	}
+
+	for _, lu := range mockAnswers {
+		if lu.CreatedAt.After(from) && lu.CreatedAt.Before(to) {
+			stats.TotalLearnUnits++
+			if lu.Correct {
+				stats.TotalNumberOfRightAnswers++
+			} else {
+				stats.TotalNumberOfWrongAnswers++
+			}
+			if lu.Correct && lu.PrevCorrect {
+				stats.KnowledgeRate++
+			} else if lu.Correct && !lu.PrevCorrect {
+				stats.LearnRate++
+			} else if !lu.Correct && lu.PrevCorrect {
+				stats.UnlearnRate++
+			} else {
+				stats.UnknowingRate++
+			}
+		}
+	}
+
+	for _, box := range mockBoxes {
+		if box.CreatedAt.After(from) && box.CreatedAt.Before(to) {
+			stats.TotalBoxes++
+		}
+	}
+
+	stats.BestBox = mockBoxes[0]
+	stats.WorstBox = mockBoxes[1]
+	stats.BestQuestion = mockQuestions[0]
+	stats.WorstQuestion = mockQuestions[4]
 
 	return stats, nil
 }

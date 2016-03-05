@@ -15,6 +15,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                3,
@@ -23,6 +24,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 5,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                4,
@@ -31,6 +33,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 20,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                5,
@@ -39,6 +42,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                6,
@@ -47,6 +51,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                7,
@@ -55,6 +60,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                8,
@@ -63,6 +69,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                9,
@@ -71,6 +78,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                10,
@@ -79,6 +87,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                11,
@@ -87,6 +96,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                12,
@@ -95,6 +105,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                13,
@@ -103,6 +114,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                14,
@@ -111,6 +123,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                15,
@@ -119,6 +132,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                16,
@@ -127,6 +141,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                17,
@@ -135,6 +150,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                18,
@@ -143,6 +159,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                19,
@@ -151,6 +168,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                20,
@@ -159,6 +177,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                21,
@@ -167,6 +186,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                22,
@@ -175,6 +195,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                23,
@@ -183,6 +204,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                24,
@@ -191,6 +213,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                25,
@@ -199,6 +222,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                2,
@@ -207,6 +231,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             1,
 		Next:              time.Now(),
 		CorrectlyAnswered: 1,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                26,
@@ -215,6 +240,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             2,
 		Next:              time.Now(),
 		CorrectlyAnswered: 0,
+		CreatedAt:         time.Now(),
 	},
 	&models.Question{
 		ID:                27,
@@ -223,6 +249,7 @@ var mockQuestions = []*models.Question{
 		BoxID:             3,
 		Next:              time.Now(),
 		CorrectlyAnswered: 3,
+		CreatedAt:         time.Now(),
 	},
 }
 

@@ -17,6 +17,7 @@ var mockBoxes = []*models.Box{
 		QuestionsTotal:   2,
 		QuestionsLearned: 0,
 		QuestionHeap:     models.NewQuestionHeap(),
+		CreatedAt:        time.Now(),
 	},
 	&models.Box{
 		ID:               2,
@@ -26,6 +27,7 @@ var mockBoxes = []*models.Box{
 		QuestionsTotal:   1,
 		QuestionsLearned: 0,
 		QuestionHeap:     models.NewQuestionHeap(),
+		CreatedAt:        time.Now(),
 	},
 	&models.Box{
 		ID:               3,
@@ -35,6 +37,7 @@ var mockBoxes = []*models.Box{
 		QuestionsTotal:   1,
 		QuestionsLearned: 1,
 		QuestionHeap:     models.NewQuestionHeap(),
+		CreatedAt:        time.Now(),
 	},
 }
 

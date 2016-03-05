@@ -17,6 +17,7 @@ var mockBoxes = []*models.Box{
 		QuestionsTotal:   2,
 		QuestionsLearned: 0,
 		QuestionHeap:     models.NewQuestionHeap(),
+		CreatedAt:        time.Now(),
 	},
 	&models.Box{
 		ID:               2,
@@ -26,6 +27,7 @@ var mockBoxes = []*models.Box{
 		QuestionsTotal:   1,
 		QuestionsLearned: 0,
 		QuestionHeap:     models.NewQuestionHeap(),
+		CreatedAt:        time.Now(),
 	},
 	&models.Box{
 		ID:               3,
@@ -35,6 +37,7 @@ var mockBoxes = []*models.Box{
 		QuestionsTotal:   1,
 		QuestionsLearned: 1,
 		QuestionHeap:     models.NewQuestionHeap(),
+		CreatedAt:        time.Now(),
 	},
 }
 
@@ -208,7 +211,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 		if unit.BoxID != b.ID {
 			continue
 		}
-		y, m, d := unit.Time.Date()
+		y, m, d := unit.CreatedAt.Date()
 		if y == yt && m == mt && d == dt {
 			set[unit.QuestionID] = nil
 		}
@@ -238,7 +241,7 @@ func (c *BoxController) getCapacity(b *models.Box) uint {
 		if unit.BoxID != b.ID {
 			continue
 		}
-		y, m, d := unit.Time.Date()
+		y, m, d := unit.CreatedAt.Date()
 		if y == yt && m == mt && d == dt {
 			capacity--
 		}
@@ -268,11 +271,15 @@ func (c *BoxController) AddBox(box *models.Box) (*models.Box, error) {
 	mockBoxes = append(mockBoxes, box)
 
 	events.Events().Publish(events.Topic("boxes"), c)
+	events.Events().Publish(events.Topic("stats"), c)
 
 	return box, nil
 }
 
 func (c *BoxController) DeleteBox(boxID uint) error {
+
+	// TODO(mjb): Remove answers from all questions
+
 	// Delete all questions of that box, start with highest index so that following indexes do not move
 	qIndexes := []int{}
 	for k := len(mockQuestions) - 1; k >= 0; k-- {
@@ -292,6 +299,7 @@ func (c *BoxController) DeleteBox(boxID uint) error {
 
 			events.Events().Publish(events.Topic("questions"), c)
 			events.Events().Publish(events.Topic("boxes"), c)
+			events.Events().Publish(events.Topic("stats"), c)
 			return nil
 		}
 	}

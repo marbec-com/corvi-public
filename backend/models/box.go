@@ -1,5 +1,9 @@
 package models
 
+import (
+	"time"
+)
+
 type Box struct {
 	ID               uint
 	Name             string
@@ -9,6 +13,7 @@ type Box struct {
 	QuestionsTotal   uint
 	QuestionsToLearn uint
 	QuestionsLearned uint
+	CreatedAt        time.Time
 }
 
 /*
@@ -29,5 +34,6 @@ Description
 func NewBox() *Box {
 	return &Box{
 		QuestionHeap: NewQuestionHeap(),
+		CreatedAt:    time.Now(),
 	}
 }

@@ -18,13 +18,17 @@ type Question struct {
 	BoxID             uint
 	Next              time.Time
 	CorrectlyAnswered uint
+	CreatedAt         time.Time
 }
 
 func NewQuestion() *Question {
-	return &Question{
-		Next:              time.Now(),
+	now := time.Now()
+	q := &Question{
+		Next:              now,
 		CorrectlyAnswered: 0,
+		CreatedAt:         now,
 	}
+	return q
 }
 
 func (q *Question) CalculateNext() {

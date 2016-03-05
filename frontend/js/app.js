@@ -1,21 +1,28 @@
 (function() {
 
-var corviApp = angular.module('corviApp', ['ngRoute', 'angularMoment', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
+var corviApp = angular.module('corviApp', ['ngRoute', 'chart.js', 'angularMoment', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
 
-corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings) {
+corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings, Stats) {
 	Notify.connect();
 	
 	Categories.Refresh();
 	Boxes.Refresh();
 	Questions.Refresh();
 	Settings.Refresh();
+	Stats.Refresh();
 	
 	$window.onbeforeunload = function() {
 		Notify.Destroy();
 	};
 });
 
-corviApp.config(function($routeProvider) {
+corviApp.config(function($routeProvider, ChartJsProvider) {
+	
+	ChartJsProvider.setOptions({
+		responsive: true,
+		maintainAspectRatio: true
+	});
+	
 	$routeProvider
 	.when('/', {
 		templateUrl: 'sites/study_boxes.html',
@@ -94,7 +101,7 @@ corviApp.config(function($routeProvider) {
 	})
 	.when('/stats', {
 		templateUrl: 'sites/stats.html',
-		controller: 'mainController',
+		controller: 'statsController',
 		navActive: 'stats'
 	})
 	.when('/settings', {
@@ -205,6 +212,86 @@ corviApp.controller('settingsEditController', function($scope, $log, $location, 
 		}, function(err) {
 			$scope.error = err;
 		});
+	};
+	
+});
+
+corviApp.controller('statsController', function($scope, $log, Stats) {
+
+	$scope.range = Stats.Range;
+	$scope.stats = Stats.Stats;
+	$scope.rangeStr = "today";
+	$scope.weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+	$scope.monthDays = [];
+	for (var i = 1; i <= 31; i++) {
+		$scope.monthDays.push(i);
+	}
+	$scope.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+	$scope.series = ['Answers'];
+	
+	$scope.isActive = function(range) {
+		return range == $scope.rangeStr;
+	};
+	
+	$scope.setRange = function(range) {
+		$scope.rangeStr = range;
+		switch(range) {
+			case "today":
+				var from = new Date(); // Today
+				from.setHours(0,0,0,0,0);
+				
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case  "week":
+				var today = new Date();
+  				var day = today.getDay();
+      			var diff = today.getDate() - day + (day == 0 ? -6 : 1);
+				var from = new Date(today.setDate(diff));
+				from.setHours(0,0,0,0,0);
+
+				var to = new Date(+new Date() + 86400000);
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case "month":
+				var from = new Date();
+				from.setDate(1);
+				from.setHours(0,0,0,0,0);
+			
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case "year":
+				var from = new Date();
+				from.setDate(1);
+				from.setMonth(0);
+				from.setHours(0,0,0,0,0);
+			
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case "all":
+				var from = new Date(0);
+				from.setHours(0,0,0,0,0);
+			
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+		}
 	};
 	
 });

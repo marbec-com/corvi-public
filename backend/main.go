@@ -68,6 +68,7 @@ func main() {
 	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &views.QuestionGiveWrongAnswerView{})
 
 	// Statistics Routes
+	r.Add(router.GET, "/api/stats", &views.StatsView{})
 
 	// Discovery / Cloud Routes
 

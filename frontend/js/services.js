@@ -330,18 +330,21 @@ corviServices.factory('Stats', function($http, $log, $filter) {
 		return $filter('date')(date, 'dd-MM-yyyy');
 	};
 	
-	StatsService.From = new Date(); // Today
-	StatsService.From.setHours(0, 0, 0, 0, 0);
-	StatsService.To = new Date(+new Date() + 86400000); // Tomorrow
-	StatsService.To.setHours(0, 0, 0, 0, 0);
+	StatsService.Range = {
+		From: new Date(), // Today
+		To: new Date(+new Date() + 86400000) // Tomorrow
+	};
+	 
+	StatsService.Range.From.setHours(0, 0, 0, 0, 0);
+	StatsService.Range.To.setHours(0, 0, 0, 0, 0);
 	
 	StatsService.Stats = {};
 	
 	StatsService.Refresh = function() {
 		$http.get("/api/stats", {
 			params: {
-				from: formatDate(StatsService.From),
-				to: formatDate(StatsService.To)
+				from: formatDate(StatsService.Range.From),
+				to: formatDate(StatsService.Range.To)
 			}
 		}).then(function(res) {
 			var newStats = angular.copy(res.data);
@@ -349,6 +352,12 @@ corviServices.factory('Stats', function($http, $log, $filter) {
 		}, function(res) {
 			$log.error(res);
 		});
+	};
+	
+	StatsService.SetRange = function(from, to) {
+		StatsService.Range.From = from;
+		StatsService.Range.To = to;
+		StatsService.Refresh();	
 	};
 	
 	return StatsService;

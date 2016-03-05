@@ -211,18 +211,74 @@ corviApp.controller('settingsEditController', function($scope, $log, $location, 
 });
 
 corviApp.controller('statsController', function($scope, $log, Stats) {
-	$scope.from = Stats.From;
-	$scope.to = Stats.To;
+
+	$scope.range = Stats.Range;
 	$scope.stats = Stats.Stats;
-	$scope.curRange = "today";
+	$scope.rangeStr = "today";
 	
 	$scope.isActive = function(range) {
-		return range == $scope.curRange;
+		return range == $scope.rangeStr;
 	};
 	
 	$scope.setRange = function(range) {
-		$scope.curRange = range;
-		// TODO(mjb): Change date	
+		$scope.rangeStr = range;
+		switch(range) {
+			case "today":
+				var from = new Date(); // Today
+				from.setHours(0,0,0,0,0);
+				
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case  "week":
+				var today = new Date();
+  				var day = today.getDay();
+      			var diff = today.getDate() - day + (day == 0 ? -6 : 1);
+				var from = new Date(today.setDate(diff));
+				from.setHours(0,0,0,0,0);
+
+				var to = new Date(+new Date() + 86400000);
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case "month":
+				var from = new Date();
+				from.setDate(1);
+				from.setHours(0,0,0,0,0);
+			
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case "year":
+				var from = new Date();
+				from.setDate(1);
+				from.setMonth(0);
+				from.setHours(0,0,0,0,0);
+			
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+				
+			case "all":
+				var from = new Date(0);
+				from.setHours(0,0,0,0,0);
+			
+				var to = new Date(+new Date() + 86400000); // Tomorrow
+				to.setHours(0,0,0,0,0);
+				
+				Stats.SetRange(from, to);
+				break;
+		}
 	};
 	
 });

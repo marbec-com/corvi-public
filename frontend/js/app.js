@@ -2,13 +2,14 @@
 
 var corviApp = angular.module('corviApp', ['ngRoute', 'angularMoment', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
 
-corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings) {
+corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings, Stats) {
 	Notify.connect();
 	
 	Categories.Refresh();
 	Boxes.Refresh();
 	Questions.Refresh();
 	Settings.Refresh();
+	Stats.Refresh();
 	
 	$window.onbeforeunload = function() {
 		Notify.Destroy();
@@ -94,7 +95,7 @@ corviApp.config(function($routeProvider) {
 	})
 	.when('/stats', {
 		templateUrl: 'sites/stats.html',
-		controller: 'mainController',
+		controller: 'statsController',
 		navActive: 'stats'
 	})
 	.when('/settings', {
@@ -205,6 +206,23 @@ corviApp.controller('settingsEditController', function($scope, $log, $location, 
 		}, function(err) {
 			$scope.error = err;
 		});
+	};
+	
+});
+
+corviApp.controller('statsController', function($scope, $log, Stats) {
+	$scope.from = Stats.From;
+	$scope.to = Stats.To;
+	$scope.stats = Stats.Stats;
+	$scope.curRange = "today";
+	
+	$scope.isActive = function(range) {
+		return range == $scope.curRange;
+	};
+	
+	$scope.setRange = function(range) {
+		$scope.curRange = range;
+		// TODO(mjb): Change date	
 	};
 	
 });

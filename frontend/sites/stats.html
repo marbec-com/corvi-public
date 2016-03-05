@@ -1,1 +1,19 @@
-Stats
+<div class="expanded row">
+	<div class="column">
+		<ul class="menu">
+			<li ng-class="{active: isActive('today')}"><a ng-click="setRange('today')">Today</a></li>
+			<li ng-class="{active: isActive('week')}"><a ng-click="setRange('week')">This week</a></li>
+			<li ng-class="{active: isActive('month')}"><a ng-click="setRange('month')">This month</a></li>
+			<li ng-class="{active: isActive('year')}"><a ng-click="setRange('year')">This year</a></li>
+			<li ng-class="{active: isActive('all')}"><a ng-click="setRange('all')">All Time</a></li>
+		</ul>
+
+		<div class="callout">
+			{{ curRange }}: From {{ from }} To {{ to }}
+			<br />
+			<pre>
+				{{ stats | json }}
+			</pre>
+		</div>
+	</div>
+</div>

@@ -1,6 +1,6 @@
 (function() {
 
-var corviApp = angular.module('corviApp', ['ngRoute', 'angularMoment', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
+var corviApp = angular.module('corviApp', ['ngRoute', 'chart.js', 'angularMoment', 'corviServices', 'corviCategoryControllers', 'corviBoxControllers', 'corviQuestionControllers']);
 
 corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings, Stats) {
 	Notify.connect();
@@ -16,7 +16,12 @@ corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings, S
 	};
 });
 
-corviApp.config(function($routeProvider) {
+corviApp.config(function($routeProvider, ChartJsProvider) {
+	
+	ChartJsProvider.setOptions({
+		responsive: true
+	});
+	
 	$routeProvider
 	.when('/', {
 		templateUrl: 'sites/study_boxes.html',

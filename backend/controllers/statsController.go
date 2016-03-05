@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"errors"
-	"log"
 	"marb.ec/corvi-backend/models"
 	"time"
 )
@@ -49,7 +48,6 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 
 	for _, lu := range mockAnswers {
 		if lu.CreatedAt.After(from) && lu.CreatedAt.Before(to) {
-			log.Println(int(lu.CreatedAt.Weekday()), lu.CreatedAt.Day()-1, int(lu.CreatedAt.Month())-1)
 			stats.LearnUnitsGroupByWeekday[(lu.CreatedAt.Weekday()+7)%8]++ // 0 = Monday, 6 = Sunday
 			stats.LearnUnitsGroupByMonthDay[lu.CreatedAt.Day()-1]++
 			stats.LearnUnitsGroupByMonth[lu.CreatedAt.Month()-1]++

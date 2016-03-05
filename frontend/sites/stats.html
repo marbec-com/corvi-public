@@ -1,4 +1,4 @@
-<div class="expanded row">
+<div class="expanded row stats-view">
 	<div class="column">
 		<ul class="menu">
 			<li ng-class="{active: isActive('today')}"><a ng-click="setRange('today')">Today</a></li>
@@ -36,19 +36,19 @@
 				</div>
 			</div>
 			<div class="expanded row" ng-if="isActive('week')">
-				<div class="small-12 medium-10 medium-offset-1 columns">
+				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
 					<hr />
 					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByWeekday]" chart-labels="weekdays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
 				</div>
 			</div>
 			<div class="expanded row" ng-if="isActive('month')">
-				<div class="small-12 medium-10 medium-offset-1 columns">
+				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
 					<hr />
 					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonthDay]" chart-labels="monthDays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
 				</div>
 			</div>
 			<div class="expanded row" ng-if="isActive('year')">
-				<div class="small-12 medium-10 medium-offset-1 columns">
+				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
 					<hr />
 					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonth]" chart-labels="months" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
 				</div>

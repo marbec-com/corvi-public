@@ -208,7 +208,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 		if unit.BoxID != b.ID {
 			continue
 		}
-		y, m, d := unit.Time.Date()
+		y, m, d := unit.CreatedAt.Date()
 		if y == yt && m == mt && d == dt {
 			set[unit.QuestionID] = nil
 		}
@@ -238,7 +238,7 @@ func (c *BoxController) getCapacity(b *models.Box) uint {
 		if unit.BoxID != b.ID {
 			continue
 		}
-		y, m, d := unit.Time.Date()
+		y, m, d := unit.CreatedAt.Date()
 		if y == yt && m == mt && d == dt {
 			capacity--
 		}

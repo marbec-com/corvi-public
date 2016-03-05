@@ -8,8 +8,14 @@ import (
 )
 
 var mockCategories = []*models.Category{
-	&models.Category{1, "Computer Science"},
-	&models.Category{2, "Vocabulary"},
+	&models.Category{
+		ID:   1,
+		Name: "Computer Science",
+	},
+	&models.Category{
+		ID:   2,
+		Name: "Vocabulary",
+	},
 }
 var mockCategoriesID uint = 3
 

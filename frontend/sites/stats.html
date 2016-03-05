@@ -28,16 +28,34 @@
 				</div>
 				<div class="small-12 medium-4 columns">
 					<h4 class="text-center">Progress</h4>
-					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.LearnRate, stats.KnowledgeRate, stats.UnlearnRate, stats.UnknowingRate]" chart-labels="['Learned', 'Strengthened', 'Forgotten', 'Not learned']"   chart-colours="['#33cc33', '#006600', '#cc0000', '#ff3300']"></canvas> 
+					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.LearnRate, stats.KnowledgeRate, stats.UnlearnRate, stats.UnknowingRate]" chart-labels="['Learned', 'Strengthened', 'Forgotten', 'Not learned']" chart-colours="['#33cc33', '#006600', '#cc0000', '#ff3300']"></canvas> 
 					<hr />
 					<p class="text-center">
 						<span class="label">Total Boxes: {{ stats.TotalBoxes }}</span>
 					</p>
 				</div>
 			</div>
-			<hr />
-			<div class="expanded row">
+			<div class="expanded row" ng-if="isActive('week')">
+				<div class="small-12 medium-10 medium-offset-1 columns">
+					<hr />
+					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByWeekday]" chart-labels="weekdays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
+				</div>
+			</div>
+			<div class="expanded row" ng-if="isActive('month')">
+				<div class="small-12 medium-10 medium-offset-1 columns">
+					<hr />
+					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonthDay]" chart-labels="monthDays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
+				</div>
+			</div>
+			<div class="expanded row" ng-if="isActive('year')">
+				<div class="small-12 medium-10 medium-offset-1 columns">
+					<hr />
+					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonth]" chart-labels="months" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
+				</div>
+			</div>
+			<div class="expanded row">	
 				<div class="small-12 medium-6 columns">
+					<hr />
 					<div class="callout success">
 						<p>
 							<strong>Best Box:</strong>
@@ -50,6 +68,7 @@
 					</div>
 				</div>
 				<div class="small-12 medium-6 columns">
+					<hr />
 					<div class="callout alert">
 						<p>
 							<strong>Worst Box:</strong>

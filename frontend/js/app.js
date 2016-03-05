@@ -19,7 +19,8 @@ corviApp.run(function($window, Notify, Categories, Boxes, Questions, Settings, S
 corviApp.config(function($routeProvider, ChartJsProvider) {
 	
 	ChartJsProvider.setOptions({
-		responsive: true
+		responsive: true,
+		maintainAspectRatio: true
 	});
 	
 	$routeProvider
@@ -220,6 +221,13 @@ corviApp.controller('statsController', function($scope, $log, Stats) {
 	$scope.range = Stats.Range;
 	$scope.stats = Stats.Stats;
 	$scope.rangeStr = "today";
+	$scope.weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+	$scope.monthDays = [];
+	for (var i = 1; i <= 31; i++) {
+		$scope.monthDays.push(i);
+	}
+	$scope.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+	$scope.series = ['Answers'];
 	
 	$scope.isActive = function(range) {
 		return range == $scope.rangeStr;

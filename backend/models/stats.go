@@ -9,6 +9,9 @@ type Stats struct {
 	RangeTo                   time.Time
 	TotalQuestions            uint // Where CreatedAt > RangeFrom and < RangeTo
 	TotalLearnUnits           uint
+	LearnUnitsGroupByWeekday  []uint // Key is weekday 0-6
+	LearnUnitsGroupByMonthDay []uint // Key is day in month 1-31
+	LearnUnitsGroupByMonth    []uint // Key is month 1-12
 	TotalBoxes                uint
 	TotalNumberOfRightAnswers uint
 	TotalNumberOfWrongAnswers uint
@@ -26,5 +29,9 @@ type Stats struct {
 }
 
 func NewStats() *Stats {
-	return &Stats{}
+	return &Stats{
+		LearnUnitsGroupByWeekday:  make([]uint, 7),
+		LearnUnitsGroupByMonthDay: make([]uint, 31),
+		LearnUnitsGroupByMonth:    make([]uint, 12),
+	}
 }

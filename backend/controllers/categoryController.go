@@ -92,6 +92,7 @@ func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category
 
 	// Publish event to force client refresh
 	events.Events().Publish(events.Topic("categories"), c)
+	events.Events().Publish(events.Topic("stats"), c)
 
 	return cat, nil
 }
@@ -110,6 +111,7 @@ func (c *CategoryController) DeleteCategory(catID uint) error {
 			// Publish event to force client refresh
 			// We don't need to refresh the boxes, sind there shouldn't be any boxes in that category
 			events.Events().Publish(events.Topic("categories"), c)
+			events.Events().Publish(events.Topic("stats"), c)
 
 			return nil
 		}

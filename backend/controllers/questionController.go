@@ -319,6 +319,7 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 
 	BoxControllerInstance().removeQuestionFromHeap(box, question)
 	BoxControllerInstance().refreshBox(box)
+	events.Events().Publish(events.Topic("stats"), c)
 
 	return nil
 }
@@ -359,6 +360,7 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 		BoxControllerInstance().removeQuestionFromHeap(box, question)
 	}
 	BoxControllerInstance().refreshBox(box)
+	events.Events().Publish(events.Topic("stats"), c)
 
 	return nil
 }
@@ -414,11 +416,15 @@ func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, 
 	BoxControllerInstance().refreshBox(box)
 
 	events.Events().Publish(events.Topic("questions"), c)
+	events.Events().Publish(events.Topic("stats"), c)
 
 	return q, nil
 }
 
 func (c *QuestionController) DeleteQuestion(qID uint) error {
+
+	// TODO(mjb): Remove answers from that question
+
 	for k, q := range mockQuestions {
 		if q.ID == qID {
 			boxID := q.BoxID
@@ -430,6 +436,7 @@ func (c *QuestionController) DeleteQuestion(qID uint) error {
 			BoxControllerInstance().refreshBox(box)
 
 			events.Events().Publish(events.Topic("questions"), c)
+			events.Events().Publish(events.Topic("stats"), c)
 
 			return nil
 		}

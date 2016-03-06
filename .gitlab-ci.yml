@@ -8,7 +8,7 @@ variables:
   APP_BUNDLE_ID: "com.marbec.corvi"
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
-  APP_VERSION: "v0.0.1zip"
+  APP_VERSION: "v0.0.1"
   ELECTRON_CACHE: "/cache/electron"
 
 cache:
@@ -35,7 +35,7 @@ create_release:
   script:
     - "github-release release -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi $APP_VERSION\" --description \"Latest Corvi release\" --target \"master\""
   only:
-    - ci-zip-test
+    - master
 
 build_darwin:
   stage: build
@@ -70,7 +70,7 @@ build_darwin:
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
   only:
-    - ci-zip-test
+    - master
 
 build_win:
   stage: build
@@ -105,7 +105,7 @@ build_win:
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
   only:
-    - ci-zip-test
+    - master
 
 build_linux:
   stage: build
@@ -140,4 +140,4 @@ build_linux:
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
   only:
-    - ci-zip-test
+    - master

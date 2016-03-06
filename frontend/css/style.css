@@ -245,3 +245,13 @@ body {
 	font-size: 0.8em;
 	font-weight: 300;
 }
+
+.stats-view .menu {
+	padding-bottom: 5px;
+}
+
+.stats-view .menu .active a {
+	background-color: #2ba6cb;
+	color: #ffffff;
+	border-radius: 3px;
+}

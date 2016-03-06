@@ -1,1 +1,86 @@
-Stats
+<div class="expanded row stats-view">
+	<div class="column">
+		<ul class="menu">
+			<li ng-class="{active: isActive('today')}"><a ng-click="setRange('today')">Today</a></li>
+			<li ng-class="{active: isActive('week')}"><a ng-click="setRange('week')">This week</a></li>
+			<li ng-class="{active: isActive('month')}"><a ng-click="setRange('month')">This month</a></li>
+			<li ng-class="{active: isActive('year')}"><a ng-click="setRange('year')">This year</a></li>
+			<li ng-class="{active: isActive('all')}"><a ng-click="setRange('all')">All Time</a></li>
+		</ul>
+
+		<div class="callout">
+			<div class="expanded row">
+				<div class="small-12 medium-4 columns">
+					<h4 class="text-center">Questions</h4>
+					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.TotalLearned, stats.TotalUnlearned, stats.TotalUntouched]" chart-labels="['Learned', 'Not learned', 'Untouched']" chart-colours="['#33cc33', '#cc0000', '#ffcc00']"></canvas>
+					<hr />
+					<p class="text-center">
+						<span class="label">Total Questions: {{ stats.TotalQuestions }}</span>
+					</p>
+				</div>
+				<div class="small-12 medium-4 columns">
+					<h4 class="text-center">Answers</h4>
+					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.TotalNumberOfRightAnswers, stats.TotalNumberOfWrongAnswers]" chart-labels="['Right', 'Wrong']" chart-colours="['#33cc33', '#cc0000']"></canvas> 
+					<hr />
+					<p class="text-center">
+						<span class="label">Total Answers: {{ stats.TotalLearnUnits }}</span>
+					</p>
+				</div>
+				<div class="small-12 medium-4 columns">
+					<h4 class="text-center">Progress</h4>
+					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.LearnRate, stats.KnowledgeRate, stats.UnlearnRate, stats.UnknowingRate]" chart-labels="['Learned', 'Strengthened', 'Forgotten', 'Not learned']" chart-colours="['#33cc33', '#006600', '#cc0000', '#ff3300']"></canvas> 
+					<hr />
+					<p class="text-center">
+						<span class="label">Total Boxes: {{ stats.TotalBoxes }}</span>
+					</p>
+				</div>
+			</div>
+			<div class="expanded row" ng-if="isActive('week')">
+				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
+					<hr />
+					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByWeekday]" chart-labels="weekdays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
+				</div>
+			</div>
+			<div class="expanded row" ng-if="isActive('month')">
+				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
+					<hr />
+					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonthDay]" chart-labels="monthDays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
+				</div>
+			</div>
+			<div class="expanded row" ng-if="isActive('year')">
+				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
+					<hr />
+					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonth]" chart-labels="months" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
+				</div>
+			</div>
+			<div class="expanded row">	
+				<div class="small-12 medium-6 columns">
+					<hr />
+					<div class="callout success">
+						<p>
+							<strong>Best Box:</strong>
+							{{ stats.BestBox.Name }}
+						</p>
+						<p>
+							<strong>Best Question:</strong>
+							{{ stats.BestQuestion.Question }} <span class="label"><span am-time-ago="stats.BestQuestion.Next"></span></span>
+						</p>
+					</div>
+				</div>
+				<div class="small-12 medium-6 columns">
+					<hr />
+					<div class="callout alert">
+						<p>
+							<strong>Worst Box:</strong>
+							{{ stats.WorstBox.Name }}
+						</p>
+						<p>
+							<strong>Worst Question:</strong>
+							{{ stats.WorstQuestion.Question }} <span class="label"><span am-time-ago="stats.WorstQuestion.Next"></span></span>
+						</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

@@ -8,7 +8,7 @@ variables:
   APP_BUNDLE_ID: "com.marbec.corvi"
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
-  APP_VERSION: "v0.0.1"
+  APP_VERSION: "v0.0.2"
   ELECTRON_CACHE: "/cache/electron"
 
 cache:

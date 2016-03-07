@@ -3,10 +3,11 @@ package main
 import (
 	"log"
 	"marb.ec/corvi-backend/controllers"
+	"marb.ec/corvi-backend/middleware"
 	"marb.ec/corvi-backend/views"
+	"marb.ec/maf/requests"
 	"marb.ec/maf/router"
 	"marb.ec/maf/wsnotify"
-	"net/http"
 )
 
 func main() {
@@ -20,6 +21,20 @@ func main() {
 	controllers.InitControllerSingletons(db)
 
 	r := router.NewTreeRouter()
+	defineRoutes(r)
+
+	// TODO(mjb): Restrict access to electron (via header field?)
+	webserver := requests.NewRequestHandler(r)
+	webserver.SetNotFoundHandler(&middleware.NotFoundHandler{})
+	webserver.AppendGlobalPreHandler(&middleware.LogHandler{})
+	webserver.PrependGlobalPreHandler(&middleware.PanicRecoveryHandler{})
+
+	// Only bind to localhost for electron
+	log.Fatal(webserver.ListenAndServe("127.0.0.1:8080"))
+
+}
+
+func defineRoutes(r *router.TreeRouter) {
 
 	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()
@@ -63,11 +78,5 @@ func main() {
 	// Settings Routes
 	r.Add(router.GET, "/api/settings", &views.SettingsView{})
 	r.Add(router.PUT, "/api/settings", &views.SettingsUpdateView{})
-
-	// TODO(mjb): Add Middleware
-	// TODO(mjb): Restrict access to electron (via header field?)
-
-	// Only bind to localhost for electron
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
 
 }

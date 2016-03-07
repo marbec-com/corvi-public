@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
-	"time"
 )
 
 var mockCategories = []*models.Category{
@@ -48,17 +47,55 @@ func (c *CategoryController) createTables() error {
 }
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
-	return mockCategories, nil
+
+	// Select all categories
+	sql := "SELECT ID, Name, CreatedAt FROM Category;"
+	rows, err := c.db.Connection().Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Create empty result set
+	var result []*models.Category
+
+	for rows.Next() {
+		// Create new Category object
+		newCat := &models.Category{}
+		// Populate
+		err = rows.Scan(&newCat.ID, &newCat.Name, &newCat.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		// Append to result set
+		result = append(result, newCat)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }
 
 func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
-	for _, cat := range mockCategories {
-		if id == cat.ID {
-			return cat, nil
-		}
+
+	// Select category with matching ID
+	sql := "SELECT ID, Name, CreatedAt FROM Category WHERE ID = ?;"
+	row := c.db.Connection().QueryRow(sql, id)
+
+	// Create new Category object
+	newCat := &models.Category{}
+
+	// Populate
+	err := row.Scan(&newCat.ID, &newCat.Name, &newCat.CreatedAt)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, errors.New("Category not found.")
+	return newCat, nil
+
 }
 
 func (c *CategoryController) LoadBoxes(id uint) ([]*models.Box, error) {
@@ -104,9 +141,6 @@ func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category
 
 	// Rollback in case of an error
 	defer tx.Rollback()
-
-	// Set creation time
-	cat.CreatedAt = time.Now()
 
 	// Execute insert statement
 	sql := "INSERT INTO Category (Name, CreatedAt) VALUES (?, ?);"

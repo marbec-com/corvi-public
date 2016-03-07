@@ -1,7 +1,8 @@
 image: herzog31/corvi-build:latest
 
 variables:
-  GO_EXTLINK_ENABLED: "0"
+  CGO_ENABLED: "1"
+  GO_EXTLINK_ENABLED: "1"
   ELECTRON_VERSION: "0.36.9"
   PRODUCT_NAME: "Corvi"
   APP_BUNDLE_ID: "com.marbec.corvi"
@@ -21,6 +22,7 @@ stages:
 backend_test:
   stage: test
   script:
+    - "go env"
     - "rm -rf $GOPATH/src/marb.ec"
     - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
     - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"

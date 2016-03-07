@@ -6,15 +6,19 @@ import (
 )
 
 func InitControllerSingletons(db *DBController) {
-	userPath := os.Getenv("USER_DATA")
-	settingsFileName := settingsFile
-	if userPath != "" {
-		settingsFileName = path.Join(userPath, settingsFile)
-	}
+	settingsFileName := GenerateUserDataPath(settingsFile)
 	SettingsControllerSingleton = NewSettingsController(settingsFileName)
 
 	BoxControllerSingleton = NewBoxController(db)
 	CategoryControllerSingleton = NewCategoryController(db)
 	QuestionControllerSingleton = NewQuestionController(db)
 	StatsControllerSingleton = NewStatsController(db)
+}
+
+func GenerateUserDataPath(fileName string) string {
+	userPath := os.Getenv("USER_DATA")
+	if userPath != "" {
+		fileName = path.Join(userPath, fileName)
+	}
+	return fileName
 }

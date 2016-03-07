@@ -10,11 +10,16 @@ import (
 	"marb.ec/maf/wsnotify"
 )
 
+const (
+	databaseFile string = "data.db"
+)
+
 func main() {
 
 	// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
 
-	db, err := controllers.NewDBController("data.db")
+	dbFile := controllers.GenerateUserDataPath(databaseFile)
+	db, err := controllers.NewDBController(dbFile)
 	if err != nil {
 		log.Fatal(err)
 	}

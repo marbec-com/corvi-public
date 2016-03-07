@@ -22,7 +22,6 @@ stages:
 backend_test:
   stage: test
   script:
-    - "go env"
     - "rm -rf $GOPATH/src/marb.ec"
     - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
     - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
@@ -120,7 +119,7 @@ build_win:
   only:
     - master
   tags:
-    - linux
+    - windows
 
 build_linux:
   stage: build

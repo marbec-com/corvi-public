@@ -35,7 +35,7 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 
 	// TODO(mjb): Replace with correct SQL
 
-	for _, question := range mockQuestions {
+	/* for _, question := range mockQuestions {
 		if question.CreatedAt.After(from) && question.CreatedAt.Before(to) {
 			stats.TotalQuestions++
 			if question.CorrectlyAnswered > 0 {
@@ -81,7 +81,7 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 	stats.BestBox = mockBoxes[0]
 	stats.WorstBox = mockBoxes[1]
 	stats.BestQuestion = mockQuestions[0]
-	stats.WorstQuestion = mockQuestions[4]
+	stats.WorstQuestion = mockQuestions[4] */
 
 	return stats, nil
 }

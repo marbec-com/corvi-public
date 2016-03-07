@@ -7,18 +7,6 @@ import (
 	"marb.ec/maf/events"
 )
 
-var mockCategories = []*models.Category{
-	&models.Category{
-		ID:   1,
-		Name: "Computer Science",
-	},
-	&models.Category{
-		ID:   2,
-		Name: "Vocabulary",
-	},
-}
-var mockCategoriesID uint = 3
-
 var CategoryControllerSingleton *CategoryController
 
 func CategoryCtrl() *CategoryController {
@@ -115,7 +103,7 @@ func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) er
 	defer tx.Rollback()
 
 	// Update category
-	sql := "UPDATE Category SET Name = ?, CreatedAT = ? WHERE ID = ?;"
+	sql := "UPDATE Category SET Name = ?, CreatedAt = ? WHERE ID = ?;"
 	res, err := tx.Exec(sql, cat.Name, cat.CreatedAt, catID)
 	if err != nil {
 		return err

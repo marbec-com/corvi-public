@@ -81,7 +81,7 @@ func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *htt
 
 	// Call method by ID
 	controller := controllers.QuestionCtrl()
-	err = controller.GiveCorrectAnswer(uint(id))
+	err = controller.GiveAnswer(uint(id), true)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -110,7 +110,7 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 
 	// Call method by ID
 	controller := controllers.QuestionCtrl()
-	err = controller.GiveWrongAnswer(uint(id))
+	err = controller.GiveAnswer(uint(id), false)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -139,14 +139,6 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 	}
 
 	controller := controllers.QuestionCtrl()
-
-	// TODO(mjb): Update when we load question from database
-	// Load existing object to update
-	/* question, err := controller.LoadQuestion(uint(id))
-	if err != nil {
-		http.Error(rw, err.Error(), http.StatusNotFound)
-		return
-	} */
 	question := models.NewQuestion()
 
 	decoder := json.NewDecoder(r.Body)

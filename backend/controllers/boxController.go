@@ -5,45 +5,9 @@ import (
 	"fmt"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
-	"time"
 )
 
-var mockBoxes = []*models.Box{
-	&models.Box{
-		ID:               1,
-		Name:             "SQL Statements",
-		CategoryID:       1,
-		QuestionsToLearn: 2,
-		QuestionsTotal:   2,
-		QuestionsLearned: 0,
-		QuestionHeap:     models.NewQuestionHeap(),
-		CreatedAt:        time.Now(),
-	},
-	&models.Box{
-		ID:               2,
-		Name:             "English - Kitchen",
-		CategoryID:       2,
-		QuestionsToLearn: 1,
-		QuestionsTotal:   1,
-		QuestionsLearned: 0,
-		QuestionHeap:     models.NewQuestionHeap(),
-		CreatedAt:        time.Now(),
-	},
-	&models.Box{
-		ID:               3,
-		Name:             "French - Cuisine",
-		CategoryID:       2,
-		QuestionsToLearn: 0,
-		QuestionsTotal:   1,
-		QuestionsLearned: 1,
-		QuestionHeap:     models.NewQuestionHeap(),
-		CreatedAt:        time.Now(),
-	},
-}
-
-var mockBoxesID uint = 4
-
-// TODO(mjb): Introduce HEAP cache
+var heapCache map[uint]*models.QuestionHeap
 
 var BoxControllerSingleton *BoxController
 
@@ -63,10 +27,7 @@ func NewBoxController(db *DBController) (*BoxController, error) {
 	if err != nil {
 		return nil, err
 	}
-	/* for _, box := range mockBoxes {
-		b.loadQuestionsToLearn(box)
-		b.refreshBox(box)
-	} */
+	b.buildHeaps()
 	return b, nil
 }
 
@@ -81,7 +42,7 @@ func (c *BoxController) createTables() error {
 	}
 
 	// Create additonal view with question meta data
-	sql = "CREATE VIEW IF NOT EXISTS BoxWithMeta AS SELECT ID, Name, Description, CategoryID, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID) AS QuestionsTotal, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID AND CorrectlyAnswered > 0) AS QuestionsLearned, (SELECT COUNT(*) FROM QuestionsDue WHERE BoxID = Box.ID) AS QuestionsToLearn, CreatedAt FROM Box;"
+	sql = "CREATE VIEW IF NOT EXISTS BoxWithMeta AS SELECT ID, Name, Description, CategoryID, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID) AS QuestionsTotal, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID AND CorrectlyAnswered > 0) AS QuestionsLearned, CreatedAt FROM Box;"
 	_, err = c.db.Connection().Exec(sql)
 
 	return err
@@ -89,14 +50,50 @@ func (c *BoxController) createTables() error {
 }
 
 func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
-	return mockBoxes, nil
+
+	// Select all boxes
+	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta;"
+	rows, err := c.db.Connection().Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Create empty result set
+	result := make([]*models.Box, 0)
+
+	for rows.Next() {
+		// Create new Box object
+		newBox := models.NewBox()
+		// Populate
+		err = rows.Scan(&newBox.ID, &newBox.Name, &newBox.Description, &newBox.CategoryID, &newBox.QuestionsTotal, &newBox.QuestionsLearned, &newBox.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Questions To Learn from Heap
+		heap, ok := heapCache[newBox.ID]
+		if ok {
+			newBox.QuestionsToLearn = uint(heap.Length())
+		}
+
+		// Append to result set
+		result = append(result, newBox)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
 }
 
 func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
-	// TODO(mjb): add QuestionsTotal, QuestionsToLearn, QuestionsLearned
 
-	// Select all categories
-	sql := "SELECT ID, Name, Description, CategoryID, CreatedAt FROM Box WHERE CategoryID = ?;"
+	// Select all boxes
+	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE CategoryID = ?;"
 	rows, err := c.db.Connection().Query(sql, id)
 	if err != nil {
 		return nil, err
@@ -107,13 +104,20 @@ func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
 	result := make([]*models.Box, 0)
 
 	for rows.Next() {
-		// Create new Category object
+		// Create new Box object
 		newBox := models.NewBox()
 		// Populate
-		err = rows.Scan(&newBox.ID, &newBox.Name, &newBox.Description, &newBox.CategoryID, &newBox.CreatedAt)
+		err = rows.Scan(&newBox.ID, &newBox.Name, &newBox.Description, &newBox.CategoryID, &newBox.QuestionsTotal, &newBox.QuestionsLearned, &newBox.CreatedAt)
 		if err != nil {
 			return nil, err
 		}
+
+		// Questions To Learn from Heap
+		heap, ok := heapCache[newBox.ID]
+		if ok {
+			newBox.QuestionsToLearn = uint(heap.Length())
+		}
+
 		// Append to result set
 		result = append(result, newBox)
 	}
@@ -129,232 +133,373 @@ func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
 
 func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 
-	for _, box := range mockBoxes {
-		if box.ID == id {
-			return box, nil
-		}
+	// Select box with matching ID
+	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE ID = ?;"
+	row := c.db.Connection().QueryRow(sql, id)
+
+	// Create new Category object
+	newBox := models.NewBox()
+
+	// Populate
+	err := row.Scan(&newBox.ID, &newBox.Name, &newBox.Description, &newBox.CategoryID, &newBox.QuestionsTotal, &newBox.QuestionsLearned, &newBox.CreatedAt)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, errors.New("Box not found.")
+	// Questions To Learn from Heap
+	heap, ok := heapCache[newBox.ID]
+	if ok {
+		newBox.QuestionsToLearn = uint(heap.Length())
+	}
+
+	return newBox, nil
+
 }
 
-func (c *BoxController) refreshBox(box *models.Box) error {
+func (c *BoxController) removeQuestionFromHeap(id, qID uint) error {
 
-	// TODO(mjb): Replace with Database query
-
-	box.QuestionsToLearn = uint(box.QuestionHeap.Length())
-	var learned, total uint
-
-	for _, question := range mockQuestions {
-		if question.BoxID != box.ID {
-			continue
-		}
-		total++
-		if question.CorrectlyAnswered > 0 {
-			learned++
-		}
+	// Get heap from cache
+	heap, ok := heapCache[id]
+	if !ok {
+		return errors.New("Heap not found.")
 	}
 
-	box.QuestionsLearned = learned
-	box.QuestionsTotal = total
+	heap.Lock()
 
-	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", box.ID)), c)
+	// If top element in heap is given question
+	if heap.Peek().ID == qID {
+		// Remove top element
+		heap.Min()
+	}
+
+	heap.Unlock()
+
+	return nil
+
+}
+
+func (c *BoxController) reAddQuestionFromHeap(id, qID uint) error {
+
+	// Get heap from cache
+	heap, ok := heapCache[id]
+	if !ok {
+		return errors.New("Heap not found.")
+	}
+
+	heap.Lock()
+
+	// If top element in heap is given question
+	if heap.Peek().ID == qID {
+		// Readd question to heap
+		heap.Add(heap.Min())
+	}
+
+	heap.Unlock()
+
+	return nil
+
+}
+
+func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
+
+	// Get heap from cache
+	heap, ok := heapCache[id]
+	if !ok || heap.Length() == 0 { // Build new heap if non existent or empty
+		c.buildHeap(id)
+	}
+
+	// Return first question in heap without removing it, may be nil if no questions due
+	return heap.Peek(), nil
+
+}
+
+func (c *BoxController) buildHeap(id uint) error {
+
+	// Reset heapCache
+	heapCache[id] = models.NewQuestionHeap()
+
+	// Get capacity
+
+	// If RelearnUntilAccomplished: capacity = max - correctly answered questions today
+	// else: capacity = max - answered questions today
+	sql := "SELECT COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND BoxID = ?;"
+	if SettingsCtrl().Get().RelearnUntilAccomplished {
+		sql = "SELECT COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 AND BoxID = ?;"
+	}
+	row := c.db.Connection().QueryRow(sql, id)
+	var learned int
+	err := row.Scan(&learned)
+	if err != nil {
+		return err
+	}
+
+	capacity := int(SettingsCtrl().Get().MaxDailyQuestionsPerBox) - learned
+	if capacity < 0 {
+		capacity = 0
+	}
+
+	fmt.Println(id, capacity)
+
+	// Get due questions
+
+	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
+	// else: Questions are due which were answered today
+	sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND BoxID = ? AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND BoxID = ?) ORDER BY Next DESC LIMIT ?;"
+	if SettingsCtrl().Get().RelearnUntilAccomplished {
+		sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND BoxID = ? AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 AND BoxID = ?) ORDER BY Next DESC LIMIT ?;"
+	}
+
+	qRows, err := c.db.Connection().Query(sql, id, id, capacity)
+	if err != nil {
+		return err
+	}
+	defer qRows.Close()
+
+	for qRows.Next() {
+		// Create new Box object
+		newQuestion := models.NewQuestion()
+		// Populate
+		err = qRows.Scan(&newQuestion.ID, &newQuestion.Question, &newQuestion.Answer, &newQuestion.BoxID, &newQuestion.Next, &newQuestion.CorrectlyAnswered, &newQuestion.CreatedAt)
+		if err != nil {
+			return err
+		}
+
+		if capacity > 0 {
+			heapCache[id].Add(newQuestion)
+			capacity--
+		} else { // Early break
+			return nil
+		}
+
+	}
+
+	err = qRows.Err()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
-func (c *BoxController) LoadQuestions(id uint) ([]*models.Question, error) {
+func (c *BoxController) buildHeaps() error {
 
-	_, err := c.LoadBox(id)
+	// Reset heapCache
+	heapCache = make(map[uint]*models.QuestionHeap, 0)
+
+	// Get all capacities
+	capacities := make(map[uint]uint, 0)
+
+	// If RelearnUntilAccomplished: capacity = max - correctly answered questions today
+	// else: capacity = max - answered questions today
+	sql := "SELECT BoxID, COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') GROUP BY BoxID;"
+	if SettingsCtrl().Get().RelearnUntilAccomplished {
+		sql = "SELECT BoxID, COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 GROUP BY BoxID;"
+	}
+	rows, err := c.db.Connection().Query(sql)
 	if err != nil {
-		return nil, err
+		return err
 	}
+	defer rows.Close()
 
-	questions := []*models.Question{}
-	for _, q := range mockQuestions {
-		if q.BoxID == id {
-			questions = append(questions, q)
+	for rows.Next() {
+		var boxID uint
+		var count int
+		err = rows.Scan(&boxID, &count)
+		if err != nil {
+			return err
 		}
+		cap := int(SettingsCtrl().Get().MaxDailyQuestionsPerBox) - count
+		if cap < 0 {
+			cap = 0
+		}
+		capacities[boxID] = uint(cap)
 	}
 
-	return questions, nil
-}
-
-func (c *BoxController) removeQuestionFromHeap(box *models.Box, question *models.Question) {
-	box.QuestionHeap.Lock()
-	if box.QuestionHeap.Peek() == question {
-		box.QuestionHeap.Min()
-	}
-	box.QuestionHeap.Unlock()
-}
-
-func (c *BoxController) reAddQuestionFromHeap(box *models.Box, question *models.Question) {
-	box.QuestionHeap.Lock()
-	if box.QuestionHeap.Peek() == question {
-		box.QuestionHeap.Add(box.QuestionHeap.Min())
-	}
-	box.QuestionHeap.Unlock()
-}
-
-func (c *BoxController) rebuildQuestionHeap(box *models.Box) {
-	box.QuestionHeap.Clear()
-	c.loadQuestionsToLearn(box)
-}
-
-func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
-	box, err := c.LoadBox(id)
+	err = rows.Err()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if box.QuestionHeap.Length() == 0 {
-		c.loadQuestionsToLearn(box)
+	fmt.Println("All capacities", capacities)
+
+	// Get all due questions
+	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
+	// else: Questions are due which were answered today
+	sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now'));"
+	if SettingsCtrl().Get().RelearnUntilAccomplished {
+		sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1);"
 	}
 
-	fmt.Println(box.QuestionHeap)
+	qRows, err := c.db.Connection().Query(sql)
+	if err != nil {
+		return err
+	}
+	defer qRows.Close()
 
-	return box.QuestionHeap.Peek(), nil
-}
+	for qRows.Next() {
+		// Create new Box object
+		newQuestion := models.NewQuestion()
+		// Populate
+		err = qRows.Scan(&newQuestion.ID, &newQuestion.Question, &newQuestion.Answer, &newQuestion.BoxID, &newQuestion.Next, &newQuestion.CorrectlyAnswered, &newQuestion.CreatedAt)
+		if err != nil {
+			return err
+		}
 
-func (c *BoxController) getBeginningOfNextDay() time.Time {
-	today := time.Now()
-	today = today.Add(24 * time.Hour)
-	year, month, day := today.Date()
-	return time.Date(year, month, day, 0, 0, 0, 0, today.Location())
-}
+		fmt.Println(newQuestion)
 
-func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
-	capacity := c.getCapacity(b)
-	if capacity <= 0 {
-		return
+		heap, ok := heapCache[newQuestion.BoxID]
+		if !ok {
+			heap = models.NewQuestionHeap()
+			heapCache[newQuestion.BoxID] = heap
+		}
+
+		cap, ok := capacities[newQuestion.BoxID]
+		if !ok {
+			cap = SettingsCtrl().Get().MaxDailyQuestionsPerBox
+			capacities[newQuestion.BoxID] = cap
+		}
+
+		if cap > 0 {
+			heap.Add(newQuestion)
+			capacities[newQuestion.BoxID]--
+		}
+
 	}
 
-	/*
-		 SELECT *
-		 FROM questions
-		 WHERE boxID = b.ID
-		 AND Next >= BOD
-		 AND questionID NOT IN (
-			 SELECT questionID
-			 FROM learnunit
-			 WHERE boxID = b.ID
-			 AND time = today
-		 )
-
-		 -> capacity
-
-	*/
-
-	tomorrow := c.getBeginningOfNextDay()
-
-	set := make(map[uint]*models.Question)
-
-	// Add all questions of that box
-	for _, question := range mockQuestions {
-		if question.BoxID != b.ID {
-			continue
-		}
-		set[question.ID] = question
+	err = qRows.Err()
+	if err != nil {
+		return err
 	}
 
-	// Set all questions that were arleady answered today to nil
-	yt, mt, dt := time.Now().Date()
-	for _, unit := range mockAnswers {
-		if unit.BoxID != b.ID {
-			continue
-		}
-		y, m, d := unit.CreatedAt.Date()
-		if y == yt && m == mt && d == dt {
-			set[unit.QuestionID] = nil
-		}
-	}
+	fmt.Println("Heap cache", heapCache)
 
-	// Only add not nil question that are due
-	for _, question := range set {
-		if capacity <= 0 {
-			return
-		}
-		if question != nil && question.Next.Before(tomorrow) {
-			b.QuestionHeap.Add(question)
-			capacity--
-		}
-	}
+	return nil
 
-}
-
-func (c *BoxController) getCapacity(b *models.Box) uint {
-	// TODO(mjb): Update to SQL query to count correct objects
-	capacity := SettingsCtrl().Get().MaxDailyQuestionsPerBox
-	yt, mt, dt := time.Now().Date()
-	for _, unit := range mockAnswers {
-		if capacity <= 0 {
-			return 0
-		}
-		if unit.BoxID != b.ID {
-			continue
-		}
-		y, m, d := unit.CreatedAt.Date()
-		if y == yt && m == mt && d == dt {
-			capacity--
-		}
-	}
-
-	return capacity
 }
 
 func (c *BoxController) UpdateBox(boxID uint, box *models.Box) error {
 
-	for k, b := range mockBoxes {
-		if b.ID == boxID {
-			mockBoxes[k] = box
-			// Update Box, Previous cat, new cat
-			events.Events().Publish(events.Topic("boxes"), c)
-			return nil
-		}
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return err
 	}
 
-	return errors.New("Box to update was not found.")
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Update category
+	sql := "UPDATE Box SET Name = ?, Description = ?, CategoryID = ?, CreatedAt = ? WHERE ID = ?;"
+	res, err := tx.Exec(sql, box.Name, box.Description, box.CategoryID, box.CreatedAt, boxID)
+	if err != nil {
+		return err
+	}
+
+	// Check if update was performed
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// Return error if no object was updated
+	if rows == 0 {
+		return errors.New("Box to update was not found.")
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Publish event to force client refresh
+	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)
+
+	return nil
+
 }
 
 func (c *BoxController) AddBox(box *models.Box) (*models.Box, error) {
-	box.ID = mockBoxesID
-	mockBoxesID++
 
-	mockBoxes = append(mockBoxes, box)
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return nil, err
+	}
 
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Execute insert statement
+	sql := "INSERT INTO Box (Name, Description, CategoryID, CreatedAt) VALUES (?, ?, ?, ?);"
+	res, err := tx.Exec(sql, box.Name, box.Description, box.CategoryID, box.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update objects ID
+	newID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	box.ID = uint(newID)
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	// Publish event to force client refresh
 	events.Events().Publish(events.Topic("boxes"), c)
 	events.Events().Publish(events.Topic("stats"), c)
 
+	// Return inserted object
 	return box, nil
+
 }
 
 func (c *BoxController) DeleteBox(boxID uint) error {
 
-	// TODO(mjb): Remove answers from all questions
-
-	// Delete all questions of that box, start with highest index so that following indexes do not move
-	qIndexes := []int{}
-	for k := len(mockQuestions) - 1; k >= 0; k-- {
-		if mockQuestions[k].BoxID == boxID {
-			qIndexes = append(qIndexes, k)
-		}
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return err
 	}
 
-	for _, i := range qIndexes {
-		mockQuestions, mockQuestions[len(mockQuestions)-1] = append(mockQuestions[:i], mockQuestions[i+1:]...), nil
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Execute delete statement
+	// Because of foreign key contraints: deletes all quequestions of that Box
+	// and all LearnUnits
+	sql := "DELETE FROM Box WHERE ID = ?;"
+	res, err := tx.Exec(sql, boxID)
+	if err != nil {
+		return err
 	}
 
-	// Delete box
-	for k, b := range mockBoxes {
-		if b.ID == boxID {
-			mockBoxes, mockBoxes[len(mockBoxes)-1] = append(mockBoxes[:k], mockBoxes[k+1:]...), nil
-
-			events.Events().Publish(events.Topic("questions"), c)
-			events.Events().Publish(events.Topic("boxes"), c)
-			events.Events().Publish(events.Topic("stats"), c)
-			return nil
-		}
+	// Check if delete was performed
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
 	}
 
-	return errors.New("Box not found")
+	// Return error if no object was deleted
+	if rows <= 0 {
+		return errors.New("Box could not be deleted.")
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	events.Events().Publish(events.Topic("questions"), c)
+	events.Events().Publish(events.Topic("boxes"), c)
+	events.Events().Publish(events.Topic("stats"), c)
+
+	return nil
+
 }

@@ -79,8 +79,8 @@ func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ct
 	}
 
 	// Load questions by box ID
-	controller := controllers.BoxCtrl()
-	questions, err := controller.LoadQuestions(uint(id))
+	controller := controllers.QuestionCtrl()
+	questions, err := controller.LoadQuestionsOfBox(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

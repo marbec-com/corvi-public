@@ -2,260 +2,11 @@ package controllers
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
-	"time"
 )
-
-var mockQuestions = []*models.Question{
-	&models.Question{
-		ID:                1,
-		Question:          "A Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                3,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 5,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                4,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 20,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                5,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                6,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                7,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                8,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                9,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                10,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                11,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                12,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                13,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                14,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                15,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                16,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                17,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                18,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                19,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                20,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                21,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                22,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                23,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                24,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                25,
-		Question:          "Update Statement?",
-		Answer:            "UPDATE table SET key = value",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                2,
-		Question:          "Insert Statement?",
-		Answer:            "INSERT INTO table (key, key) VALUES (value, value)",
-		BoxID:             1,
-		Next:              time.Now(),
-		CorrectlyAnswered: 1,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                26,
-		Question:          "Küche",
-		Answer:            "Kitchen",
-		BoxID:             2,
-		Next:              time.Now(),
-		CorrectlyAnswered: 0,
-		CreatedAt:         time.Now(),
-	},
-	&models.Question{
-		ID:                27,
-		Question:          "Küche",
-		Answer:            "Cuisine",
-		BoxID:             3,
-		Next:              time.Now(),
-		CorrectlyAnswered: 3,
-		CreatedAt:         time.Now(),
-	},
-}
-
-var mockQuestionsID uint = 28
-
-var mockAnswers = []*models.LearnUnit{}
 
 var QuestionControllerSingleton *QuestionController
 
@@ -309,173 +60,338 @@ func (c *QuestionController) createTables() error {
 }
 
 func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
-	return mockQuestions, nil
+
+	// Select all questions
+	sql := "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question;"
+	rows, err := c.db.Connection().Query(sql)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Create empty result set
+	result := make([]*models.Question, 0)
+
+	for rows.Next() {
+		// Create new Box object
+		newQuestion := models.NewQuestion()
+		// Populate
+		err = rows.Scan(&newQuestion.ID, &newQuestion.Question, &newQuestion.Answer, &newQuestion.BoxID, &newQuestion.Next, &newQuestion.CorrectlyAnswered, &newQuestion.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Append to result set
+		result = append(result, newQuestion)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
+}
+
+func (c *QuestionController) LoadQuestionsOfBox(id uint) ([]*models.Question, error) {
+
+	// Select all questions
+	sql := "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE BoxID = ?;"
+	rows, err := c.db.Connection().Query(sql, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Create empty result set
+	result := make([]*models.Question, 0)
+
+	for rows.Next() {
+		// Create new Box object
+		newQuestion := models.NewQuestion()
+		// Populate
+		err = rows.Scan(&newQuestion.ID, &newQuestion.Question, &newQuestion.Answer, &newQuestion.BoxID, &newQuestion.Next, &newQuestion.CorrectlyAnswered, &newQuestion.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		// Append to result set
+		result = append(result, newQuestion)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
 }
 
 func (c *QuestionController) LoadQuestion(id uint) (*models.Question, error) {
 
-	for _, q := range mockQuestions {
-		if q.ID == id {
-			return q, nil
-		}
+	// Select question with matching ID
+	sql := "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE ID = ?;"
+	row := c.db.Connection().QueryRow(sql, id)
+
+	// Create new Category object
+	newQuestion := models.NewQuestion()
+
+	// Populate
+	err := row.Scan(&newQuestion.ID, &newQuestion.Question, &newQuestion.Answer, &newQuestion.BoxID, &newQuestion.Next, &newQuestion.CorrectlyAnswered, &newQuestion.CreatedAt)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, errors.New("Question not found.")
+	return newQuestion, nil
+
 }
 
-func (c *QuestionController) GiveCorrectAnswer(id uint) error {
-	question, err := c.LoadQuestion(id)
+func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
+
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
 	if err != nil {
 		return err
 	}
 
-	if question.CorrectlyAnswered == 0 {
-		// Answer correct for a previously unlearned question
-		c.saveLearnUnit(question, true, false)
-	} else {
-		// Answer correct for a previously learned question
-		c.saveLearnUnit(question, true, true)
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Load Question
+	sql := "SELECT ID, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE ID = ?;"
+	row := tx.QueryRow(sql, id)
+
+	question := models.NewQuestion()
+
+	err = row.Scan(&question.ID, &question.BoxID, &question.Next, &question.CorrectlyAnswered, &question.CreatedAt)
+	if err != nil {
+		return err
 	}
 
-	question.CorrectlyAnswered++
+	// Create Learn Unit
+	unit := models.NewLearnUnit()
+	unit.QuestionID = id
+	unit.BoxID = question.BoxID
+	unit.Correct = correct
+	if question.CorrectlyAnswered == 0 {
+		unit.PrevCorrect = false
+	} else {
+		unit.PrevCorrect = true
+	}
+
+	// Save Learn Unit
+	sql = "INSERT INTO LearnUnit(QuestionID, BoxID, Correct, PrevCorrect, CreatedAt) VALUES (?, ?, ?, ?, ?);"
+	_, err = tx.Exec(sql, unit.QuestionID, unit.BoxID, unit.Correct, unit.PrevCorrect, unit.CreatedAt)
+	if err != nil {
+		return err
+	}
+
+	// Increase CorrectlyAnswered if correct, else set to 0
+	if correct {
+		question.CorrectlyAnswered++
+	} else {
+		question.CorrectlyAnswered = 0
+	}
+
+	// Calculate Next
 	question.CalculateNext()
 
-	// Save Question
-	err = c.UpdateQuestion(question.ID, question)
+	// Update Question
+	sql = "UPDATE Question SET Next = ?, CorrectlyAnswered = ? WHERE ID = ?;"
+	res, err := tx.Exec(sql, question.Next, question.CorrectlyAnswered, question.ID)
+	if err != nil {
+		return nil
+	}
+
+	// Check if update was performed
+	rows, err := res.RowsAffected()
 	if err != nil {
 		return err
 	}
 
-	// TODO(mjb): Rethink architecture here
-	box, err := BoxCtrl().LoadBox(question.BoxID)
+	// Return error if no object was updated
+	if rows == 0 {
+		return errors.New("Qeustion to update was not found.")
+	}
+
+	// Commit
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}
 
-	BoxCtrl().removeQuestionFromHeap(box, question)
-	BoxCtrl().refreshBox(box)
+	// If answer was incorrect and RelearnUntilAccomplished is set, readd to heap
+	if SettingsCtrl().Get().RelearnUntilAccomplished && !correct {
+		BoxCtrl().reAddQuestionFromHeap(question.BoxID, question.ID)
+	} else { // else remove from heap
+		BoxCtrl().removeQuestionFromHeap(question.BoxID, question.ID)
+	}
+
+	// Publish Notification
+	events.Events().Publish(events.Topic("questions"), c)
+	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", question.BoxID)), c)
 	events.Events().Publish(events.Topic("stats"), c)
 
 	return nil
-}
-
-func (c *QuestionController) GiveWrongAnswer(id uint) error {
-
-	question, err := c.LoadQuestion(id)
-	if err != nil {
-		return err
-	}
-
-	if question.CorrectlyAnswered == 0 {
-		// Answer false for a previously unlearned question
-		c.saveLearnUnit(question, false, false)
-	} else {
-		// Answer false for a previously learned question
-		c.saveLearnUnit(question, false, true)
-	}
-
-	question.CorrectlyAnswered = 0
-	question.CalculateNext()
-
-	// Save Question
-	err = c.UpdateQuestion(question.ID, question)
-	if err != nil {
-		return err
-	}
-
-	// TODO(mjb): Rethink architecture here
-	box, err := BoxCtrl().LoadBox(question.BoxID)
-	if err != nil {
-		return err
-	}
-
-	if SettingsCtrl().Get().RelearnUntilAccomplished {
-		BoxCtrl().reAddQuestionFromHeap(box, question)
-	} else {
-		BoxCtrl().removeQuestionFromHeap(box, question)
-	}
-	BoxCtrl().refreshBox(box)
-	events.Events().Publish(events.Topic("stats"), c)
-
-	return nil
-}
-
-// TODO(mjb): Move to LearnUnit Controller
-func (c *QuestionController) saveLearnUnit(q *models.Question, correct, prev bool) {
-	unit := models.NewLearnUnit(q.ID, q.BoxID, correct, prev)
-	mockAnswers = append(mockAnswers, unit)
 }
 
 func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question) error {
 
-	for k, q := range mockQuestions {
-		if q.ID == qID {
-			prevBox := mockQuestions[k].BoxID
-			mockQuestions[k] = question
-
-			// Question might have been moved
-			if prevBox != question.BoxID {
-				// Refresh both boxes
-				if prevBoxInstance, err := BoxCtrl().LoadBox(question.BoxID); err == nil {
-					BoxCtrl().rebuildQuestionHeap(prevBoxInstance)
-					BoxCtrl().refreshBox(prevBoxInstance)
-				}
-				if curBoxInstance, err := BoxCtrl().LoadBox(prevBox); err == nil {
-					BoxCtrl().rebuildQuestionHeap(curBoxInstance)
-					BoxCtrl().refreshBox(curBoxInstance)
-				}
-				events.Events().Publish(events.Topic("boxes"), c)
-			}
-			events.Events().Publish(events.Topic("questions"), c)
-
-			return nil
-		}
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return err
 	}
 
-	return errors.New("Question to update was not found.")
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Get BoxID of original question
+	sql := "SELECT BoxID FROM Question WHERE ID = ?;"
+	row := tx.QueryRow(sql, qID)
+	var originalBoxID uint
+	err = row.Scan(&originalBoxID)
+	if err != nil {
+		return err
+	}
+
+	// Update category
+	sql = "UPDATE Question SET Question = ?, Answer = ?, BoxID = ?, Next = ?, CorrectlyAnswered = ?, CreatedAt = ? WHERE ID = ?;"
+	res, err := tx.Exec(sql, question.Question, question.Answer, question.BoxID, question.Next, question.CorrectlyAnswered, question.CreatedAt, qID)
+	if err != nil {
+		return err
+	}
+
+	// Check if update was performed
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// Return error if no object was updated
+	if rows == 0 {
+		return errors.New("Question to update was not found.")
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Check if question was moved into another Box
+	if question.BoxID != originalBoxID {
+		BoxCtrl().buildHeap(question.BoxID)
+		BoxCtrl().buildHeap(originalBoxID)
+		events.Events().Publish(events.Topic("boxes"), c)
+	}
+
+	// Publish event to force client refresh
+	events.Events().Publish(events.Topic("questions"), c)
+
+	return nil
+
 }
 
 func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, error) {
-	box, err := BoxCtrl().LoadBox(q.BoxID)
+
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
 	if err != nil {
-		return nil, errors.New("Box for this question does not exist.")
+		return nil, err
 	}
 
-	// Insert question
-	q.ID = mockQuestionsID
-	mockQuestionsID++
-	mockQuestions = append(mockQuestions, q)
+	// Rollback in case of an error
+	defer tx.Rollback()
 
-	// Rebuild heap and refresh stats
-	BoxCtrl().rebuildQuestionHeap(box)
-	BoxCtrl().refreshBox(box)
+	// Execute insert statement
+	sql := "INSERT INTO Question (Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt) VALUES (?, ?, ?, ?, ?, ?);"
+	res, err := tx.Exec(sql, q.Question, q.Answer, q.BoxID, q.Next, q.CorrectlyAnswered, q.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
 
+	// Update objects ID
+	newID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	q.ID = uint(newID)
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	// Rebuild Heap for Box
+	log.Println(BoxCtrl().buildHeap(q.BoxID))
+
+	// Publish events to force client refresh
+	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", q.BoxID)), c)
 	events.Events().Publish(events.Topic("questions"), c)
 	events.Events().Publish(events.Topic("stats"), c)
 
+	// Return inserted object
 	return q, nil
+
 }
 
 func (c *QuestionController) DeleteQuestion(qID uint) error {
 
-	// TODO(mjb): Remove answers from that question
-
-	for k, q := range mockQuestions {
-		if q.ID == qID {
-			boxID := q.BoxID
-			mockQuestions, mockQuestions[len(mockQuestions)-1] = append(mockQuestions[:k], mockQuestions[k+1:]...), nil
-
-			// Refresh box of deleted question
-			box, _ := BoxCtrl().LoadBox(boxID)
-			BoxCtrl().rebuildQuestionHeap(box)
-			BoxCtrl().refreshBox(box)
-
-			events.Events().Publish(events.Topic("questions"), c)
-			events.Events().Publish(events.Topic("stats"), c)
-
-			return nil
-		}
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return err
 	}
 
-	return errors.New("Question not found.")
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Get BoxID of original question
+	sql := "SELECT BoxID FROM Question WHERE ID = ?;"
+	row := tx.QueryRow(sql, qID)
+	var boxID uint
+	err = row.Scan(&boxID)
+	if err != nil {
+		return err
+	}
+
+	// Execute delete statement
+	// Because of foreign key contraints: deletes all answers of that Question
+	sql = "DELETE FROM Question WHERE ID = ?;"
+	res, err := tx.Exec(sql, qID)
+	if err != nil {
+		return err
+	}
+
+	// Check if delete was performed
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// Return error if no object was deleted
+	if rows <= 0 {
+		return errors.New("Question could not be deleted.")
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Rebuild Heap of box
+	BoxCtrl().buildHeap(boxID)
+
+	// Publish events to force client refresh
+	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)
+	events.Events().Publish(events.Topic("questions"), c)
+	events.Events().Publish(events.Topic("stats"), c)
+
+	return nil
+
 }

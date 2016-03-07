@@ -79,8 +79,8 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	}
 
 	// Load boxes by category ID
-	controller := controllers.CategoryCtrl()
-	boxes, err := controller.LoadBoxes(uint(id))
+	controller := controllers.BoxCtrl()
+	boxes, err := controller.LoadBoxesOfCategory(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

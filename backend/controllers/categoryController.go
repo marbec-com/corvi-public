@@ -61,7 +61,7 @@ func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
 	defer rows.Close()
 
 	// Create empty result set
-	var result []*models.Category
+	result := make([]*models.Category, 0)
 
 	for rows.Next() {
 		// Create new Category object
@@ -101,23 +101,6 @@ func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
 
 	return newCat, nil
 
-}
-
-func (c *CategoryController) LoadBoxes(id uint) ([]*models.Box, error) {
-
-	_, err := c.LoadCategory(id)
-	if err != nil {
-		return nil, err
-	}
-
-	boxes := []*models.Box{}
-	for _, box := range mockBoxes {
-		if box.CategoryID == id {
-			boxes = append(boxes, box)
-		}
-	}
-
-	return boxes, nil
 }
 
 func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) error {

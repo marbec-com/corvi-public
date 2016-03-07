@@ -85,6 +85,41 @@ func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
 	return mockBoxes, nil
 }
 
+func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
+	// TODO(mjb): add QuestionsTotal, QuestionsToLearn, QuestionsLearned
+
+	// Select all categories
+	sql := "SELECT ID, Name, Description, CategoryID, CreatedAt FROM Box WHERE CategoryID = ?;"
+	rows, err := c.db.Connection().Query(sql, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	// Create empty result set
+	result := make([]*models.Box, 0)
+
+	for rows.Next() {
+		// Create new Category object
+		newBox := models.NewBox()
+		// Populate
+		err = rows.Scan(&newBox.ID, &newBox.Name, &newBox.Description, &newBox.CategoryID, &newBox.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+		// Append to result set
+		result = append(result, newBox)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+
+}
+
 func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 
 	for _, box := range mockBoxes {

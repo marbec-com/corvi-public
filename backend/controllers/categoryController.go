@@ -41,9 +41,13 @@ func NewCategoryController(db *DBController) (*CategoryController, error) {
 }
 
 func (c *CategoryController) createTables() error {
+
+	// Create table, only if it not already exists
 	sql := "CREATE TABLE IF NOT EXISTS Category (ID INTEGER PRIMARY KEY ASC NOT NULL, Name VARCHAR (255) NOT NULL, CreatedAt DATETIME NOT NULL);"
 	_, err := c.db.Connection().Exec(sql)
+
 	return err
+
 }
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
@@ -77,6 +81,7 @@ func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
 	}
 
 	return result, nil
+
 }
 
 func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
@@ -116,19 +121,45 @@ func (c *CategoryController) LoadBoxes(id uint) ([]*models.Box, error) {
 }
 
 func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) error {
-	// Find category to update
-	for k, c := range mockCategories {
-		if c.ID == catID {
-			// Upate category
-			mockCategories[k] = cat
-			// Publish event to force client refresh
-			events.Events().Publish(events.Topic(fmt.Sprintf("category-%d", catID)), c)
-			return nil
-		}
+
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return err
 	}
 
-	// Return error if category was not found
-	return errors.New("Category to update was not found.")
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Update category
+	sql := "UPDATE Category SET Name = ?, CreatedAT = ? WHERE ID = ?;"
+	res, err := tx.Exec(sql, cat.Name, cat.CreatedAt, catID)
+	if err != nil {
+		return err
+	}
+
+	// Check if update was performed
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// Return error if no object was updated
+	if rows == 0 {
+		return errors.New("Category to update was not found.")
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Publish event to force client refresh
+	events.Events().Publish(events.Topic(fmt.Sprintf("category-%d", catID)), c)
+
+	return nil
+
 }
 
 func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category, error) {

@@ -15,14 +15,25 @@ func NewDBController(path string) (*DBController, error) {
 		databasePath: path,
 		connection:   nil,
 	}
+
+	// Open database, create if not exists
 	err := c.Open()
 	if err != nil {
 		return nil, err
 	}
+
+	// Test database connection
 	err = c.connection.Ping()
 	if err != nil {
 		return nil, err
 	}
+
+	// Enable foreign key constraints
+	_, err = c.connection.Exec("PRAGMA foreign_keys = ON;")
+	if err != nil {
+		return nil, err
+	}
+
 	return c, nil
 }
 

@@ -55,15 +55,30 @@ type BoxController struct {
 	db *DBController
 }
 
-func NewBoxController(db *DBController) *BoxController {
+func NewBoxController(db *DBController) (*BoxController, error) {
 	b := &BoxController{
 		db: db,
 	}
-	for _, box := range mockBoxes {
+	err := b.createTables()
+	if err != nil {
+		return nil, err
+	}
+	/* for _, box := range mockBoxes {
 		b.loadQuestionsToLearn(box)
 		b.refreshBox(box)
-	}
-	return b
+	} */
+	return b, nil
+}
+
+func (c *BoxController) createTables() error {
+
+	// Create table, only if it not already exists
+	// Includes foreign key constraint to Category table. We are not allowed to delete a Category that still has Boxes assigned.
+	sql := "CREATE TABLE IF NOT EXISTS Box (ID INTEGER PRIMARY KEY ASC NOT NULL, Name VARCHAR (255) NOT NULL, Description TEXT NOT NULL, CategoryID INTEGER REFERENCES Category (ID) NOT NULL, CreatedAt DATETIME NOT NULL);"
+	_, err := c.db.Connection().Exec(sql)
+
+	return err
+
 }
 
 func (c *BoxController) LoadBoxes() ([]*models.Box, error) {

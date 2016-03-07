@@ -10,7 +10,11 @@ func InitControllerSingletons(db *DBController) {
 	settingsFileName := GenerateUserDataPath(settingsFile)
 	SettingsControllerSingleton = NewSettingsController(settingsFileName)
 
-	BoxControllerSingleton = NewBoxController(db)
+	b, err := NewBoxController(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	BoxControllerSingleton = b
 
 	c, err := NewCategoryController(db)
 	if err != nil {

@@ -65,7 +65,7 @@ func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
 
 	for rows.Next() {
 		// Create new Category object
-		newCat := &models.Category{}
+		newCat := models.NewCategory()
 		// Populate
 		err = rows.Scan(&newCat.ID, &newCat.Name, &newCat.CreatedAt)
 		if err != nil {
@@ -91,7 +91,7 @@ func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
 	row := c.db.Connection().QueryRow(sql, id)
 
 	// Create new Category object
-	newCat := &models.Category{}
+	newCat := models.NewCategory()
 
 	// Populate
 	err := row.Scan(&newCat.ID, &newCat.Name, &newCat.CreatedAt)

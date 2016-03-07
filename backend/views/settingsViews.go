@@ -11,7 +11,7 @@ import (
 type SettingsView struct{}
 
 func (v *SettingsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
-	controller := controllers.SettingsControllerInstance()
+	controller := controllers.SettingsCtrl()
 	settings := controller.Get()
 
 	rw.Header().Set("Content-Type", "application/json")
@@ -30,7 +30,7 @@ type SettingsUpdateView struct{}
 func (v *SettingsUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
 
-	controller := controllers.SettingsControllerInstance()
+	controller := controllers.SettingsCtrl()
 	settings := controller.Get()
 
 	decoder := json.NewDecoder(r.Body)

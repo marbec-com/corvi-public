@@ -8,17 +8,19 @@ import (
 
 var StatsControllerSingleton *StatsController
 
-func StatsControllerInstance() *StatsController {
-	if StatsControllerSingleton == nil {
-		StatsControllerSingleton = NewStatsController()
-	}
+func StatsCtrl() *StatsController {
 	return StatsControllerSingleton
 }
 
-type StatsController struct{}
+type StatsController struct {
+	db *DBController
+}
 
-func NewStatsController() *StatsController {
-	return &StatsController{}
+func NewStatsController(db *DBController) *StatsController {
+	c := &StatsController{
+		db: db,
+	}
+	return c
 }
 
 func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {

@@ -26,3 +26,4 @@ _testmain.go
 *.prof
 corvi-backend
 settings.yml
+data.db

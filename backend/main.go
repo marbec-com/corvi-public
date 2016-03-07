@@ -4,34 +4,22 @@ import (
 	"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/views"
-	//"marb.ec/maf/events"
 	"marb.ec/maf/router"
 	"marb.ec/maf/wsnotify"
 	"net/http"
-	//"time"
 )
 
 func main() {
 
-	// TODO(mjb): Singletons thread safe? especially settings!
 	// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
 
-	r := router.NewTreeRouter()
+	db, err := controllers.NewDBController("data.db")
+	if err != nil {
+		log.Fatal(err)
+	}
+	controllers.InitControllerSingletons(db)
 
-	/* go func() {
-		eh := events.Events()
-		i := 0
-		for _ = range time.Tick(10 * time.Second) {
-			i++
-			if i%2 == 0 {
-				eh.Publish(events.Topic("questions"), nil)
-				log.Println("Publish Questions")
-			} else {
-				eh.Publish(events.Topic("question-1"), nil)
-				log.Println("Publish Question #1")
-			}
-		}
-	}() */
+	r := router.NewTreeRouter()
 
 	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()

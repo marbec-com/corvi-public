@@ -32,7 +32,7 @@ func (v *StatsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx conte
 	}
 
 	// Loads stats object
-	controller := controllers.StatsControllerInstance()
+	controller := controllers.StatsCtrl()
 	stats, err := controller.LoadStats(from, to)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

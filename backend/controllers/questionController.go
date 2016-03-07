@@ -259,18 +259,19 @@ var mockAnswers = []*models.LearnUnit{}
 
 var QuestionControllerSingleton *QuestionController
 
-type QuestionController struct {
-}
-
-func QuestionControllerInstance() *QuestionController {
-	if QuestionControllerSingleton == nil {
-		QuestionControllerSingleton = NewQuestionController()
-	}
+func QuestionCtrl() *QuestionController {
 	return QuestionControllerSingleton
 }
 
-func NewQuestionController() *QuestionController {
-	return &QuestionController{}
+type QuestionController struct {
+	db *DBController
+}
+
+func NewQuestionController(db *DBController) *QuestionController {
+	c := &QuestionController{
+		db: db,
+	}
+	return c
 }
 
 func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
@@ -312,13 +313,13 @@ func (c *QuestionController) GiveCorrectAnswer(id uint) error {
 	}
 
 	// TODO(mjb): Rethink architecture here
-	box, err := BoxControllerInstance().LoadBox(question.BoxID)
+	box, err := BoxCtrl().LoadBox(question.BoxID)
 	if err != nil {
 		return err
 	}
 
-	BoxControllerInstance().removeQuestionFromHeap(box, question)
-	BoxControllerInstance().refreshBox(box)
+	BoxCtrl().removeQuestionFromHeap(box, question)
+	BoxCtrl().refreshBox(box)
 	events.Events().Publish(events.Topic("stats"), c)
 
 	return nil
@@ -349,17 +350,17 @@ func (c *QuestionController) GiveWrongAnswer(id uint) error {
 	}
 
 	// TODO(mjb): Rethink architecture here
-	box, err := BoxControllerInstance().LoadBox(question.BoxID)
+	box, err := BoxCtrl().LoadBox(question.BoxID)
 	if err != nil {
 		return err
 	}
 
-	if SettingsControllerInstance().Get().RelearnUntilAccomplished {
-		BoxControllerInstance().reAddQuestionFromHeap(box, question)
+	if SettingsCtrl().Get().RelearnUntilAccomplished {
+		BoxCtrl().reAddQuestionFromHeap(box, question)
 	} else {
-		BoxControllerInstance().removeQuestionFromHeap(box, question)
+		BoxCtrl().removeQuestionFromHeap(box, question)
 	}
-	BoxControllerInstance().refreshBox(box)
+	BoxCtrl().refreshBox(box)
 	events.Events().Publish(events.Topic("stats"), c)
 
 	return nil
@@ -381,13 +382,13 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 			// Question might have been moved
 			if prevBox != question.BoxID {
 				// Refresh both boxes
-				if prevBoxInstance, err := BoxControllerInstance().LoadBox(question.BoxID); err == nil {
-					BoxControllerInstance().rebuildQuestionHeap(prevBoxInstance)
-					BoxControllerInstance().refreshBox(prevBoxInstance)
+				if prevBoxInstance, err := BoxCtrl().LoadBox(question.BoxID); err == nil {
+					BoxCtrl().rebuildQuestionHeap(prevBoxInstance)
+					BoxCtrl().refreshBox(prevBoxInstance)
 				}
-				if curBoxInstance, err := BoxControllerInstance().LoadBox(prevBox); err == nil {
-					BoxControllerInstance().rebuildQuestionHeap(curBoxInstance)
-					BoxControllerInstance().refreshBox(curBoxInstance)
+				if curBoxInstance, err := BoxCtrl().LoadBox(prevBox); err == nil {
+					BoxCtrl().rebuildQuestionHeap(curBoxInstance)
+					BoxCtrl().refreshBox(curBoxInstance)
 				}
 				events.Events().Publish(events.Topic("boxes"), c)
 			}
@@ -401,7 +402,7 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 }
 
 func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, error) {
-	box, err := BoxControllerInstance().LoadBox(q.BoxID)
+	box, err := BoxCtrl().LoadBox(q.BoxID)
 	if err != nil {
 		return nil, errors.New("Box for this question does not exist.")
 	}
@@ -412,8 +413,8 @@ func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, 
 	mockQuestions = append(mockQuestions, q)
 
 	// Rebuild heap and refresh stats
-	BoxControllerInstance().rebuildQuestionHeap(box)
-	BoxControllerInstance().refreshBox(box)
+	BoxCtrl().rebuildQuestionHeap(box)
+	BoxCtrl().refreshBox(box)
 
 	events.Events().Publish(events.Topic("questions"), c)
 	events.Events().Publish(events.Topic("stats"), c)
@@ -431,9 +432,9 @@ func (c *QuestionController) DeleteQuestion(qID uint) error {
 			mockQuestions, mockQuestions[len(mockQuestions)-1] = append(mockQuestions[:k], mockQuestions[k+1:]...), nil
 
 			// Refresh box of deleted question
-			box, _ := BoxControllerInstance().LoadBox(boxID)
-			BoxControllerInstance().rebuildQuestionHeap(box)
-			BoxControllerInstance().refreshBox(box)
+			box, _ := BoxCtrl().LoadBox(boxID)
+			BoxCtrl().rebuildQuestionHeap(box)
+			BoxCtrl().refreshBox(box)
 
 			events.Events().Publish(events.Topic("questions"), c)
 			events.Events().Publish(events.Topic("stats"), c)

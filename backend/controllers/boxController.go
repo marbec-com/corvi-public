@@ -45,30 +45,25 @@ var mockBoxesID uint = 4
 
 // TODO(mjb): Introduce HEAP cache
 
-// TODO(mjb): Replace with dynamic settings variable
-/* const (
-	maxToLearn               uint = 10
-	relearnUntilAccomplished bool = true
-) */
-
 var BoxControllerSingleton *BoxController
 
-type BoxController struct {
-}
-
-func BoxControllerInstance() *BoxController {
-	if BoxControllerSingleton == nil {
-		BoxControllerSingleton = NewBoxController()
-		for _, box := range mockBoxes {
-			BoxControllerSingleton.loadQuestionsToLearn(box)
-			BoxControllerSingleton.refreshBox(box)
-		}
-	}
+func BoxCtrl() *BoxController {
 	return BoxControllerSingleton
 }
 
-func NewBoxController() *BoxController {
-	return &BoxController{}
+type BoxController struct {
+	db *DBController
+}
+
+func NewBoxController(db *DBController) *BoxController {
+	b := &BoxController{
+		db: db,
+	}
+	for _, box := range mockBoxes {
+		b.loadQuestionsToLearn(box)
+		b.refreshBox(box)
+	}
+	return b
 }
 
 func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
@@ -232,7 +227,7 @@ func (c *BoxController) loadQuestionsToLearn(b *models.Box) {
 
 func (c *BoxController) getCapacity(b *models.Box) uint {
 	// TODO(mjb): Update to SQL query to count correct objects
-	capacity := SettingsControllerInstance().Get().MaxDailyQuestionsPerBox
+	capacity := SettingsCtrl().Get().MaxDailyQuestionsPerBox
 	yt, mt, dt := time.Now().Date()
 	for _, unit := range mockAnswers {
 		if capacity <= 0 {

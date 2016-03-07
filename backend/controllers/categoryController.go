@@ -21,18 +21,19 @@ var mockCategoriesID uint = 3
 
 var CategoryControllerSingleton *CategoryController
 
-type CategoryController struct {
-}
-
-func CategoryControllerInstance() *CategoryController {
-	if CategoryControllerSingleton == nil {
-		CategoryControllerSingleton = NewCategoryController()
-	}
+func CategoryCtrl() *CategoryController {
 	return CategoryControllerSingleton
 }
 
-func NewCategoryController() *CategoryController {
-	return &CategoryController{}
+type CategoryController struct {
+	db *DBController
+}
+
+func NewCategoryController(db *DBController) *CategoryController {
+	c := &CategoryController{
+		db: db,
+	}
+	return c
 }
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {

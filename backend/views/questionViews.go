@@ -15,7 +15,7 @@ type QuestionsView struct{}
 
 func (v *QuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 	questions, err := controller.LoadQuestions()
 
 	if err != nil {
@@ -47,7 +47,7 @@ func (v *QuestionView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	}
 
 	// Load question by ID
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 	question, err := controller.LoadQuestion(uint(id))
 
 	if err != nil {
@@ -80,7 +80,7 @@ func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *htt
 	}
 
 	// Call method by ID
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 	err = controller.GiveCorrectAnswer(uint(id))
 
 	if err != nil {
@@ -109,7 +109,7 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 	}
 
 	// Call method by ID
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 	err = controller.GiveWrongAnswer(uint(id))
 
 	if err != nil {
@@ -138,7 +138,7 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 
 	// TODO(mjb): Update when we load question from database
 	// Load existing object to update
@@ -181,7 +181,7 @@ func (v *QuestionAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 		return
 	}
 
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 	question, err = controller.AddQuestion(question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -208,7 +208,7 @@ func (v *QuestionDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.QuestionControllerInstance()
+	controller := controllers.QuestionCtrl()
 	err = controller.DeleteQuestion(uint(id))
 
 	if err != nil {

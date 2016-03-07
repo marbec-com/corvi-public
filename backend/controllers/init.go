@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"log"
 	"os"
 	"path"
 )
@@ -10,7 +11,13 @@ func InitControllerSingletons(db *DBController) {
 	SettingsControllerSingleton = NewSettingsController(settingsFileName)
 
 	BoxControllerSingleton = NewBoxController(db)
-	CategoryControllerSingleton = NewCategoryController(db)
+
+	c, err := NewCategoryController(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	CategoryControllerSingleton = c
+
 	QuestionControllerSingleton = NewQuestionController(db)
 	StatsControllerSingleton = NewStatsController(db)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
+	"time"
 )
 
 var mockCategories = []*models.Category{
@@ -29,11 +30,21 @@ type CategoryController struct {
 	db *DBController
 }
 
-func NewCategoryController(db *DBController) *CategoryController {
+func NewCategoryController(db *DBController) (*CategoryController, error) {
 	c := &CategoryController{
 		db: db,
 	}
-	return c
+	err := c.createTables()
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func (c *CategoryController) createTables() error {
+	sql := "CREATE TABLE IF NOT EXISTS Category (ID INTEGER PRIMARY KEY ASC NOT NULL, Name VARCHAR (255) NOT NULL, CreatedAt DATETIME NOT NULL);"
+	_, err := c.db.Connection().Exec(sql)
+	return err
 }
 
 func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
@@ -84,18 +95,46 @@ func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) er
 }
 
 func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category, error) {
-	// Temporary - not thread safe!
-	cat.ID = mockCategoriesID
-	mockCategoriesID++
 
-	// Add category
-	mockCategories = append(mockCategories, cat)
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return nil, err
+	}
+
+	// Rollback in case of an error
+	defer tx.Rollback()
+
+	// Set creation time
+	cat.CreatedAt = time.Now()
+
+	// Execute insert statement
+	sql := "INSERT INTO Category (Name, CreatedAt) VALUES (?, ?);"
+	res, err := tx.Exec(sql, cat.Name, cat.CreatedAt)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update objects ID
+	newID, err := res.LastInsertId()
+	if err != nil {
+		return nil, err
+	}
+	cat.ID = uint(newID)
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
 
 	// Publish event to force client refresh
 	events.Events().Publish(events.Topic("categories"), c)
 	events.Events().Publish(events.Topic("stats"), c)
 
+	// Return inserted object
 	return cat, nil
+
 }
 
 func (c *CategoryController) DeleteCategory(catID uint) error {

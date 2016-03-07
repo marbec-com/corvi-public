@@ -183,7 +183,10 @@ func (v *CategoryDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 	controller := controllers.CategoryCtrl()
 	err = controller.DeleteCategory(uint(id))
 
-	if err != nil {
+	if err != nil && err.Error() == "FOREIGN KEY constraint failed" {
+		http.Error(rw, "Cannot delete a category that has still boxes assigned.", http.StatusNotFound)
+		return
+	} else if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}

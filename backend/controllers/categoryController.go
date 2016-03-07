@@ -186,24 +186,45 @@ func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category
 }
 
 func (c *CategoryController) DeleteCategory(catID uint) error {
-	for _, box := range mockBoxes {
-		if box.CategoryID == catID {
-			return errors.New("Cannot delete category that still has boxes assigned.")
-		}
+
+	// Begin Transaction
+	tx, err := c.db.Connection().Begin()
+	if err != nil {
+		return err
 	}
 
-	for k, c := range mockCategories {
-		if c.ID == catID {
-			mockCategories, mockCategories[len(mockCategories)-1] = append(mockCategories[:k], mockCategories[k+1:]...), nil
+	// Rollback in case of an error
+	defer tx.Rollback()
 
-			// Publish event to force client refresh
-			// We don't need to refresh the boxes, sind there shouldn't be any boxes in that category
-			events.Events().Publish(events.Topic("categories"), c)
-			events.Events().Publish(events.Topic("stats"), c)
-
-			return nil
-		}
+	// Execute delete statement
+	sql := "DELETE FROM Category WHERE ID = ?;"
+	res, err := tx.Exec(sql, catID)
+	if err != nil {
+		return err
 	}
 
-	return errors.New("Category not found.")
+	// Check if delete was performed
+	rows, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	// Return error if no object was deleted
+	if rows <= 0 {
+		return errors.New("Category could not be deleted.")
+	}
+
+	// Commit
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	// Publish event to force client refresh
+	// We don't need to refresh the boxes, since there shouldn't be any boxes in that category
+	events.Events().Publish(events.Topic("categories"), c)
+	events.Events().Publish(events.Topic("stats"), c)
+
+	return nil
+
 }

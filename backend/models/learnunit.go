@@ -5,8 +5,8 @@ import (
 )
 
 type LearnUnit struct {
-	BoxID       uint
 	QuestionID  uint
+	BoxID       uint
 	CreatedAt   time.Time
 	Correct     bool
 	PrevCorrect bool
@@ -14,8 +14,8 @@ type LearnUnit struct {
 
 func NewLearnUnit(qID, boxID uint, c, prev bool) *LearnUnit {
 	return &LearnUnit{
-		BoxID:       boxID,
 		QuestionID:  qID,
+		BoxID:       boxID,
 		CreatedAt:   time.Now(),
 		Correct:     c,
 		PrevCorrect: prev,

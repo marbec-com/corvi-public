@@ -267,11 +267,45 @@ type QuestionController struct {
 	db *DBController
 }
 
-func NewQuestionController(db *DBController) *QuestionController {
+func NewQuestionController(db *DBController) (*QuestionController, error) {
 	c := &QuestionController{
 		db: db,
 	}
-	return c
+	err := c.createTables()
+	if err != nil {
+		return nil, err
+	}
+	return c, nil
+}
+
+func (c *QuestionController) createTables() error {
+
+	// Create table for questions, only if it not already exists
+	sql := "CREATE TABLE IF NOT EXISTS Question (ID INTEGER PRIMARY KEY ASC NOT NULL, Question VARCHAR (255) NOT NULL, Answer TEXT NOT NULL, BoxID INTEGER REFERENCES Box (ID) ON DELETE CASCADE NOT NULL, Next DATETIME NOT NULL, CorrectlyAnswered INTEGER NOT NULL, CreatedAt DATETIME NOT NULL);"
+	_, err := c.db.Connection().Exec(sql)
+	if err != nil {
+		return err
+	}
+
+	// Create table for learnunits, only if it not already exists
+	sql = "CREATE TABLE IF NOT EXISTS LearnUnit (QuestionID INTEGER REFERENCES Question (ID) ON DELETE CASCADE NOT NULL, BoxID INTEGER REFERENCES Box (ID) ON DELETE CASCADE NOT NULL, Correct BOOLEAN NOT NULL, PrevCorrect BOOLEAN NOT NULL, CreatedAt DATETIME NOT NULL);"
+	_, err = c.db.Connection().Exec(sql)
+	if err != nil {
+		return err
+	}
+
+	// Create view for questions learned today
+	sql = "CREATE VIEW IF NOT EXISTS QuestionsLearnedToday AS SELECT * FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1"
+	_, err = c.db.Connection().Exec(sql)
+	if err != nil {
+		return err
+	}
+
+	// Create view for questions due
+	sql = "CREATE VIEW IF NOT EXISTS QuestionsDue AS SELECT * FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN (SELECT ID FROM QuestionsLearnedToday)"
+	_, err = c.db.Connection().Exec(sql)
+
+	return err
 }
 
 func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {

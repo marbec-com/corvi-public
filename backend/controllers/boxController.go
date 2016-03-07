@@ -76,6 +76,13 @@ func (c *BoxController) createTables() error {
 	// Includes foreign key constraint to Category table. We are not allowed to delete a Category that still has Boxes assigned.
 	sql := "CREATE TABLE IF NOT EXISTS Box (ID INTEGER PRIMARY KEY ASC NOT NULL, Name VARCHAR (255) NOT NULL, Description TEXT NOT NULL, CategoryID INTEGER REFERENCES Category (ID) NOT NULL, CreatedAt DATETIME NOT NULL);"
 	_, err := c.db.Connection().Exec(sql)
+	if err != nil {
+		return err
+	}
+
+	// Create additonal view with question meta data
+	sql = "CREATE VIEW IF NOT EXISTS BoxWithMeta AS SELECT ID, Name, Description, CategoryID, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID) AS QuestionsTotal, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID AND CorrectlyAnswered > 0) AS QuestionsLearned, (SELECT COUNT(*) FROM QuestionsDue WHERE BoxID = Box.ID) AS QuestionsToLearn, CreatedAt FROM Box;"
+	_, err = c.db.Connection().Exec(sql)
 
 	return err
 

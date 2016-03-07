@@ -22,7 +22,12 @@ func InitControllerSingletons(db *DBController) {
 	}
 	CategoryControllerSingleton = c
 
-	QuestionControllerSingleton = NewQuestionController(db)
+	q, err := NewQuestionController(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+	QuestionControllerSingleton = q
+
 	StatsControllerSingleton = NewStatsController(db)
 }
 

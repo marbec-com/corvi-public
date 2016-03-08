@@ -29,7 +29,7 @@ backend_test:
     - "pwd"
     - "ls -aslh"
     - "go get -t -v -insecure ./..."
-    - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"
+    - "go test -bench=. -benchmem -v -cover ./..."
   tags:
     - linux
 

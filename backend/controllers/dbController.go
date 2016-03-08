@@ -51,5 +51,5 @@ func (c *DBController) Connection() *sql.DB {
 }
 
 func (c *DBController) Close() error {
-	return c.Close()
+	return c.Connection().Close()
 }

@@ -72,7 +72,7 @@ func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
 	result := make([]*models.Question, 0)
 
 	for rows.Next() {
-		// Create new Box object
+		// Create new Question object
 		newQuestion := models.NewQuestion()
 		// Populate
 		err = rows.Scan(&newQuestion.ID, &newQuestion.Question, &newQuestion.Answer, &newQuestion.BoxID, &newQuestion.Next, &newQuestion.CorrectlyAnswered, &newQuestion.CreatedAt)

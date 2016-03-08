@@ -12,7 +12,7 @@
 			<div class="expanded row">
 				<div class="small-12 medium-4 columns">
 					<h4 class="text-center">Questions</h4>
-					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.TotalLearned, stats.TotalUnlearned, stats.TotalUntouched]" chart-labels="['Learned', 'Not learned', 'Untouched']" chart-colours="['#33cc33', '#cc0000', '#ffcc00']"></canvas>
+					<canvas ng-if="stats.TotalQuestions > 0" id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.TotalLearned, stats.TotalUnlearned, stats.TotalUntouched]" chart-labels="['Learned', 'Not learned', 'Untouched']" chart-colours="['#33cc33', '#cc0000', '#ffcc00']"></canvas>
 					<hr />
 					<p class="text-center">
 						<span class="label">Total Questions: {{ stats.TotalQuestions }}</span>
@@ -20,7 +20,7 @@
 				</div>
 				<div class="small-12 medium-4 columns">
 					<h4 class="text-center">Answers</h4>
-					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.TotalNumberOfRightAnswers, stats.TotalNumberOfWrongAnswers]" chart-labels="['Right', 'Wrong']" chart-colours="['#33cc33', '#cc0000']"></canvas> 
+					<canvas ng-if="stats.TotalLearnUnits > 0" id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.TotalNumberOfRightAnswers, stats.TotalNumberOfWrongAnswers]" chart-labels="['Right', 'Wrong']" chart-colours="['#33cc33', '#cc0000']"></canvas> 
 					<hr />
 					<p class="text-center">
 						<span class="label">Total Answers: {{ stats.TotalLearnUnits }}</span>
@@ -28,26 +28,26 @@
 				</div>
 				<div class="small-12 medium-4 columns">
 					<h4 class="text-center">Progress</h4>
-					<canvas id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.LearnRate, stats.KnowledgeRate, stats.UnlearnRate, stats.UnknowingRate]" chart-labels="['Learned', 'Strengthened', 'Forgotten', 'Not learned']" chart-colours="['#33cc33', '#006600', '#cc0000', '#ff3300']"></canvas> 
+					<canvas ng-if="stats.TotalLearnUnits > 0" id="doughnut" class="chart chart-doughnut" chart-options="{percentageInnerCutout: 80}" chart-data="[stats.LearnRate, stats.KnowledgeRate, stats.UnlearnRate, stats.UnknowingRate]" chart-labels="['Learned', 'Strengthened', 'Forgotten', 'Not learned']" chart-colours="['#33cc33', '#006600', '#cc0000', '#ff3300']"></canvas> 
 					<hr />
 					<p class="text-center">
 						<span class="label">Total Boxes: {{ stats.TotalBoxes }}</span>
 					</p>
 				</div>
 			</div>
-			<div class="expanded row" ng-if="isActive('week')">
+			<div class="expanded row" ng-if="isActive('week') && stats.TotalLearnUnits > 0">
 				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
 					<hr />
 					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByWeekday]" chart-labels="weekdays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
 				</div>
 			</div>
-			<div class="expanded row" ng-if="isActive('month')">
+			<div class="expanded row" ng-if="isActive('month') && stats.TotalLearnUnits > 0">
 				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
 					<hr />
 					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonthDay]" chart-labels="monthDays" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
 				</div>
 			</div>
-			<div class="expanded row" ng-if="isActive('year')">
+			<div class="expanded row" ng-if="isActive('year') && stats.TotalLearnUnits > 0">
 				<div class="small-12 medium-10 medium-offset-1 large-8 large-offset-2 columns">
 					<hr />
 					<canvas id="line" class="chart chart-line" chart-data="[stats.LearnUnitsGroupByMonth]" chart-labels="months" chart-series="series" chart-options="{bezierCurveTension: 0.2}"></canvas>
@@ -56,27 +56,31 @@
 			<div class="expanded row">	
 				<div class="small-12 medium-6 columns">
 					<hr />
-					<div class="callout success">
+					<div class="callout success" ng-if="stats.BestBox">
 						<p>
 							<strong>Best Box:</strong>
-							{{ stats.BestBox.Name }}
+							{{ stats.BestBox.Name }} <span class="label">{{ (stats.BestBox.QuestionsLearned / stats.BestBox.QuestionsTotal) | percentage }} of Questions Learned</span>
 						</p>
+					</div>
+					<div class="callout success" ng-if="stats.BestQuestion">
 						<p>
 							<strong>Best Question:</strong>
-							{{ stats.BestQuestion.Question }} <span class="label"><span am-time-ago="stats.BestQuestion.Next"></span></span>
+							{{ stats.BestQuestion.Question }} <span class="label">{{ stats.BestQuestion.CorrectlyAnswered }} Correct Answers in a Row</span>
 						</p>
 					</div>
 				</div>
 				<div class="small-12 medium-6 columns">
 					<hr />
-					<div class="callout alert">
+					<div class="callout alert" ng-if="stats.WorstBox">
 						<p>
 							<strong>Worst Box:</strong>
-							{{ stats.WorstBox.Name }}
+							{{ stats.WorstBox.Name }}  <span class="label">{{ (stats.WorstBox.QuestionsLearned / stats.WorstBox.QuestionsTotal) | percentage }} of Questions Learned</span>
 						</p>
+					</div>
+					<div class="callout alert" ng-if="stats.WorstQuestion">
 						<p>
 							<strong>Worst Question:</strong>
-							{{ stats.WorstQuestion.Question }} <span class="label"><span am-time-ago="stats.WorstQuestion.Next"></span></span>
+							{{ stats.WorstQuestion.Question }} <span class="label">{{ stats.WorstQuestionAnswers }} Wrong Answers</span>
 						</p>
 					</div>
 				</div>

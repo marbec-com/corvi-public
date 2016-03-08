@@ -3,7 +3,6 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"log"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
 )
@@ -230,6 +229,7 @@ func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
 	}
 
 	// Publish Notification
+	// TODO(mjb): Sufficient to update only the answered question?
 	events.Events().Publish(events.Topic("questions"), c)
 	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", question.BoxID)), c)
 	events.Events().Publish(events.Topic("stats"), c)
@@ -283,8 +283,8 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 
 	// Check if question was moved into another Box
 	if question.BoxID != originalBoxID {
-		BoxCtrl().buildHeap(question.BoxID)
-		BoxCtrl().buildHeap(originalBoxID)
+		BoxCtrl().BuildHeap(question.BoxID)
+		BoxCtrl().BuildHeap(originalBoxID)
 		events.Events().Publish(events.Topic("boxes"), c)
 	}
 
@@ -327,7 +327,10 @@ func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, 
 	}
 
 	// Rebuild Heap for Box
-	log.Println(BoxCtrl().buildHeap(q.BoxID))
+	err = BoxCtrl().BuildHeap(q.BoxID)
+	if err != nil {
+		return nil, err
+	}
 
 	// Publish events to force client refresh
 	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", q.BoxID)), c)
@@ -385,7 +388,7 @@ func (c *QuestionController) DeleteQuestion(qID uint) error {
 	}
 
 	// Rebuild Heap of box
-	BoxCtrl().buildHeap(boxID)
+	BoxCtrl().BuildHeap(boxID)
 
 	// Publish events to force client refresh
 	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)

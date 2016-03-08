@@ -24,6 +24,7 @@ func main() {
 		log.Fatal(err)
 	}
 	controllers.InitControllerSingletons(db)
+	controllers.BoxCtrl().BuildHeaps()
 
 	r := router.NewTreeRouter()
 	defineRoutes(r)

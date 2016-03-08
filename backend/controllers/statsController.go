@@ -35,6 +35,8 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 
 	// TODO(mjb): Replace with correct SQL
 
+	// SELECT all questions in Interval, count
+
 	/* for _, question := range mockQuestions {
 		if question.CreatedAt.After(from) && question.CreatedAt.Before(to) {
 			stats.TotalQuestions++
@@ -48,6 +50,7 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 		}
 	}
 
+	// SELECT ALL answers in interval
 	for _, lu := range mockAnswers {
 		if lu.CreatedAt.After(from) && lu.CreatedAt.Before(to) {
 			stats.LearnUnitsGroupByWeekday[(int(lu.CreatedAt.Weekday())+6)%7]++ // 0 = Monday, 6 = Sunday
@@ -72,15 +75,20 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 		}
 	}
 
+	// Count boxes
 	for _, box := range mockBoxes {
 		if box.CreatedAt.After(from) && box.CreatedAt.Before(to) {
 			stats.TotalBoxes++
 		}
 	}
 
+	// SELECT BOX ORDER BY LEARNED DESC LIMIT 1
 	stats.BestBox = mockBoxes[0]
+	// SELECT BOX ORDER BY LEARNED ASC LIMIT 1
 	stats.WorstBox = mockBoxes[1]
+	// SELECT QUESTION ORDER BY CorrectlyAnswered DESC LIMIT 1
 	stats.BestQuestion = mockQuestions[0]
+	// Question with CorrectlyAnswered minimum and most wrong answers
 	stats.WorstQuestion = mockQuestions[4] */
 
 	return stats, nil

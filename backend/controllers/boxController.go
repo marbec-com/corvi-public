@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
+	"sync"
 )
-
-var heapCache map[uint]*models.QuestionHeap
 
 var BoxControllerSingleton *BoxController
 
@@ -15,8 +14,12 @@ func BoxCtrl() *BoxController {
 	return BoxControllerSingleton
 }
 
+// TODO(mjb): Introduce mutex for heapCache
+
 type BoxController struct {
-	db *DBController
+	db        *DBController
+	heapCache map[uint]*models.QuestionHeap
+	sync.Mutex
 }
 
 func NewBoxController(db *DBController) (*BoxController, error) {
@@ -27,7 +30,7 @@ func NewBoxController(db *DBController) (*BoxController, error) {
 	if err != nil {
 		return nil, err
 	}
-	b.buildHeaps()
+	b.heapCache = make(map[uint]*models.QuestionHeap, 0)
 	return b, nil
 }
 
@@ -72,7 +75,7 @@ func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
 		}
 
 		// Questions To Learn from Heap
-		heap, ok := heapCache[newBox.ID]
+		heap, ok := c.heapCache[newBox.ID]
 		if ok {
 			newBox.QuestionsToLearn = uint(heap.Length())
 		}
@@ -113,7 +116,7 @@ func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
 		}
 
 		// Questions To Learn from Heap
-		heap, ok := heapCache[newBox.ID]
+		heap, ok := c.heapCache[newBox.ID]
 		if ok {
 			newBox.QuestionsToLearn = uint(heap.Length())
 		}
@@ -147,7 +150,7 @@ func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 	}
 
 	// Questions To Learn from Heap
-	heap, ok := heapCache[newBox.ID]
+	heap, ok := c.heapCache[newBox.ID]
 	if ok {
 		newBox.QuestionsToLearn = uint(heap.Length())
 	}
@@ -159,7 +162,9 @@ func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 func (c *BoxController) removeQuestionFromHeap(id, qID uint) error {
 
 	// Get heap from cache
-	heap, ok := heapCache[id]
+	c.Lock()
+	heap, ok := c.heapCache[id]
+	c.Unlock()
 	if !ok {
 		return errors.New("Heap not found.")
 	}
@@ -181,7 +186,9 @@ func (c *BoxController) removeQuestionFromHeap(id, qID uint) error {
 func (c *BoxController) reAddQuestionFromHeap(id, qID uint) error {
 
 	// Get heap from cache
-	heap, ok := heapCache[id]
+	c.Lock()
+	heap, ok := c.heapCache[id]
+	c.Unlock()
 	if !ok {
 		return errors.New("Heap not found.")
 	}
@@ -203,9 +210,11 @@ func (c *BoxController) reAddQuestionFromHeap(id, qID uint) error {
 func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 
 	// Get heap from cache
-	heap, ok := heapCache[id]
+	c.Lock()
+	heap, ok := c.heapCache[id]
+	c.Unlock()
 	if !ok || heap.Length() == 0 { // Build new heap if non existent or empty
-		c.buildHeap(id)
+		c.BuildHeap(id)
 	}
 
 	// Return first question in heap without removing it, may be nil if no questions due
@@ -213,10 +222,10 @@ func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 
 }
 
-func (c *BoxController) buildHeap(id uint) error {
+func (c *BoxController) BuildHeap(id uint) error {
 
-	// Reset heapCache
-	heapCache[id] = models.NewQuestionHeap()
+	// Create new heap
+	heap := models.NewQuestionHeap()
 
 	// Get capacity
 
@@ -237,8 +246,6 @@ func (c *BoxController) buildHeap(id uint) error {
 	if capacity < 0 {
 		capacity = 0
 	}
-
-	fmt.Println(id, capacity)
 
 	// Get due questions
 
@@ -265,7 +272,7 @@ func (c *BoxController) buildHeap(id uint) error {
 		}
 
 		if capacity > 0 {
-			heapCache[id].Add(newQuestion)
+			heap.Add(newQuestion)
 			capacity--
 		} else { // Early break
 			return nil
@@ -278,13 +285,18 @@ func (c *BoxController) buildHeap(id uint) error {
 		return err
 	}
 
+	// Overwrite old heap
+	c.Lock()
+	c.heapCache[id] = heap
+	c.Unlock()
+
 	return nil
 }
 
-func (c *BoxController) buildHeaps() error {
+func (c *BoxController) BuildHeaps() error {
 
-	// Reset heapCache
-	heapCache = make(map[uint]*models.QuestionHeap, 0)
+	// Create new heap cache
+	newHeapCache := make(map[uint]*models.QuestionHeap)
 
 	// Get all capacities
 	capacities := make(map[uint]uint, 0)
@@ -320,8 +332,6 @@ func (c *BoxController) buildHeaps() error {
 		return err
 	}
 
-	fmt.Println("All capacities", capacities)
-
 	// Get all due questions
 	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
 	// else: Questions are due which were answered today
@@ -345,12 +355,10 @@ func (c *BoxController) buildHeaps() error {
 			return err
 		}
 
-		fmt.Println(newQuestion)
-
-		heap, ok := heapCache[newQuestion.BoxID]
+		heap, ok := newHeapCache[newQuestion.BoxID]
 		if !ok {
 			heap = models.NewQuestionHeap()
-			heapCache[newQuestion.BoxID] = heap
+			newHeapCache[newQuestion.BoxID] = heap
 		}
 
 		cap, ok := capacities[newQuestion.BoxID]
@@ -371,7 +379,9 @@ func (c *BoxController) buildHeaps() error {
 		return err
 	}
 
-	fmt.Println("Heap cache", heapCache)
+	c.Lock()
+	c.heapCache = newHeapCache
+	c.Unlock()
 
 	return nil
 

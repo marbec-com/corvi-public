@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"log"
 	"marb.ec/maf/events"
 	"marb.ec/maf/interfaces"
+	"os"
 )
 
 type MockSubscriber struct {
@@ -22,4 +24,28 @@ func NewMockSubscriber(topics []string) *MockSubscriber {
 
 func (s *MockSubscriber) Notify(t interfaces.Topic, p interfaces.Publisher) {
 	s.Notifications[t.Topic()]++
+}
+
+func setupTestDBController(path string) *DBController {
+	c, err := NewDBController(path)
+	if err != nil {
+		log.Fatal("Error in Setup", err)
+		return nil
+	}
+	return c
+}
+
+func tearDownTestDBController(db *DBController) {
+	// Close database connection
+	err := db.Close()
+	if err != nil {
+		log.Fatal("Error in Teardown", err)
+		return
+	}
+	// Remove file
+	err = os.Remove(db.databasePath)
+	if err != nil {
+		log.Fatal("Error in Teardown", err)
+		return
+	}
 }

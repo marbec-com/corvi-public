@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"marb.ec/corvi-backend/models"
@@ -13,8 +14,6 @@ var BoxControllerSingleton *BoxController
 func BoxCtrl() *BoxController {
 	return BoxControllerSingleton
 }
-
-// TODO(mjb): Introduce mutex for heapCache
 
 type BoxController struct {
 	db        *DBController
@@ -53,51 +52,21 @@ func (c *BoxController) createTables() error {
 }
 
 func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
-
-	// Select all boxes
-	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta;"
-	rows, err := c.db.Connection().Query(sql)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	// Create empty result set
-	result := make([]*models.Box, 0)
-
-	for rows.Next() {
-		// Create new Box object
-		newBox := models.NewBox()
-		// Populate
-		err = rows.Scan(&newBox.ID, &newBox.Name, &newBox.Description, &newBox.CategoryID, &newBox.QuestionsTotal, &newBox.QuestionsLearned, &newBox.CreatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		// Questions To Learn from Heap
-		heap, ok := c.heapCache[newBox.ID]
-		if ok {
-			newBox.QuestionsToLearn = uint(heap.Length())
-		}
-
-		// Append to result set
-		result = append(result, newBox)
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return result, nil
-
+	return c.LoadBoxesOfCategory(0)
 }
 
 func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
 
-	// Select all boxes
-	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE CategoryID = ?;"
-	rows, err := c.db.Connection().Query(sql, id)
+	// Select all boxes of category
+	var rows *sql.Rows
+	var err error
+	if id == 0 {
+		sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta;"
+		rows, err = c.db.Connection().Query(sql)
+	} else {
+		sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE CategoryID = ?;"
+		rows, err = c.db.Connection().Query(sql, id)
+	}
 	if err != nil {
 		return nil, err
 	}

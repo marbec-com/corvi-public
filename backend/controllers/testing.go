@@ -26,6 +26,14 @@ func (s *MockSubscriber) Notify(t interfaces.Topic, p interfaces.Publisher) {
 	s.Notifications[t.Topic()]++
 }
 
+func (s *MockSubscriber) Assert(topic string, count uint) bool {
+	c, ok := s.Notifications[topic]
+	if !ok {
+		return false
+	}
+	return c == count
+}
+
 func setupTestDBController(path string) *DBController {
 	c, err := NewDBController(path)
 	if err != nil {

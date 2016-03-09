@@ -49,3 +49,15 @@ func (h *QuestionHeap) Peek() *Question {
 
 	return h.questions[0]
 }
+
+func (h *QuestionHeap) Equal(a *QuestionHeap) bool {
+	if len(h.questions) != len(a.questions) {
+		return false
+	}
+	for i := 0; i < len(h.questions); i++ {
+		if !h.questions[i].Equal(a.questions[i]) {
+			return false
+		}
+	}
+	return true
+}

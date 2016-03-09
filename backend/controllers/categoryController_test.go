@@ -18,7 +18,7 @@ func setupTestCategoryController(path string) *CategoryController {
 	return c
 }
 
-func insertCategoryTestData(db *DBController) (*models.Category, *models.Category) {
+func insertCategoryTestData(catCtrl *CategoryController) (*models.Category, *models.Category) {
 	now := time.Now()
 	catA := models.NewCategory()
 	catA.ID = 1
@@ -31,11 +31,12 @@ func insertCategoryTestData(db *DBController) (*models.Category, *models.Categor
 
 	// SQL INSERT two categories
 	sqlStmt := "INSERT INTO Category (ID, Name, CreatedAt) VALUES (?,?,?), (?,?,?);"
-	_, err := db.Connection().Exec(sqlStmt, catA.ID, catA.Name, catA.CreatedAt, catB.ID, catB.Name, catB.CreatedAt)
+	_, err := catCtrl.db.Connection().Exec(sqlStmt, catA.ID, catA.Name, catA.CreatedAt, catB.ID, catB.Name, catB.CreatedAt)
 	if err != nil {
 		log.Fatal("Could not insert test data", err)
 		return nil, nil
 	}
+
 	return catA, catB
 }
 
@@ -74,7 +75,7 @@ func TestCategoryCtrlLoadCategories(t *testing.T) {
 	// Setup & Teardown
 	controller := setupTestCategoryController("test_categoryController.db")
 	defer tearDownTestDBController(controller.db)
-	catA, catB := insertCategoryTestData(controller.db)
+	catA, catB := insertCategoryTestData(controller)
 
 	// Load and compare
 	categories, err := controller.LoadCategories()
@@ -88,21 +89,10 @@ func TestCategoryCtrlLoadCategories(t *testing.T) {
 		t.Log("Returned array does not have length of 2:", len(categories))
 		t.Fail()
 	}
-	for _, c := range categories {
-		if c.ID == catA.ID {
-			if c.Name != catA.Name || !c.CreatedAt.Equal(catA.CreatedAt) {
-				t.Log("First inserted category does not equal result", catA, c)
-				t.Fail()
-			}
-		} else if c.ID == catB.ID {
-			if c.Name != catB.Name || !c.CreatedAt.Equal(catB.CreatedAt) {
-				t.Log("First inserted category does not equal result", catB, c)
-				t.Fail()
-			}
-		} else {
-			t.Log("Unexpected object", c)
-			t.Fail()
-		}
+
+	if !((categories[0].Equal(catA) && categories[1].Equal(catB)) || categories[0].Equal(catB) && categories[1].Equal(catA)) {
+		t.Log("Returned categories do not match", categories, catA, catB)
+		t.Fail()
 	}
 
 }
@@ -112,7 +102,7 @@ func TestCategoryCtrlLoadCategory(t *testing.T) {
 	// Setup & Teardown
 	controller := setupTestCategoryController("test_categoryController.db")
 	defer tearDownTestDBController(controller.db)
-	_, catB := insertCategoryTestData(controller.db)
+	_, catB := insertCategoryTestData(controller)
 
 	// Get second
 	cat, err := controller.LoadCategory(catB.ID)
@@ -122,8 +112,9 @@ func TestCategoryCtrlLoadCategory(t *testing.T) {
 	}
 
 	// Compare
-	if cat == nil || cat.ID != catB.ID || cat.Name != catB.Name || !cat.CreatedAt.Equal(catB.CreatedAt) {
+	if cat == nil || !cat.Equal(catB) {
 		t.Log("Second inserted category does not equal result", catB, cat)
+		t.Fail()
 	}
 
 }
@@ -133,16 +124,15 @@ func TestCategoryCtrlUpdateCategory(t *testing.T) {
 	// Setup & Teardown
 	controller := setupTestCategoryController("test_categoryController.db")
 	defer tearDownTestDBController(controller.db)
-	_, catB := insertCategoryTestData(controller.db)
+	_, catB := insertCategoryTestData(controller)
 	sub := NewMockSubscriber([]string{fmt.Sprintf("category-%d", catB.ID)})
 
-	newCat := models.NewCategory()
-	newCat.ID = catB.ID
-	newCat.Name = "NewName"
-	newCat.CreatedAt = time.Now()
+	// Manipulate catB
+	catB.Name = "NewName"
+	catB.CreatedAt = time.Now()
 
 	// Update
-	err := controller.UpdateCategory(catB.ID, newCat)
+	err := controller.UpdateCategory(catB.ID, catB)
 	if err != nil {
 		t.Log("UpdateCategory returned an error", err)
 		t.Fail()
@@ -156,12 +146,13 @@ func TestCategoryCtrlUpdateCategory(t *testing.T) {
 	}
 
 	// Compare
-	if cat == nil || cat.ID != newCat.ID || cat.Name != newCat.Name || !cat.CreatedAt.Equal(newCat.CreatedAt) {
-		t.Log("Retrieved category does not equal update", cat, newCat)
+	if cat == nil || !cat.Equal(catB) {
+		t.Log("Retrieved category does not equal update", cat, catB)
+		t.Fail()
 	}
 
 	// Notifications
-	if c, ok := sub.Notifications[fmt.Sprintf("category-%d", catB.ID)]; !ok || c != 1 {
+	if !sub.Assert(fmt.Sprintf("category-%d", catB.ID), 1) {
 		t.Log("Update notification was not sent.")
 		t.Fail()
 	}
@@ -180,36 +171,37 @@ func TestCategoryCtrlAddCategory(t *testing.T) {
 	cat.Name = "CategoryC"
 	cat.CreatedAt = time.Now()
 
-	insertedCat, err := controller.AddCategory(cat)
+	cat, err := controller.AddCategory(cat)
 	if err != nil {
 		t.Log("AddCategory returned an error", err)
 		t.Fail()
 	}
 
 	// Check ID
-	if insertedCat.ID == 0 {
-		t.Log("ID field of inserted category was not updated", insertedCat.ID)
+	if cat.ID <= 0 {
+		t.Log("ID field of inserted category was not updated", cat.ID)
 		t.Fail()
 	}
 
 	// Load
-	retrievedCat, err := controller.LoadCategory(insertedCat.ID)
+	retrievedCat, err := controller.LoadCategory(cat.ID)
 	if err != nil {
 		t.Log("LoadCategory returned an error", err)
 		t.Fail()
 	}
 
 	// Compare
-	if retrievedCat == nil || retrievedCat.ID != insertedCat.ID || retrievedCat.Name != cat.Name || !retrievedCat.CreatedAt.Equal(cat.CreatedAt) {
-		t.Log("Retrieved category does not equal inserted", retrievedCat, insertedCat)
+	if retrievedCat == nil || !retrievedCat.Equal(cat) {
+		t.Log("Retrieved category does not equal inserted", retrievedCat, cat)
+		t.Fail()
 	}
 
 	// Notifications
-	if c, ok := sub.Notifications["categories"]; !ok || c != 1 {
+	if !sub.Assert("categories", 1) {
 		t.Log("Insert notification categories was not sent.")
 		t.Fail()
 	}
-	if c, ok := sub.Notifications["stats"]; !ok || c != 1 {
+	if !sub.Assert("stats", 1) {
 		t.Log("Insert notification stats was not sent.")
 		t.Fail()
 	}
@@ -221,7 +213,7 @@ func TestCategoryCtrlDeleteCategory(t *testing.T) {
 	// Setup & Teardown
 	controller := setupTestCategoryController("test_categoryController.db")
 	defer tearDownTestDBController(controller.db)
-	_, catB := insertCategoryTestData(controller.db)
+	_, catB := insertCategoryTestData(controller)
 	sub := NewMockSubscriber([]string{"categories", "stats"})
 
 	// Delete
@@ -232,18 +224,18 @@ func TestCategoryCtrlDeleteCategory(t *testing.T) {
 	}
 
 	// Check if non deleted category is still there
-	retrievedCat, _ := controller.LoadCategory(catB.ID)
-	if retrievedCat != nil {
+	retrievedCat, err := controller.LoadCategory(catB.ID)
+	if retrievedCat != nil || err == nil {
 		t.Log("Category was not deleted", retrievedCat)
 		t.Fail()
 	}
 
 	// Notifications
-	if c, ok := sub.Notifications["categories"]; !ok || c != 1 {
+	if !sub.Assert("categories", 1) {
 		t.Log("Delete notification categories was not sent.")
 		t.Fail()
 	}
-	if c, ok := sub.Notifications["stats"]; !ok || c != 1 {
+	if !sub.Assert("stats", 1) {
 		t.Log("Delete notification stats was not sent.")
 		t.Fail()
 	}

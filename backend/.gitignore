@@ -18,6 +18,7 @@ dist
 _cgo_defun.c
 _cgo_gotypes.go
 _cgo_export.*
+*.out
 
 _testmain.go
 
@@ -26,3 +27,4 @@ _testmain.go
 *.prof
 corvi-backend
 settings.yml
+data.db

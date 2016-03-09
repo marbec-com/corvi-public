@@ -14,7 +14,7 @@ type CategoriesView struct{}
 
 func (v *CategoriesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	controller := controllers.CategoryControllerInstance()
+	controller := controllers.CategoryCtrl()
 	categories, err := controller.LoadCategories()
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (v *CategoryView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	}
 
 	// Load category by ID
-	controller := controllers.CategoryControllerInstance()
+	controller := controllers.CategoryCtrl()
 	category, err := controller.LoadCategory(uint(id))
 
 	if err != nil {
@@ -79,8 +79,8 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	}
 
 	// Load boxes by category ID
-	controller := controllers.CategoryControllerInstance()
-	boxes, err := controller.LoadBoxes(uint(id))
+	controller := controllers.BoxCtrl()
+	boxes, err := controller.LoadBoxesOfCategory(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -112,7 +112,7 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.CategoryControllerInstance()
+	controller := controllers.CategoryCtrl()
 
 	// Load existing object to update
 	cat, err := controller.LoadCategory(uint(id))
@@ -153,7 +153,7 @@ func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 		return
 	}
 
-	controller := controllers.CategoryControllerInstance()
+	controller := controllers.CategoryCtrl()
 	cat, err = controller.AddCategory(cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -180,10 +180,13 @@ func (v *CategoryDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.CategoryControllerInstance()
+	controller := controllers.CategoryCtrl()
 	err = controller.DeleteCategory(uint(id))
 
-	if err != nil {
+	if err != nil && err.Error() == "FOREIGN KEY constraint failed" {
+		http.Error(rw, "Cannot delete a category that has still boxes assigned.", http.StatusNotFound)
+		return
+	} else if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
 	}

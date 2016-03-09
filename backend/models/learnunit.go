@@ -5,19 +5,19 @@ import (
 )
 
 type LearnUnit struct {
-	BoxID       uint
 	QuestionID  uint
+	BoxID       uint
 	CreatedAt   time.Time
 	Correct     bool
 	PrevCorrect bool
 }
 
-func NewLearnUnit(qID, boxID uint, c, prev bool) *LearnUnit {
+func NewLearnUnit() *LearnUnit {
 	return &LearnUnit{
-		BoxID:       boxID,
-		QuestionID:  qID,
-		CreatedAt:   time.Now(),
-		Correct:     c,
-		PrevCorrect: prev,
+		CreatedAt: time.Now(),
 	}
+}
+
+func (u *LearnUnit) Equal(a *LearnUnit) bool {
+	return u.QuestionID == a.QuestionID && u.BoxID == a.BoxID && u.CreatedAt.Equal(a.CreatedAt) && u.Correct == a.Correct && u.PrevCorrect == a.PrevCorrect
 }

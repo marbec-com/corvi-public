@@ -1,8 +1,8 @@
 image: herzog31/corvi-build:latest
 
 variables:
-  CGO_ENABLED: "0"
-  GO_EXTLINK_ENABLED: "0"
+  CGO_ENABLED: "1"
+  GO_EXTLINK_ENABLED: "1"
   ELECTRON_VERSION: "0.36.9"
   PRODUCT_NAME: "Corvi"
   APP_BUNDLE_ID: "com.marbec.corvi"
@@ -29,7 +29,7 @@ backend_test:
     - "pwd"
     - "ls -aslh"
     - "go get -t -v -insecure ./..."
-    - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"
+    - "go test -bench=. -benchmem -v -cover ./..."
   tags:
     - linux
 
@@ -119,7 +119,7 @@ build_win:
   only:
     - master
   tags:
-    - linux
+    - windows
 
 build_linux:
   stage: build

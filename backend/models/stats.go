@@ -26,6 +26,7 @@ type Stats struct {
 	WorstBox                  *Box
 	BestQuestion              *Question
 	WorstQuestion             *Question
+	WorstQuestionAnswers      uint // Number of wrong answers
 }
 
 func NewStats() *Stats {

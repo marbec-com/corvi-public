@@ -50,3 +50,7 @@ func (q *Question) CalculateNext() {
 
 	q.Next = newTime
 }
+
+func (q *Question) Equal(a *Question) bool {
+	return q.ID == a.ID && q.Question == a.Question && q.Answer == a.Answer && q.BoxID == a.BoxID && q.Next.Equal(a.Next) && q.CorrectlyAnswered == a.CorrectlyAnswered && q.CreatedAt.Equal(a.CreatedAt)
+}

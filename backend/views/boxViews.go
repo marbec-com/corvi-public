@@ -14,7 +14,7 @@ type BoxesView struct{}
 
 func (v *BoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	controller := controllers.BoxControllerInstance()
+	controller := controllers.BoxCtrl()
 	boxes, err := controller.LoadBoxes()
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (v *BoxView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context
 	}
 
 	// Load box by ID
-	controller := controllers.BoxControllerInstance()
+	controller := controllers.BoxCtrl()
 	box, err := controller.LoadBox(uint(id))
 
 	if err != nil {
@@ -79,8 +79,8 @@ func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ct
 	}
 
 	// Load questions by box ID
-	controller := controllers.BoxControllerInstance()
-	questions, err := controller.LoadQuestions(uint(id))
+	controller := controllers.QuestionCtrl()
+	questions, err := controller.LoadQuestionsOfBox(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -112,7 +112,7 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	}
 
 	// Load box by ID
-	controller := controllers.BoxControllerInstance()
+	controller := controllers.BoxCtrl()
 	question, err := controller.GetQuestionToLearn(uint(id))
 
 	if err != nil {
@@ -150,7 +150,7 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		return
 	}
 
-	controller := controllers.BoxControllerInstance()
+	controller := controllers.BoxCtrl()
 
 	// Load existing object to update
 	box, err := controller.LoadBox(uint(id))
@@ -191,7 +191,7 @@ func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx cont
 		return
 	}
 
-	controller := controllers.BoxControllerInstance()
+	controller := controllers.BoxCtrl()
 	box, err = controller.AddBox(box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -218,7 +218,7 @@ func (v *BoxDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		return
 	}
 
-	controller := controllers.BoxControllerInstance()
+	controller := controllers.BoxCtrl()
 	err = controller.DeleteBox(uint(id))
 
 	if err != nil {

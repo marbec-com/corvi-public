@@ -3,35 +3,65 @@ package main
 import (
 	"log"
 	"marb.ec/corvi-backend/controllers"
+	"marb.ec/corvi-backend/middleware"
 	"marb.ec/corvi-backend/views"
-	//"marb.ec/maf/events"
+	"marb.ec/maf/requests"
 	"marb.ec/maf/router"
 	"marb.ec/maf/wsnotify"
-	"net/http"
-	//"time"
+)
+
+const (
+	databaseFile string = "data.db"
+	settingsFile string = "settings.yml"
+)
+
+var (
+	settingsService controllers.SettingsService
+	databaseService controllers.DatabaseService
 )
 
 func main() {
 
-	// TODO(mjb): Singletons thread safe? especially settings!
 	// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
 
-	r := router.NewTreeRouter()
+	// Init SettingsService
+	settingsFileName := controllers.GenerateUserDataPath(settingsFile)
+	s, err := controllers.NewYAMLSettingsService(settingsFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	settingsService = s
 
-	/* go func() {
-		eh := events.Events()
-		i := 0
-		for _ = range time.Tick(10 * time.Second) {
-			i++
-			if i%2 == 0 {
-				eh.Publish(events.Topic("questions"), nil)
-				log.Println("Publish Questions")
-			} else {
-				eh.Publish(events.Topic("question-1"), nil)
-				log.Println("Publish Question #1")
-			}
-		}
-	}() */
+	// Init DatabaseService
+	dbFile := controllers.GenerateUserDataPath(databaseFile)
+	db, err := controllers.NewSQLiteDBService(dbFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	databaseService = db
+
+	// Init Controller Singletons
+	controllers.InitControllerSingletons(db, s)
+
+	// Build Heap Cache
+	controllers.BoxCtrl().BuildHeaps()
+
+	// Init Router
+	r := router.NewTreeRouter()
+	defineRoutes(r)
+
+	// TODO(mjb): Restrict access to electron (via header field?)
+	webserver := requests.NewRequestHandler(r)
+	webserver.SetNotFoundHandler(&middleware.NotFoundHandler{})
+	webserver.AppendGlobalPreHandler(&middleware.LogHandler{})
+	webserver.PrependGlobalPreHandler(&middleware.PanicRecoveryHandler{})
+
+	// Start Webserver
+	log.Fatal(webserver.ListenAndServe("127.0.0.1:8080"))
+
+}
+
+func defineRoutes(r *router.TreeRouter) {
 
 	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()
@@ -73,13 +103,7 @@ func main() {
 	// Discovery / Cloud Routes
 
 	// Settings Routes
-	r.Add(router.GET, "/api/settings", &views.SettingsView{})
-	r.Add(router.PUT, "/api/settings", &views.SettingsUpdateView{})
-
-	// TODO(mjb): Add Middleware
-	// TODO(mjb): Restrict access to electron (via header field?)
-
-	// Only bind to localhost for electron
-	log.Fatal(http.ListenAndServe("127.0.0.1:8080", r))
+	r.Add(router.GET, "/api/settings", views.NewSettingsView(settingsService))
+	r.Add(router.PUT, "/api/settings", views.NewSettingsUpdateView(settingsService))
 
 }

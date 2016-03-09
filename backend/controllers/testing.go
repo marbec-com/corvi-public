@@ -75,3 +75,72 @@ func tearDownTestDBController(db DatabaseService) {
 		return
 	}
 }
+
+func insertRawCategories(categories []*models.Category, db DatabaseService) {
+
+	for _, c := range categories {
+		sqlStmt := "INSERT INTO Category (Name, CreatedAt) VALUES (?, ?);"
+		res, err := db.Connection().Exec(sqlStmt, c.Name, c.CreatedAt)
+		if err != nil {
+			log.Fatal("Could not insert test data", err)
+		}
+
+		// Update objects ID
+		newID, err := res.LastInsertId()
+		if err != nil {
+			log.Fatal("Could not update IDs of test data", err)
+		}
+		c.ID = uint(newID)
+	}
+
+}
+
+func insertRawBoxes(boxes []*models.Box, db DatabaseService) {
+
+	for _, b := range boxes {
+		sqlStmt := "INSERT INTO Box (Name, Description, CategoryID, CreatedAt) VALUES (?, ?, ?, ?);"
+		res, err := db.Connection().Exec(sqlStmt, b.Name, b.Description, b.CategoryID, b.CreatedAt)
+		if err != nil {
+			log.Fatal("Could not insert test data", err)
+		}
+
+		// Update objects ID
+		newID, err := res.LastInsertId()
+		if err != nil {
+			log.Fatal("Could not update IDs of test data", err)
+		}
+		b.ID = uint(newID)
+	}
+
+}
+
+func insertRawQuestions(questions []*models.Question, db DatabaseService) {
+
+	for _, q := range questions {
+		sqlStmt := "INSERT INTO Question (Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt) VALUES (?, ?, ?, ?, ?, ?);"
+		res, err := db.Connection().Exec(sqlStmt, q.Question, q.Answer, q.BoxID, q.Next, q.CorrectlyAnswered, q.CreatedAt)
+		if err != nil {
+			log.Fatal("Could not insert test data", err)
+		}
+
+		// Update objects ID
+		newID, err := res.LastInsertId()
+		if err != nil {
+			log.Fatal("Could not update IDs of test data", err)
+		}
+		q.ID = uint(newID)
+	}
+
+}
+
+func insertRawLearnUnits(learnUnits []*models.LearnUnit, db DatabaseService) {
+
+	for _, l := range learnUnits {
+		sqlStmt := "INSERT INTO LearnUnit(QuestionID, BoxID, Correct, PrevCorrect, CreatedAt) VALUES (?, ?, ?, ?, ?);"
+		_, err := db.Connection().Exec(sqlStmt, l.QuestionID, l.BoxID, l.Correct, l.PrevCorrect, l.CreatedAt)
+		if err != nil {
+			log.Fatal("Could not insert test data", err)
+		}
+	}
+
+}

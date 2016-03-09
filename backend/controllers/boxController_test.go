@@ -36,9 +36,9 @@ func setupTestBoxController(path string, settings *models.Settings) (*BoxControl
 
 }
 
-func insertBoxTestData(boxCtrl *BoxController, catCtrl *CategoryController) (*models.Box, *models.Box) {
+func insertBoxTestData(db DatabaseService) (*models.Box, *models.Box) {
 
-	catA, catB := insertCategoryTestData(catCtrl)
+	catA, catB := insertCategoryTestData(db)
 
 	now := time.Now()
 	boxA := models.NewBox()
@@ -54,18 +54,13 @@ func insertBoxTestData(boxCtrl *BoxController, catCtrl *CategoryController) (*mo
 	boxB.CategoryID = catB.ID
 	boxB.CreatedAt = now
 
-	// SQL INSERT two boxes
-	sqlStmt := "INSERT INTO Box (ID, Name, Description, CategoryID, CreatedAt) VALUES (?,?,?,?,?), (?,?,?,?,?);"
-	_, err := boxCtrl.db.Connection().Exec(sqlStmt, boxA.ID, boxA.Name, boxA.Description, boxA.CategoryID, boxA.CreatedAt, boxB.ID, boxB.Name, boxB.Description, boxB.CategoryID, boxB.CreatedAt)
-	if err != nil {
-		log.Fatal("Could not insert test data", err)
-	}
+	insertRawBoxes([]*models.Box{boxA, boxB}, db)
 
 	return boxA, boxB
 
 }
 
-func insertBoxTestDataQuestionsForBox(boxID uint, qCtrl *QuestionController) (*models.Question, *models.Question) {
+func insertBoxTestDataQuestionsForBox(boxID uint, db DatabaseService) (*models.Question, *models.Question) {
 
 	questionA := models.NewQuestion()
 	questionA.Question = "QuestionA"
@@ -80,12 +75,7 @@ func insertBoxTestDataQuestionsForBox(boxID uint, qCtrl *QuestionController) (*m
 	questionB.CreatedAt = time.Now()
 	questionB.CalculateNext()
 
-	// SQL INSERT two questions
-	sqlStmt := "INSERT INTO Question (Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt) VALUES (?,?,?,?,?,?), (?,?,?,?,?,?);"
-	_, err := qCtrl.db.Connection().Exec(sqlStmt, questionA.Question, questionA.Answer, questionA.BoxID, questionA.Next, questionA.CorrectlyAnswered, questionA.CreatedAt, questionB.Question, questionB.Answer, questionB.BoxID, questionB.Next, questionB.CorrectlyAnswered, questionB.CreatedAt)
-	if err != nil {
-		log.Fatal("Could not insert test data", err)
-	}
+	insertRawQuestions([]*models.Question{questionA, questionB}, db)
 
 	return questionA, questionB
 
@@ -124,9 +114,9 @@ func TestBoxCtrlCreateTables(t *testing.T) {
 func TestBoxCtrlLoadBoxes(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
-	boxA, boxB := insertBoxTestData(controller, catCtrl)
+	boxA, boxB := insertBoxTestData(controller.db)
 
 	// Create Heap for single Box
 	heap := models.NewQuestionHeap()
@@ -160,9 +150,9 @@ func TestBoxCtrlLoadBoxes(t *testing.T) {
 func TestBoxCtrlLoadBoxesOfCategory(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
-	_, boxB := insertBoxTestData(controller, catCtrl)
+	_, boxB := insertBoxTestData(controller.db)
 
 	// Load Boxes
 	boxes, err := controller.LoadBoxesOfCategory(boxB.CategoryID)
@@ -181,9 +171,9 @@ func TestBoxCtrlLoadBoxesOfCategory(t *testing.T) {
 func TestBoxCtrlLoadBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
-	_, boxB := insertBoxTestData(controller, catCtrl)
+	_, boxB := insertBoxTestData(controller.db)
 
 	// Get second
 	box, err := controller.LoadBox(boxB.ID)
@@ -203,9 +193,9 @@ func TestBoxCtrlLoadBox(t *testing.T) {
 func TestBoxCtrlUpdateBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
-	boxA, boxB := insertBoxTestData(controller, catCtrl)
+	boxA, boxB := insertBoxTestData(controller.db)
 	sub := NewMockSubscriber([]string{fmt.Sprintf("box-%d", boxB.ID)})
 
 	// Manipulate boxB
@@ -245,9 +235,9 @@ func TestBoxCtrlUpdateBox(t *testing.T) {
 func TestBoxCtrlAddBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
-	boxA, _ := insertBoxTestData(controller, catCtrl)
+	boxA, _ := insertBoxTestData(controller.db)
 	sub := NewMockSubscriber([]string{"boxes", "stats"})
 
 	// Create boxC
@@ -298,12 +288,12 @@ func TestBoxCtrlAddBox(t *testing.T) {
 func TestBoxCtrlDeleteBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, qCtrl := setupTestBoxController("test_boxController.db", nil)
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
-	_, boxB := insertBoxTestData(controller, catCtrl)
+	_, boxB := insertBoxTestData(controller.db)
 
 	// Insert Questions to BoxB
-	insertBoxTestDataQuestionsForBox(boxB.ID, qCtrl)
+	insertBoxTestDataQuestionsForBox(boxB.ID, controller.db)
 
 	// Notifications (after Question generation)
 	sub := NewMockSubscriber([]string{"boxes", "stats", "questions"})
@@ -424,7 +414,7 @@ func TestBoxReAddQuestionFromHeap(t *testing.T) {
 	resultHeap.Add(qB)
 	resultHeap.Add(qA)
 
-	// Create BoxController and HeapCache
+	// Create heapCache and assign to BoxController
 	heapCache := make(map[uint]*models.QuestionHeap, 1)
 	heapCache[qA.BoxID] = testHeap
 	controller.heapCache = heapCache
@@ -447,14 +437,307 @@ func TestBoxReAddQuestionFromHeap(t *testing.T) {
 
 func TestBoxGetQuestionToLearn(t *testing.T) {
 
-	// Test that we get top question and top question is not removed
+	// Setup & Teardown
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
+	defer tearDownTestDBController(controller.db)
 
-	// We do not call build heap here
+	// Create questions
+	qA := models.NewQuestion()
+	qA.ID = 16
+	qA.BoxID = 12
+	qB := models.NewQuestion()
+	qB.ID = 12
+	qB.BoxID = 12
+
+	// Create heap
+	testHeap := models.NewQuestionHeap()
+	testHeap.Add(qA)
+	testHeap.Add(qB)
+
+	resultHeap := models.NewQuestionHeap()
+	resultHeap.Add(qA)
+	resultHeap.Add(qB)
+
+	// Create heapCache and assign to BoxController
+	heapCache := make(map[uint]*models.QuestionHeap, 1)
+	heapCache[qA.BoxID] = testHeap
+	controller.heapCache = heapCache
+
+	// Get top question
+	retrievedQuestion, err := controller.GetQuestionToLearn(qA.BoxID)
+	if err != nil {
+		t.Log("GetQuestionToLearn returned an error", err)
+		t.Fail()
+	}
+
+	// Test that we got top question
+	if !retrievedQuestion.Equal(qA) {
+		t.Log("Retrieved question is not top question in heap", retrievedQuestion, testHeap)
+		t.Fail()
+	}
+
+	// Test that question was not removed from heap
+	if !testHeap.Equal(resultHeap) {
+		t.Log("Heap was modified", testHeap, resultHeap)
+		t.Fail()
+	}
 
 }
 
 func TestBoxBuildHeap(t *testing.T) {
+
+	// Setup & Teardown
+	settings := models.NewSettings()
+	settings.MaxDailyQuestionsPerBox = 3
+	settings.RelearnUntilAccomplished = false
+	controller, _, _ := setupTestBoxController("test_boxController.db", settings)
+	defer tearDownTestDBController(controller.db)
+	_, boxB := insertBoxTestData(controller.db)
+
+	// Create questions
+	qA := models.NewQuestion()
+	qA.BoxID = boxB.ID
+	qA.Next = time.Now().AddDate(0, 0, -1)
+	qB := models.NewQuestion()
+	qB.BoxID = boxB.ID
+	qB.Next = time.Now().AddDate(0, 0, -2)
+	qC := models.NewQuestion()
+	qC.BoxID = boxB.ID
+	insertRawQuestions([]*models.Question{qA, qB, qC}, controller.db)
+
+	// Create LearnUnits
+	lA := models.NewLearnUnit()
+	lA.QuestionID = qC.ID
+	lA.BoxID = qC.BoxID
+	lA.Correct = true
+	lA.PrevCorrect = false
+	lB := models.NewLearnUnit()
+	lB.QuestionID = qC.ID
+	lB.BoxID = qC.BoxID
+	lB.Correct = false
+	lB.PrevCorrect = false
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+
+	// Build Heap
+	err := controller.BuildHeap(boxB.ID)
+	if err != nil {
+		t.Log("buildHeap returned an error", err)
+		t.Fail()
+	}
+
+	// Compare if new heap in heapCache = expected heap
+	expectedHeap := models.NewQuestionHeap()
+	expectedHeap.Add(qB)
+
+	// Get result heap
+	resultHeap, ok := controller.heapCache[boxB.ID]
+	if !ok {
+		t.Log("No heap was created", controller.heapCache)
+		t.Fail()
+	}
+
+	// Compare
+	if !expectedHeap.Equal(resultHeap) {
+		t.Log("Result heap differs from expected heap", expectedHeap, resultHeap)
+		t.Fail()
+	}
+
+}
+
+func TestBoxBuildHeapRelearn(t *testing.T) {
+
+	// Setup & Teardown
+	settings := models.NewSettings()
+	settings.MaxDailyQuestionsPerBox = 3
+	settings.RelearnUntilAccomplished = true
+	controller, _, _ := setupTestBoxController("test_boxController.db", settings)
+	defer tearDownTestDBController(controller.db)
+	_, boxB := insertBoxTestData(controller.db)
+
+	// Create questions
+	qA := models.NewQuestion()
+	qA.BoxID = boxB.ID
+	qA.Next = time.Now().AddDate(0, 0, -1)
+	qB := models.NewQuestion()
+	qB.BoxID = boxB.ID
+	qB.Next = time.Now().AddDate(0, 0, -2)
+	qC := models.NewQuestion()
+	qC.BoxID = boxB.ID
+	qD := models.NewQuestion()
+	qD.BoxID = boxB.ID
+	qD.Next = time.Now().AddDate(0, 0, -3)
+	insertRawQuestions([]*models.Question{qA, qB, qC, qD}, controller.db)
+
+	// Create LearnUnits
+	lA := models.NewLearnUnit()
+	lA.QuestionID = qC.ID
+	lA.BoxID = qC.BoxID
+	lA.Correct = true
+	lA.PrevCorrect = false
+	lB := models.NewLearnUnit()
+	lB.QuestionID = qC.ID
+	lB.BoxID = qC.BoxID
+	lB.Correct = false
+	lB.PrevCorrect = false
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+
+	// Build Heap
+	err := controller.BuildHeap(boxB.ID)
+	if err != nil {
+		t.Log("buildHeap returned an error", err)
+		t.Fail()
+	}
+
+	// Compare if new heap in heapCache = expected heap
+	expectedHeap := models.NewQuestionHeap()
+	expectedHeap.Add(qD)
+	expectedHeap.Add(qB)
+
+	// Get result heap
+	resultHeap, ok := controller.heapCache[boxB.ID]
+	if !ok {
+		t.Log("No heap was created", controller.heapCache)
+		t.Fail()
+	}
+
+	// Compare
+	if !expectedHeap.Equal(resultHeap) {
+		t.Log("Result heap differs from expected heap", expectedHeap, resultHeap)
+		t.Fail()
+	}
+
 }
 
 func TestBoxBuildHeaps(t *testing.T) {
+
+	// Setup & Teardown
+	settings := models.NewSettings()
+	settings.MaxDailyQuestionsPerBox = 3
+	settings.RelearnUntilAccomplished = false
+	controller, _, _ := setupTestBoxController("test_boxController.db", settings)
+	defer tearDownTestDBController(controller.db)
+	boxA, boxB := insertBoxTestData(controller.db)
+
+	// Create questions
+	qA := models.NewQuestion()
+	qA.BoxID = boxB.ID
+	qA.Next = time.Now().AddDate(0, 0, -1)
+	qB := models.NewQuestion()
+	qB.BoxID = boxB.ID
+	qB.Next = time.Now().AddDate(0, 0, -2)
+	qC := models.NewQuestion()
+	qC.BoxID = boxB.ID
+	insertRawQuestions([]*models.Question{qA, qB, qC}, controller.db)
+
+	// Create LearnUnits
+	lA := models.NewLearnUnit()
+	lA.QuestionID = qC.ID
+	lA.BoxID = qC.BoxID
+	lA.Correct = true
+	lA.PrevCorrect = false
+	lB := models.NewLearnUnit()
+	lB.QuestionID = qC.ID
+	lB.BoxID = qC.BoxID
+	lB.Correct = false
+	lB.PrevCorrect = false
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+
+	// Build Heap
+	err := controller.BuildHeaps()
+	if err != nil {
+		t.Log("buildHeap returned an error", err)
+		t.Fail()
+	}
+
+	// Compare if new heap in heapCache = expected heap
+	expectedHeap := models.NewQuestionHeap()
+	expectedHeap.Add(qB)
+
+	// Get result heaps
+	resultHeapB, ok := controller.heapCache[boxB.ID]
+	if !ok {
+		t.Log("No heapB was created", controller.heapCache)
+		t.Fail()
+	}
+	_, ok = controller.heapCache[boxA.ID]
+	if ok {
+		t.Log("Heap for BoxA with no questions was created", controller.heapCache)
+		t.Fail()
+	}
+
+	// Compare
+	if !expectedHeap.Equal(resultHeapB) {
+		t.Log("Result heap B differs from expected heap", expectedHeap, resultHeapB)
+		t.Fail()
+	}
+
+}
+
+func TestBoxBuildHeapsRelearn(t *testing.T) {
+
+	// Setup & Teardown
+	settings := models.NewSettings()
+	settings.MaxDailyQuestionsPerBox = 3
+	settings.RelearnUntilAccomplished = true
+	controller, _, _ := setupTestBoxController("test_boxController.db", settings)
+	defer tearDownTestDBController(controller.db)
+	boxA, boxB := insertBoxTestData(controller.db)
+
+	// Create questions
+	qA := models.NewQuestion()
+	qA.BoxID = boxB.ID
+	qA.Next = time.Now().AddDate(0, 0, -1)
+	qB := models.NewQuestion()
+	qB.BoxID = boxB.ID
+	qB.Next = time.Now().AddDate(0, 0, -2)
+	qC := models.NewQuestion()
+	qC.BoxID = boxB.ID
+	qD := models.NewQuestion()
+	qD.BoxID = boxB.ID
+	qD.Next = time.Now().AddDate(0, 0, -3)
+	insertRawQuestions([]*models.Question{qA, qB, qC, qD}, controller.db)
+
+	// Create LearnUnits
+	lA := models.NewLearnUnit()
+	lA.QuestionID = qC.ID
+	lA.BoxID = qC.BoxID
+	lA.Correct = true
+	lA.PrevCorrect = false
+	lB := models.NewLearnUnit()
+	lB.QuestionID = qC.ID
+	lB.BoxID = qC.BoxID
+	lB.Correct = false
+	lB.PrevCorrect = false
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+
+	// Build Heap
+	err := controller.BuildHeaps()
+	if err != nil {
+		t.Log("buildHeap returned an error", err)
+		t.Fail()
+	}
+
+	// Compare if new heap in heapCache = expected heap
+	expectedHeap := models.NewQuestionHeap()
+	expectedHeap.Add(qD)
+	expectedHeap.Add(qB)
+
+	// Get result heaps
+	resultHeapB, ok := controller.heapCache[boxB.ID]
+	if !ok {
+		t.Log("No heapB was created", controller.heapCache)
+		t.Fail()
+	}
+	_, ok = controller.heapCache[boxA.ID]
+	if ok {
+		t.Log("Heap for BoxA with no questions was created", controller.heapCache)
+		t.Fail()
+	}
+
+	// Compare
+	if !expectedHeap.Equal(resultHeapB) {
+		t.Log("Result heap differs from expected heap", expectedHeap, resultHeapB)
+		t.Fail()
+	}
+
 }

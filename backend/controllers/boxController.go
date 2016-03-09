@@ -220,11 +220,34 @@ func (c *BoxController) BuildHeap(id uint) error {
 
 	// Get due questions
 
-	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
-	// else: Questions are due which were answered today
-	sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND BoxID = ? AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND BoxID = ?) ORDER BY Next DESC LIMIT ?;"
+	// If RelearnUntilAccomplished is true: Questions are due which were not correctly answered today
+	// else: Questions are due which were not answered today
+	sql = `SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt 
+			 FROM Question 
+			WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') 
+			  AND BoxID = ? 
+			  AND ID NOT IN (
+				  SELECT QuestionID 
+				    FROM LearnUnit 
+				   WHERE date(CreatedAt) = date('now') 
+				     AND BoxID = ?
+			      ) 
+		 ORDER BY Next ASC 
+		    LIMIT ?;`
 	if c.settings.Get().RelearnUntilAccomplished {
-		sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND BoxID = ? AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 AND BoxID = ?) ORDER BY Next DESC LIMIT ?;"
+		sql = `	SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt 
+				  FROM Question 
+				 WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') 
+				   AND BoxID = ? 
+				   AND ID NOT IN (
+					   SELECT QuestionID 
+			             FROM LearnUnit 
+			            WHERE date(CreatedAt) = date('now') 
+			              AND Correct = 1 
+						  AND BoxID = ?
+		               ) 
+		      ORDER BY Next ASC 
+			     LIMIT ?;`
 	}
 
 	qRows, err := c.db.Connection().Query(sql, id, id, capacity)
@@ -306,9 +329,26 @@ func (c *BoxController) BuildHeaps() error {
 	// Get all due questions
 	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
 	// else: Questions are due which were answered today
-	sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now'));"
+	sql = `	SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt 
+			  FROM Question 
+			 WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') 
+			   AND ID NOT IN (
+				   SELECT QuestionID 
+				     FROM LearnUnit 
+					WHERE date(CreatedAt) = date('now')
+				   )
+		  ORDER BY Next ASC;`
 	if c.settings.Get().RelearnUntilAccomplished {
-		sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1);"
+		sql = `SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt 
+				 FROM Question 
+				WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') 
+				  AND ID NOT IN (
+					  SELECT QuestionID 
+					    FROM LearnUnit 
+					   WHERE date(CreatedAt) = date('now') 
+					     AND Correct = 1
+					  )
+			 ORDER BY Next ASC;`
 	}
 
 	qRows, err := c.db.Connection().Query(sql)

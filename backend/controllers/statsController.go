@@ -15,12 +15,14 @@ func StatsCtrl() *StatsController {
 }
 
 type StatsController struct {
-	db *DBController
+	db       DatabaseService
+	settings SettingsService
 }
 
-func NewStatsController(db *DBController) *StatsController {
+func NewStatsController(db DatabaseService, settings SettingsService) *StatsController {
 	c := &StatsController{
-		db: db,
+		db:       db,
+		settings: settings,
 	}
 	return c
 }

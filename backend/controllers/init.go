@@ -8,29 +8,27 @@ import (
 	"time"
 )
 
-func InitControllerSingletons(db *DBController) {
-	settingsFileName := GenerateUserDataPath(settingsFile)
-	SettingsControllerSingleton = NewSettingsController(settingsFileName)
+func InitControllerSingletons(db DatabaseService, s SettingsService) {
 
-	b, err := NewBoxController(db)
+	b, err := NewBoxController(db, s)
 	if err != nil {
 		log.Fatal(err)
 	}
 	BoxControllerSingleton = b
 
-	c, err := NewCategoryController(db)
+	c, err := NewCategoryController(db, s)
 	if err != nil {
 		log.Fatal(err)
 	}
 	CategoryControllerSingleton = c
 
-	q, err := NewQuestionController(db)
+	q, err := NewQuestionController(db, s)
 	if err != nil {
 		log.Fatal(err)
 	}
 	QuestionControllerSingleton = q
 
-	StatsControllerSingleton = NewStatsController(db)
+	StatsControllerSingleton = NewStatsController(db, s)
 
 	populateDummyData()
 

@@ -16,14 +16,16 @@ func BoxCtrl() *BoxController {
 }
 
 type BoxController struct {
-	db        *DBController
+	db        DatabaseService
+	settings  SettingsService
 	heapCache map[uint]*models.QuestionHeap
 	sync.Mutex
 }
 
-func NewBoxController(db *DBController) (*BoxController, error) {
+func NewBoxController(db DatabaseService, settings SettingsService) (*BoxController, error) {
 	b := &BoxController{
-		db: db,
+		db:       db,
+		settings: settings,
 	}
 	err := b.createTables()
 	if err != nil {
@@ -201,7 +203,7 @@ func (c *BoxController) BuildHeap(id uint) error {
 	// If RelearnUntilAccomplished: capacity = max - correctly answered questions today
 	// else: capacity = max - answered questions today
 	sql := "SELECT COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND BoxID = ?;"
-	if SettingsCtrl().Get().RelearnUntilAccomplished {
+	if c.settings.Get().RelearnUntilAccomplished {
 		sql = "SELECT COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 AND BoxID = ?;"
 	}
 	row := c.db.Connection().QueryRow(sql, id)
@@ -211,7 +213,7 @@ func (c *BoxController) BuildHeap(id uint) error {
 		return err
 	}
 
-	capacity := int(SettingsCtrl().Get().MaxDailyQuestionsPerBox) - learned
+	capacity := int(c.settings.Get().MaxDailyQuestionsPerBox) - learned
 	if capacity < 0 {
 		capacity = 0
 	}
@@ -221,7 +223,7 @@ func (c *BoxController) BuildHeap(id uint) error {
 	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
 	// else: Questions are due which were answered today
 	sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND BoxID = ? AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND BoxID = ?) ORDER BY Next DESC LIMIT ?;"
-	if SettingsCtrl().Get().RelearnUntilAccomplished {
+	if c.settings.Get().RelearnUntilAccomplished {
 		sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND BoxID = ? AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 AND BoxID = ?) ORDER BY Next DESC LIMIT ?;"
 	}
 
@@ -273,7 +275,7 @@ func (c *BoxController) BuildHeaps() error {
 	// If RelearnUntilAccomplished: capacity = max - correctly answered questions today
 	// else: capacity = max - answered questions today
 	sql := "SELECT BoxID, COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') GROUP BY BoxID;"
-	if SettingsCtrl().Get().RelearnUntilAccomplished {
+	if c.settings.Get().RelearnUntilAccomplished {
 		sql = "SELECT BoxID, COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 GROUP BY BoxID;"
 	}
 	rows, err := c.db.Connection().Query(sql)
@@ -289,7 +291,7 @@ func (c *BoxController) BuildHeaps() error {
 		if err != nil {
 			return err
 		}
-		cap := int(SettingsCtrl().Get().MaxDailyQuestionsPerBox) - count
+		cap := int(c.settings.Get().MaxDailyQuestionsPerBox) - count
 		if cap < 0 {
 			cap = 0
 		}
@@ -305,7 +307,7 @@ func (c *BoxController) BuildHeaps() error {
 	// If RelearnUntilAccomplished: Questions are due which were correctly answered today
 	// else: Questions are due which were answered today
 	sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now'));"
-	if SettingsCtrl().Get().RelearnUntilAccomplished {
+	if c.settings.Get().RelearnUntilAccomplished {
 		sql = "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN(SELECT QuestionID FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1);"
 	}
 
@@ -332,7 +334,7 @@ func (c *BoxController) BuildHeaps() error {
 
 		cap, ok := capacities[newQuestion.BoxID]
 		if !ok {
-			cap = SettingsCtrl().Get().MaxDailyQuestionsPerBox
+			cap = c.settings.Get().MaxDailyQuestionsPerBox
 			capacities[newQuestion.BoxID] = cap
 		}
 

@@ -8,9 +8,11 @@ import (
 	"time"
 )
 
-func setupTestCategoryController(path string) *CategoryController {
+func setupTestCategoryController(path string, settings *models.Settings) *CategoryController {
 	db := setupTestDBController(path)
-	c, err := NewCategoryController(db)
+	s := NewMockSettingsService(settings)
+
+	c, err := NewCategoryController(db, s)
 	if err != nil {
 		log.Fatal("Error in Setup", err)
 		return nil
@@ -73,7 +75,7 @@ func TestCategoryCtrlCreateTables(t *testing.T) {
 func TestCategoryCtrlLoadCategories(t *testing.T) {
 
 	// Setup & Teardown
-	controller := setupTestCategoryController("test_categoryController.db")
+	controller := setupTestCategoryController("test_categoryController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	catA, catB := insertCategoryTestData(controller)
 
@@ -100,7 +102,7 @@ func TestCategoryCtrlLoadCategories(t *testing.T) {
 func TestCategoryCtrlLoadCategory(t *testing.T) {
 
 	// Setup & Teardown
-	controller := setupTestCategoryController("test_categoryController.db")
+	controller := setupTestCategoryController("test_categoryController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	_, catB := insertCategoryTestData(controller)
 
@@ -122,7 +124,7 @@ func TestCategoryCtrlLoadCategory(t *testing.T) {
 func TestCategoryCtrlUpdateCategory(t *testing.T) {
 
 	// Setup & Teardown
-	controller := setupTestCategoryController("test_categoryController.db")
+	controller := setupTestCategoryController("test_categoryController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	_, catB := insertCategoryTestData(controller)
 	sub := NewMockSubscriber([]string{fmt.Sprintf("category-%d", catB.ID)})
@@ -162,7 +164,7 @@ func TestCategoryCtrlUpdateCategory(t *testing.T) {
 func TestCategoryCtrlAddCategory(t *testing.T) {
 
 	// Setup & Teardown
-	controller := setupTestCategoryController("test_categoryController.db")
+	controller := setupTestCategoryController("test_categoryController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	sub := NewMockSubscriber([]string{"categories", "stats"})
 
@@ -211,7 +213,7 @@ func TestCategoryCtrlAddCategory(t *testing.T) {
 func TestCategoryCtrlDeleteCategory(t *testing.T) {
 
 	// Setup & Teardown
-	controller := setupTestCategoryController("test_categoryController.db")
+	controller := setupTestCategoryController("test_categoryController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	_, catB := insertCategoryTestData(controller)
 	sub := NewMockSubscriber([]string{"categories", "stats"})

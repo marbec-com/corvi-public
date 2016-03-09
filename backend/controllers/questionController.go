@@ -14,12 +14,14 @@ func QuestionCtrl() *QuestionController {
 }
 
 type QuestionController struct {
-	db *DBController
+	db       DatabaseService
+	settings SettingsService
 }
 
-func NewQuestionController(db *DBController) (*QuestionController, error) {
+func NewQuestionController(db DatabaseService, settings SettingsService) (*QuestionController, error) {
 	c := &QuestionController{
-		db: db,
+		db:       db,
+		settings: settings,
 	}
 	err := c.createTables()
 	if err != nil {
@@ -222,7 +224,7 @@ func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
 	}
 
 	// If answer was incorrect and RelearnUntilAccomplished is set, readd to heap
-	if SettingsCtrl().Get().RelearnUntilAccomplished && !correct {
+	if c.settings.Get().RelearnUntilAccomplished && !correct {
 		BoxCtrl().reAddQuestionFromHeap(question.BoxID, question.ID)
 	} else { // else remove from heap
 		BoxCtrl().removeQuestionFromHeap(question.BoxID, question.ID)

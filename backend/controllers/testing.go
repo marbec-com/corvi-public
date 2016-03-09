@@ -2,9 +2,9 @@ package controllers
 
 import (
 	"log"
+	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
 	"marb.ec/maf/interfaces"
-	"os"
 )
 
 type MockSubscriber struct {
@@ -34,8 +34,26 @@ func (s *MockSubscriber) Assert(topic string, count uint) bool {
 	return c == count
 }
 
-func setupTestDBController(path string) *DBController {
-	c, err := NewDBController(path)
+type MockSettingsService struct {
+	settings *models.Settings
+}
+
+func NewMockSettingsService(settings *models.Settings) *MockSettingsService {
+	return &MockSettingsService{
+		settings: settings,
+	}
+}
+
+func (s *MockSettingsService) Update() error {
+	return nil
+}
+
+func (s *MockSettingsService) Get() *models.Settings {
+	return s.settings
+}
+
+func setupTestDBController(path string) DatabaseService {
+	c, err := NewSQLiteDBService(path)
 	if err != nil {
 		log.Fatal("Error in Setup", err)
 		return nil
@@ -43,7 +61,7 @@ func setupTestDBController(path string) *DBController {
 	return c
 }
 
-func tearDownTestDBController(db *DBController) {
+func tearDownTestDBController(db DatabaseService) {
 	// Close database connection
 	err := db.Close()
 	if err != nil {
@@ -51,7 +69,7 @@ func tearDownTestDBController(db *DBController) {
 		return
 	}
 	// Remove file
-	err = os.Remove(db.databasePath)
+	err = db.Destroy()
 	if err != nil {
 		log.Fatal("Error in Teardown", err)
 		return

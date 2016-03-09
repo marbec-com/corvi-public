@@ -14,12 +14,14 @@ func CategoryCtrl() *CategoryController {
 }
 
 type CategoryController struct {
-	db *DBController
+	db       DatabaseService
+	settings SettingsService
 }
 
-func NewCategoryController(db *DBController) (*CategoryController, error) {
+func NewCategoryController(db DatabaseService, settings SettingsService) (*CategoryController, error) {
 	c := &CategoryController{
-		db: db,
+		db:       db,
+		settings: settings,
 	}
 	err := c.createTables()
 	if err != nil {

@@ -3,15 +3,23 @@ package controllers
 import (
 	"database/sql"
 	_ "github.com/mattn/go-sqlite3"
+	"os"
 )
 
-type DBController struct {
+type DatabaseService interface {
+	Open() error
+	Connection() *sql.DB
+	Close() error
+	Destroy() error
+}
+
+type SQLiteDBService struct {
 	databasePath string
 	connection   *sql.DB
 }
 
-func NewDBController(path string) (*DBController, error) {
-	c := &DBController{
+func NewSQLiteDBService(path string) (*SQLiteDBService, error) {
+	c := &SQLiteDBService{
 		databasePath: path,
 		connection:   nil,
 	}
@@ -37,7 +45,7 @@ func NewDBController(path string) (*DBController, error) {
 	return c, nil
 }
 
-func (c *DBController) Open() error {
+func (c *SQLiteDBService) Open() error {
 	con, err := sql.Open("sqlite3", c.databasePath)
 	if err != nil {
 		return err
@@ -46,10 +54,14 @@ func (c *DBController) Open() error {
 	return nil
 }
 
-func (c *DBController) Connection() *sql.DB {
+func (c *SQLiteDBService) Connection() *sql.DB {
 	return c.connection
 }
 
-func (c *DBController) Close() error {
+func (c *SQLiteDBService) Close() error {
 	return c.Connection().Close()
+}
+
+func (c *SQLiteDBService) Destroy() error {
+	return os.Remove(c.databasePath)
 }

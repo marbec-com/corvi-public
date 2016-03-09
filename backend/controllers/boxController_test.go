@@ -8,25 +8,26 @@ import (
 	"time"
 )
 
-func setupTestBoxController(path string) (*BoxController, *CategoryController, *QuestionController) {
+func setupTestBoxController(path string, settings *models.Settings) (*BoxController, *CategoryController, *QuestionController) {
 
 	db := setupTestDBController(path)
+	s := NewMockSettingsService(settings)
 
 	// Make sure category tables are created
-	c, err := NewCategoryController(db)
+	c, err := NewCategoryController(db, s)
 	if err != nil {
 		log.Fatal("Error in Setup", err)
 		return nil, nil, nil
 	}
 
 	// Make sure question tables are created
-	q, err := NewQuestionController(db)
+	q, err := NewQuestionController(db, s)
 	if err != nil {
 		log.Fatal("Error in Setup", err)
 		return nil, nil, nil
 	}
 
-	b, err := NewBoxController(db)
+	b, err := NewBoxController(db, s)
 	if err != nil {
 		log.Fatal("Error in Setup", err)
 		return nil, nil, nil
@@ -123,7 +124,7 @@ func TestBoxCtrlCreateTables(t *testing.T) {
 func TestBoxCtrlLoadBoxes(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db")
+	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	boxA, boxB := insertBoxTestData(controller, catCtrl)
 
@@ -159,7 +160,7 @@ func TestBoxCtrlLoadBoxes(t *testing.T) {
 func TestBoxCtrlLoadBoxesOfCategory(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db")
+	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	_, boxB := insertBoxTestData(controller, catCtrl)
 
@@ -180,7 +181,7 @@ func TestBoxCtrlLoadBoxesOfCategory(t *testing.T) {
 func TestBoxCtrlLoadBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db")
+	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	_, boxB := insertBoxTestData(controller, catCtrl)
 
@@ -202,7 +203,7 @@ func TestBoxCtrlLoadBox(t *testing.T) {
 func TestBoxCtrlUpdateBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db")
+	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	boxA, boxB := insertBoxTestData(controller, catCtrl)
 	sub := NewMockSubscriber([]string{fmt.Sprintf("box-%d", boxB.ID)})
@@ -244,7 +245,7 @@ func TestBoxCtrlUpdateBox(t *testing.T) {
 func TestBoxCtrlAddBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, _ := setupTestBoxController("test_boxController.db")
+	controller, catCtrl, _ := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	boxA, _ := insertBoxTestData(controller, catCtrl)
 	sub := NewMockSubscriber([]string{"boxes", "stats"})
@@ -297,7 +298,7 @@ func TestBoxCtrlAddBox(t *testing.T) {
 func TestBoxCtrlDeleteBox(t *testing.T) {
 
 	// Setup & Teardown
-	controller, catCtrl, qCtrl := setupTestBoxController("test_boxController.db")
+	controller, catCtrl, qCtrl := setupTestBoxController("test_boxController.db", nil)
 	defer tearDownTestDBController(controller.db)
 	_, boxB := insertBoxTestData(controller, catCtrl)
 
@@ -349,4 +350,111 @@ func TestBoxCtrlDeleteBox(t *testing.T) {
 		t.Fail()
 	}
 
+}
+
+func TestBoxRemoveQuestionFromHeap(t *testing.T) {
+
+	// Setup & Teardown
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
+	defer tearDownTestDBController(controller.db)
+
+	// Create questions
+	qA := models.NewQuestion()
+	qA.ID = 16
+	qA.BoxID = 12
+	qB := models.NewQuestion()
+	qB.ID = 12
+	qB.BoxID = 12
+	qC := models.NewQuestion()
+	qC.ID = 5
+	qC.BoxID = 12
+
+	// Create heaps
+	testHeap := models.NewQuestionHeap()
+	testHeap.Add(qA)
+	testHeap.Add(qB)
+
+	resultHeap := models.NewQuestionHeap()
+	resultHeap.Add(qB)
+
+	// Create BoxController and HeapCache
+	heapCache := make(map[uint]*models.QuestionHeap, 1)
+	heapCache[qA.BoxID] = testHeap
+	controller.heapCache = heapCache
+
+	// Perform Remove Question
+	err := controller.removeQuestionFromHeap(qA.BoxID, qC.ID)
+	if err != nil {
+		t.Log("removeQuestionFromHeap returned an error", err)
+		t.Fail()
+	}
+	controller.removeQuestionFromHeap(qA.BoxID, qA.ID)
+
+	// Compare
+	if !testHeap.Equal(resultHeap) {
+		t.Log("Resulting heap differs from the expected heap", testHeap, resultHeap)
+		t.Fail()
+	}
+
+}
+
+func TestBoxReAddQuestionFromHeap(t *testing.T) {
+
+	// Setup & Teardown
+	controller, _, _ := setupTestBoxController("test_boxController.db", nil)
+	defer tearDownTestDBController(controller.db)
+
+	// Create questions
+	qA := models.NewQuestion()
+	qA.ID = 16
+	qA.BoxID = 12
+	qB := models.NewQuestion()
+	qB.ID = 12
+	qB.BoxID = 12
+	qC := models.NewQuestion()
+	qC.ID = 5
+	qC.BoxID = 12
+
+	// Create heaps
+	testHeap := models.NewQuestionHeap()
+	testHeap.Add(qA)
+	testHeap.Add(qB)
+
+	resultHeap := models.NewQuestionHeap()
+	resultHeap.Add(qB)
+	resultHeap.Add(qA)
+
+	// Create BoxController and HeapCache
+	heapCache := make(map[uint]*models.QuestionHeap, 1)
+	heapCache[qA.BoxID] = testHeap
+	controller.heapCache = heapCache
+
+	// Perform Remove Question
+	err := controller.reAddQuestionFromHeap(qA.BoxID, qC.ID)
+	if err != nil {
+		t.Log("reAddQuestionFromHeap returned an error", err)
+		t.Fail()
+	}
+	controller.reAddQuestionFromHeap(qA.BoxID, qA.ID)
+
+	// Compare
+	if !testHeap.Equal(resultHeap) {
+		t.Log("Resulting heap differs from the expected heap", testHeap, resultHeap)
+		t.Fail()
+	}
+
+}
+
+func TestBoxGetQuestionToLearn(t *testing.T) {
+
+	// Test that we get top question and top question is not removed
+
+	// We do not call build heap here
+
+}
+
+func TestBoxBuildHeap(t *testing.T) {
+}
+
+func TestBoxBuildHeaps(t *testing.T) {
 }

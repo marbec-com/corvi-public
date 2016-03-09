@@ -12,20 +12,41 @@ import (
 
 const (
 	databaseFile string = "data.db"
+	settingsFile string = "settings.yml"
+)
+
+var (
+	settingsService controllers.SettingsService
+	databaseService controllers.DatabaseService
 )
 
 func main() {
 
 	// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
 
-	dbFile := controllers.GenerateUserDataPath(databaseFile)
-	db, err := controllers.NewDBController(dbFile)
+	// Init SettingsService
+	settingsFileName := controllers.GenerateUserDataPath(settingsFile)
+	s, err := controllers.NewYAMLSettingsService(settingsFileName)
 	if err != nil {
 		log.Fatal(err)
 	}
-	controllers.InitControllerSingletons(db)
+	settingsService = s
+
+	// Init DatabaseService
+	dbFile := controllers.GenerateUserDataPath(databaseFile)
+	db, err := controllers.NewSQLiteDBService(dbFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	databaseService = db
+
+	// Init Controller Singletons
+	controllers.InitControllerSingletons(db, s)
+
+	// Build Heap Cache
 	controllers.BoxCtrl().BuildHeaps()
 
+	// Init Router
 	r := router.NewTreeRouter()
 	defineRoutes(r)
 
@@ -35,7 +56,7 @@ func main() {
 	webserver.AppendGlobalPreHandler(&middleware.LogHandler{})
 	webserver.PrependGlobalPreHandler(&middleware.PanicRecoveryHandler{})
 
-	// Only bind to localhost for electron
+	// Start Webserver
 	log.Fatal(webserver.ListenAndServe("127.0.0.1:8080"))
 
 }
@@ -82,7 +103,7 @@ func defineRoutes(r *router.TreeRouter) {
 	// Discovery / Cloud Routes
 
 	// Settings Routes
-	r.Add(router.GET, "/api/settings", &views.SettingsView{})
-	r.Add(router.PUT, "/api/settings", &views.SettingsUpdateView{})
+	r.Add(router.GET, "/api/settings", views.NewSettingsView(settingsService))
+	r.Add(router.PUT, "/api/settings", views.NewSettingsUpdateView(settingsService))
 
 }

@@ -4,30 +4,24 @@ import (
 	"bytes"
 	"gopkg.in/yaml.v2"
 	"io"
-	"log"
 	"marb.ec/corvi-backend/models"
 	"marb.ec/maf/events"
 	"os"
 	"sync"
 )
 
-const (
-	settingsFile string = "settings.yml"
-)
-
-var SettingsControllerSingleton *SettingsController
-
-func SettingsCtrl() *SettingsController {
-	return SettingsControllerSingleton
+type SettingsService interface {
+	Update() error
+	Get() *models.Settings
 }
 
-type SettingsController struct {
+type YAMLSettingsService struct {
 	settings         *models.Settings
 	settingsFileName string
 	sync.Mutex
 }
 
-func NewSettingsController(settingsFileName string) *SettingsController {
+func NewYAMLSettingsService(settingsFileName string) (*YAMLSettingsService, error) {
 	settingsData := models.NewSettings()
 	settingsFile, err := os.Open(settingsFileName)
 	defer settingsFile.Close()
@@ -36,27 +30,27 @@ func NewSettingsController(settingsFileName string) *SettingsController {
 		// Settings file does not exist, create new one
 		err = createNewSettingsFile(settingsFileName, settingsData)
 		if err != nil {
-			log.Fatalf("Error while creating a new settings file: %v.\n", err)
+			return nil, err
 		}
 
 	} else if err == nil {
 		settingsData, err = loadFromSettingsFile(settingsFile)
 		// TODO(mjb): Reset settings file in case of error
 		if err != nil {
-			log.Fatalf("Error while loading settings file: %v.\n", err)
+			return nil, err
 		}
 	} else {
 		// Unknown error while opening file
-		log.Fatalf("Error while opening settings file: %v.\n", err)
+		return nil, err
 	}
 
-	return &SettingsController{
+	return &YAMLSettingsService{
 		settings:         settingsData,
 		settingsFileName: settingsFileName,
-	}
+	}, nil
 }
 
-func (c *SettingsController) Update() error {
+func (c *YAMLSettingsService) Update() error {
 	c.Lock()
 	defer c.Unlock()
 
@@ -77,7 +71,7 @@ func (c *SettingsController) Update() error {
 
 }
 
-func (c *SettingsController) Get() *models.Settings {
+func (c *YAMLSettingsService) Get() *models.Settings {
 	return c.settings
 }
 

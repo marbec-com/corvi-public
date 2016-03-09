@@ -9,21 +9,35 @@ import (
 	"sync"
 )
 
-var BoxControllerSingleton *BoxController
+type BoxController interface {
+	LoadBoxes() ([]*models.Box, error)
+	LoadBoxesOfCategory(id uint) ([]*models.Box, error)
+	LoadBox(id uint) (*models.Box, error)
+	RemoveQuestionFromHeap(id, qID uint) error
+	ReAddQuestionFromHeap(id, qID uint) error
+	GetQuestionToLearn(id uint) (*models.Question, error)
+	BuildHeap(id uint) error
+	BuildHeaps() error
+	UpdateBox(boxID uint, box *models.Box) error
+	AddBox(box *models.Box) (*models.Box, error)
+	DeleteBox(boxID uint) error
+}
 
-func BoxCtrl() *BoxController {
+var BoxControllerSingleton BoxController
+
+func BoxCtrl() BoxController {
 	return BoxControllerSingleton
 }
 
-type BoxController struct {
+type BoxControllerImpl struct {
 	db        DatabaseService
 	settings  SettingsService
 	heapCache map[uint]*models.QuestionHeap
 	sync.Mutex
 }
 
-func NewBoxController(db DatabaseService, settings SettingsService) (*BoxController, error) {
-	b := &BoxController{
+func NewBoxController(db DatabaseService, settings SettingsService) (*BoxControllerImpl, error) {
+	b := &BoxControllerImpl{
 		db:       db,
 		settings: settings,
 	}
@@ -35,7 +49,7 @@ func NewBoxController(db DatabaseService, settings SettingsService) (*BoxControl
 	return b, nil
 }
 
-func (c *BoxController) createTables() error {
+func (c *BoxControllerImpl) createTables() error {
 
 	// Create table, only if it not already exists
 	// Includes foreign key constraint to Category table. We are not allowed to delete a Category that still has Boxes assigned.
@@ -53,11 +67,11 @@ func (c *BoxController) createTables() error {
 
 }
 
-func (c *BoxController) LoadBoxes() ([]*models.Box, error) {
+func (c *BoxControllerImpl) LoadBoxes() ([]*models.Box, error) {
 	return c.LoadBoxesOfCategory(0)
 }
 
-func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
+func (c *BoxControllerImpl) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
 
 	// Select all boxes of category
 	var rows *sql.Rows
@@ -105,7 +119,7 @@ func (c *BoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
 
 }
 
-func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
+func (c *BoxControllerImpl) LoadBox(id uint) (*models.Box, error) {
 
 	// Select box with matching ID
 	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE ID = ?;"
@@ -130,7 +144,7 @@ func (c *BoxController) LoadBox(id uint) (*models.Box, error) {
 
 }
 
-func (c *BoxController) removeQuestionFromHeap(id, qID uint) error {
+func (c *BoxControllerImpl) RemoveQuestionFromHeap(id, qID uint) error {
 
 	// Get heap from cache
 	c.Lock()
@@ -154,7 +168,7 @@ func (c *BoxController) removeQuestionFromHeap(id, qID uint) error {
 
 }
 
-func (c *BoxController) reAddQuestionFromHeap(id, qID uint) error {
+func (c *BoxControllerImpl) ReAddQuestionFromHeap(id, qID uint) error {
 
 	// Get heap from cache
 	c.Lock()
@@ -178,7 +192,7 @@ func (c *BoxController) reAddQuestionFromHeap(id, qID uint) error {
 
 }
 
-func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
+func (c *BoxControllerImpl) GetQuestionToLearn(id uint) (*models.Question, error) {
 
 	// Get heap from cache
 	c.Lock()
@@ -193,7 +207,7 @@ func (c *BoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
 
 }
 
-func (c *BoxController) BuildHeap(id uint) error {
+func (c *BoxControllerImpl) BuildHeap(id uint) error {
 
 	// Create new heap
 	heap := models.NewQuestionHeap()
@@ -287,7 +301,7 @@ func (c *BoxController) BuildHeap(id uint) error {
 	return nil
 }
 
-func (c *BoxController) BuildHeaps() error {
+func (c *BoxControllerImpl) BuildHeaps() error {
 
 	// Create new heap cache
 	newHeapCache := make(map[uint]*models.QuestionHeap)
@@ -398,7 +412,7 @@ func (c *BoxController) BuildHeaps() error {
 
 }
 
-func (c *BoxController) UpdateBox(boxID uint, box *models.Box) error {
+func (c *BoxControllerImpl) UpdateBox(boxID uint, box *models.Box) error {
 
 	// Begin Transaction
 	tx, err := c.db.Connection().Begin()
@@ -440,7 +454,7 @@ func (c *BoxController) UpdateBox(boxID uint, box *models.Box) error {
 
 }
 
-func (c *BoxController) AddBox(box *models.Box) (*models.Box, error) {
+func (c *BoxControllerImpl) AddBox(box *models.Box) (*models.Box, error) {
 
 	// Begin Transaction
 	tx, err := c.db.Connection().Begin()
@@ -480,7 +494,7 @@ func (c *BoxController) AddBox(box *models.Box) (*models.Box, error) {
 
 }
 
-func (c *BoxController) DeleteBox(boxID uint) error {
+func (c *BoxControllerImpl) DeleteBox(boxID uint) error {
 
 	// Begin Transaction
 	tx, err := c.db.Connection().Begin()

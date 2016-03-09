@@ -17,3 +17,7 @@ func NewLearnUnit() *LearnUnit {
 		CreatedAt: time.Now(),
 	}
 }
+
+func (u *LearnUnit) Equal(a *LearnUnit) bool {
+	return u.QuestionID == a.QuestionID && u.BoxID == a.BoxID && u.CreatedAt.Equal(a.CreatedAt) && u.Correct == a.Correct && u.PrevCorrect == a.PrevCorrect
+}

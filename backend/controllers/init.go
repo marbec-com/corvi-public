@@ -26,6 +26,7 @@ func InitControllerSingletons(db DatabaseService, s SettingsService) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	q.boxCtrl = b
 	QuestionControllerSingleton = q
 
 	StatsControllerSingleton = NewStatsController(db, s)

@@ -16,6 +16,7 @@ func QuestionCtrl() *QuestionController {
 type QuestionController struct {
 	db       DatabaseService
 	settings SettingsService
+	boxCtrl  BoxController
 }
 
 func NewQuestionController(db DatabaseService, settings SettingsService) (*QuestionController, error) {
@@ -214,7 +215,7 @@ func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
 
 	// Return error if no object was updated
 	if rows == 0 {
-		return errors.New("Qeustion to update was not found.")
+		return errors.New("Question to update was not found.")
 	}
 
 	// Commit
@@ -225,9 +226,9 @@ func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
 
 	// If answer was incorrect and RelearnUntilAccomplished is set, readd to heap
 	if c.settings.Get().RelearnUntilAccomplished && !correct {
-		BoxCtrl().reAddQuestionFromHeap(question.BoxID, question.ID)
+		c.boxCtrl.ReAddQuestionFromHeap(question.BoxID, question.ID)
 	} else { // else remove from heap
-		BoxCtrl().removeQuestionFromHeap(question.BoxID, question.ID)
+		c.boxCtrl.RemoveQuestionFromHeap(question.BoxID, question.ID)
 	}
 
 	// Publish Notification
@@ -285,8 +286,8 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 
 	// Check if question was moved into another Box
 	if question.BoxID != originalBoxID {
-		BoxCtrl().BuildHeap(question.BoxID)
-		BoxCtrl().BuildHeap(originalBoxID)
+		c.boxCtrl.BuildHeap(question.BoxID)
+		c.boxCtrl.BuildHeap(originalBoxID)
 		events.Events().Publish(events.Topic("boxes"), c)
 	}
 
@@ -329,7 +330,7 @@ func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, 
 	}
 
 	// Rebuild Heap for Box
-	err = BoxCtrl().BuildHeap(q.BoxID)
+	err = c.boxCtrl.BuildHeap(q.BoxID)
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +391,7 @@ func (c *QuestionController) DeleteQuestion(qID uint) error {
 	}
 
 	// Rebuild Heap of box
-	BoxCtrl().BuildHeap(boxID)
+	c.boxCtrl.BuildHeap(boxID)
 
 	// Publish events to force client refresh
 	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)

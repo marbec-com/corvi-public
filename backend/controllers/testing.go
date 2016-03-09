@@ -52,6 +52,59 @@ func (s *MockSettingsService) Get() *models.Settings {
 	return s.settings
 }
 
+type MockBoxController struct {
+	BuildHeapCount              int
+	RemoveQuestionFromHeapCount int
+	ReAddQuestionFromHeapCount  int
+}
+
+func (c *MockBoxController) LoadBoxes() ([]*models.Box, error) {
+	return []*models.Box{}, nil
+}
+
+func (c *MockBoxController) LoadBoxesOfCategory(id uint) ([]*models.Box, error) {
+	return []*models.Box{}, nil
+}
+
+func (c *MockBoxController) LoadBox(id uint) (*models.Box, error) {
+	return nil, nil
+}
+
+func (c *MockBoxController) RemoveQuestionFromHeap(id, qID uint) error {
+	c.RemoveQuestionFromHeapCount++
+	return nil
+}
+
+func (c *MockBoxController) ReAddQuestionFromHeap(id, qID uint) error {
+	c.ReAddQuestionFromHeapCount++
+	return nil
+}
+
+func (c *MockBoxController) GetQuestionToLearn(id uint) (*models.Question, error) {
+	return nil, nil
+}
+
+func (c *MockBoxController) BuildHeap(id uint) error {
+	c.BuildHeapCount++
+	return nil
+}
+
+func (c *MockBoxController) BuildHeaps() error {
+	return nil
+}
+
+func (c *MockBoxController) UpdateBox(boxID uint, box *models.Box) error {
+	return nil
+}
+
+func (c *MockBoxController) AddBox(box *models.Box) (*models.Box, error) {
+	return nil, nil
+}
+
+func (c *MockBoxController) DeleteBox(boxID uint) error {
+	return nil
+}
+
 func setupTestDBController(path string) DatabaseService {
 	c, err := NewSQLiteDBService(path)
 	if err != nil {
@@ -142,5 +195,23 @@ func insertRawLearnUnits(learnUnits []*models.LearnUnit, db DatabaseService) {
 			log.Fatal("Could not insert test data", err)
 		}
 	}
+
+}
+
+func getLearnUnit(qID uint, db DatabaseService) *models.LearnUnit {
+
+	sql := "SELECT QuestionID, BoxID, Correct, PrevCorrect, CreatedAt FROM LearnUnit WHERE QuestionID = ? LIMIT 1;"
+	row := db.Connection().QueryRow(sql, qID)
+
+	// Create new Category object
+	lu := models.NewLearnUnit()
+
+	// Populate
+	err := row.Scan(&lu.QuestionID, &lu.BoxID, &lu.Correct, &lu.PrevCorrect, &lu.CreatedAt)
+	if err != nil {
+		log.Fatal("Could not retrieve test data", err)
+	}
+
+	return lu
 
 }

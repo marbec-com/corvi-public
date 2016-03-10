@@ -11,12 +11,13 @@ import (
 	"strconv"
 )
 
-type QuestionsView struct{}
+type QuestionsView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	controller := controllers.QuestionCtrl()
-	questions, err := controller.LoadQuestions()
+	questions, err := v.QuestionController.LoadQuestions()
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -33,7 +34,9 @@ func (v *QuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 	}
 }
 
-type QuestionView struct{}
+type QuestionView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -47,8 +50,7 @@ func (v *QuestionView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	}
 
 	// Load question by ID
-	controller := controllers.QuestionCtrl()
-	question, err := controller.LoadQuestion(uint(id))
+	question, err := v.QuestionController.LoadQuestion(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -66,7 +68,9 @@ func (v *QuestionView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	}
 }
 
-type QuestionGiveCorrectAnswerView struct{}
+type QuestionGiveCorrectAnswerView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -80,8 +84,7 @@ func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *htt
 	}
 
 	// Call method by ID
-	controller := controllers.QuestionCtrl()
-	err = controller.GiveAnswer(uint(id), true)
+	err = v.QuestionController.GiveAnswer(uint(id), true)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -95,7 +98,9 @@ func (v *QuestionGiveCorrectAnswerView) ServeHTTP(rw http.ResponseWriter, r *htt
 	}
 }
 
-type QuestionGiveWrongAnswerView struct{}
+type QuestionGiveWrongAnswerView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -109,8 +114,7 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 	}
 
 	// Call method by ID
-	controller := controllers.QuestionCtrl()
-	err = controller.GiveAnswer(uint(id), false)
+	err = v.QuestionController.GiveAnswer(uint(id), false)
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -124,7 +128,9 @@ func (v *QuestionGiveWrongAnswerView) ServeHTTP(rw http.ResponseWriter, r *http.
 	}
 }
 
-type QuestionUpdateView struct{}
+type QuestionUpdateView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
@@ -138,7 +144,6 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.QuestionCtrl()
 	question := models.NewQuestion()
 
 	decoder := json.NewDecoder(r.Body)
@@ -148,7 +153,7 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	err = controller.UpdateQuestion(uint(id), question)
+	err = v.QuestionController.UpdateQuestion(uint(id), question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -158,7 +163,9 @@ func (v *QuestionUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 
 }
 
-type QuestionAddView struct{}
+type QuestionAddView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
@@ -173,8 +180,7 @@ func (v *QuestionAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 		return
 	}
 
-	controller := controllers.QuestionCtrl()
-	question, err = controller.AddQuestion(question)
+	question, err = v.QuestionController.AddQuestion(question)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -188,7 +194,9 @@ func (v *QuestionAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 
 }
 
-type QuestionDeleteView struct{}
+type QuestionDeleteView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *QuestionDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	// Parse and convert ID
@@ -200,8 +208,7 @@ func (v *QuestionDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.QuestionCtrl()
-	err = controller.DeleteQuestion(uint(id))
+	err = v.QuestionController.DeleteQuestion(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

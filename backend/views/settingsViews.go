@@ -9,18 +9,12 @@ import (
 )
 
 type SettingsView struct {
-	settings controllers.SettingsService
-}
-
-func NewSettingsView(settings controllers.SettingsService) *SettingsView {
-	return &SettingsView{
-		settings: settings,
-	}
+	SettingsService controllers.SettingsService `inject:""`
 }
 
 func (v *SettingsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	settings := v.settings.Get()
+	settings := v.SettingsService.Get()
 
 	rw.Header().Set("Content-Type", "application/json")
 
@@ -34,19 +28,13 @@ func (v *SettingsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 }
 
 type SettingsUpdateView struct {
-	settings controllers.SettingsService
-}
-
-func NewSettingsUpdateView(settings controllers.SettingsService) *SettingsUpdateView {
-	return &SettingsUpdateView{
-		settings: settings,
-	}
+	SettingsService controllers.SettingsService `inject:""`
 }
 
 func (v *SettingsUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
 
-	settings := v.settings.Get()
+	settings := v.SettingsService.Get()
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&settings)
@@ -54,7 +42,7 @@ func (v *SettingsUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 	}
 
-	err = v.settings.Update()
+	err = v.SettingsService.Update()
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}

@@ -1,49 +1,45 @@
 package controllers
 
 import (
-	"log"
 	"marb.ec/corvi-backend/models"
 	"os"
 	"path"
 	"time"
 )
 
-func InitControllerSingletons(db DatabaseService, s SettingsService) {
+type Initializer struct {
+	BoxController      BoxController      `inject:""`
+	QuestionController QuestionController `inject:""`
+	CategoryController CategoryController `inject:""`
+}
 
-	b, err := NewBoxController(db, s)
+func (i *Initializer) Init() error {
+
+	err := i.BoxController.CreateTables()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	BoxControllerSingleton = b
 
-	c, err := NewCategoryController(db, s)
+	err = i.QuestionController.CreateTables()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	CategoryControllerSingleton = c
 
-	q, err := NewQuestionController(db, s)
+	err = i.CategoryController.CreateTables()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
-	q.boxCtrl = b
-	QuestionControllerSingleton = q
 
-	StatsControllerSingleton = NewStatsController(db, s)
+	err = i.BoxController.BuildHeaps()
+	if err != nil {
+		return err
+	}
 
-	populateDummyData()
+	return nil
 
 }
 
-func GenerateUserDataPath(fileName string) string {
-	userPath := os.Getenv("USER_DATA")
-	if userPath != "" {
-		fileName = path.Join(userPath, fileName)
-	}
-	return fileName
-}
-
-func populateDummyData() {
+func (i *Initializer) PopulateDummyData() {
 	dummyData := os.Getenv("DUMMY_DATA")
 	if dummyData != "1" {
 		return
@@ -60,9 +56,8 @@ func populateDummyData() {
 		},
 	}
 
-	catCtrl := CategoryCtrl()
 	for k, cat := range mockCategories {
-		newCat, err := catCtrl.AddCategory(cat)
+		newCat, err := i.CategoryController.AddCategory(cat)
 		if err == nil {
 			mockCategories[k] = newCat
 		}
@@ -95,9 +90,8 @@ func populateDummyData() {
 		},
 	}
 
-	boxCtrl := BoxCtrl()
 	for k, box := range mockBoxes {
-		newBox, err := boxCtrl.AddBox(box)
+		newBox, err := i.BoxController.AddBox(box)
 		if err == nil {
 			mockBoxes[k] = newBox
 		}
@@ -322,9 +316,8 @@ func populateDummyData() {
 		},
 	}
 
-	questionCtrl := QuestionCtrl()
 	for k, q := range mockQuestions {
-		newQ, err := questionCtrl.AddQuestion(q)
+		newQ, err := i.QuestionController.AddQuestion(q)
 		if err == nil {
 			mockQuestions[k] = newQ
 		}
@@ -334,4 +327,12 @@ func populateDummyData() {
 	mockBoxes = nil
 	mockQuestions = nil
 
+}
+
+func GenerateUserDataPath(fileName string) string {
+	userPath := os.Getenv("USER_DATA")
+	if userPath != "" {
+		fileName = path.Join(userPath, fileName)
+	}
+	return fileName
 }

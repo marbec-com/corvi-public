@@ -8,30 +8,35 @@ import (
 	"time"
 )
 
-func setupTestBoxController(path string, settings *models.Settings) (DatabaseService, *BoxControllerImpl, *CategoryController, *QuestionController) {
+func setupTestBoxController(path string, settings *models.Settings) (DatabaseService, *BoxControllerImpl, *CategoryControllerImpl, *QuestionControllerImpl) {
 
 	db := setupTestDBController(path)
 	s := NewMockSettingsService(settings)
 
 	// Make sure category tables are created
-	c, err := NewCategoryController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return nil, nil, nil, nil
-	}
+	c := NewCategoryController()
+	c.DatabaseService = db
+	c.SettingsService = s
 
 	// Make sure question tables are created
-	q, err := NewQuestionController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return nil, nil, nil, nil
+	q := NewQuestionController()
+	q.DatabaseService = db
+	q.SettingsService = s
+
+	b := NewBoxController()
+	b.DatabaseService = db
+	b.SettingsService = s
+
+	if err := c.CreateTables(); err != nil {
+		log.Fatal(err)
+	}
+	if err := b.CreateTables(); err != nil {
+		log.Fatal(err)
+	}
+	if err := q.CreateTables(); err != nil {
+		log.Fatal(err)
 	}
 
-	b, err := NewBoxController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return nil, nil, nil, nil
-	}
 	return db, b, c, q
 
 }
@@ -89,11 +94,11 @@ func TestBoxCtrlCreateTables(t *testing.T) {
 
 	// Create controller
 	boxController := &BoxControllerImpl{
-		db: db,
+		DatabaseService: db,
 	}
 
 	// Execute createTables()
-	err := boxController.createTables()
+	err := boxController.CreateTables()
 	if err != nil {
 		t.Log("Error while executing createTables", err)
 		t.Fail()
@@ -101,7 +106,7 @@ func TestBoxCtrlCreateTables(t *testing.T) {
 
 	// Check SQL
 	sqlStmt := "SELECT COUNT(*) FROM sqlite_master WHERE (type = 'table' AND name = 'Box') OR (type = 'view' AND name = 'BoxWithMeta');"
-	row := boxController.db.Connection().QueryRow(sqlStmt)
+	row := boxController.DatabaseService.Connection().QueryRow(sqlStmt)
 	var count int
 	err = row.Scan(&count)
 	if err != nil || count != 2 {
@@ -316,7 +321,7 @@ func TestBoxCtrlDeleteBox(t *testing.T) {
 
 	// Check if there are still questions of that box
 	sqlStmt := "SELECT COUNT(*) FROM Question WHERE BoxID = ?;"
-	row := controller.db.Connection().QueryRow(sqlStmt, boxB.ID)
+	row := controller.DatabaseService.Connection().QueryRow(sqlStmt, boxB.ID)
 	var count int
 	err = row.Scan(&count)
 	if err != nil {
@@ -518,7 +523,7 @@ func TestBoxBuildHeap(t *testing.T) {
 	lB.BoxID = qC.BoxID
 	lB.Correct = false
 	lB.PrevCorrect = false
-	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.DatabaseService)
 
 	// Build Heap
 	err := controller.BuildHeap(boxB.ID)
@@ -581,7 +586,7 @@ func TestBoxBuildHeapRelearn(t *testing.T) {
 	lB.BoxID = qC.BoxID
 	lB.Correct = false
 	lB.PrevCorrect = false
-	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.DatabaseService)
 
 	// Build Heap
 	err := controller.BuildHeap(boxB.ID)
@@ -642,7 +647,7 @@ func TestBoxBuildHeaps(t *testing.T) {
 	lB.BoxID = qC.BoxID
 	lB.Correct = false
 	lB.PrevCorrect = false
-	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.db)
+	insertRawLearnUnits([]*models.LearnUnit{lA, lB}, controller.DatabaseService)
 
 	// Build Heap
 	err := controller.BuildHeaps()

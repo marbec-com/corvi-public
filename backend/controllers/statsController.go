@@ -8,26 +8,21 @@ import (
 	"time"
 )
 
-var StatsControllerSingleton *StatsController
-
-func StatsCtrl() *StatsController {
-	return StatsControllerSingleton
+type StatsController interface {
+	LoadStats(from, to time.Time) (*models.Stats, error)
 }
 
-type StatsController struct {
-	db       DatabaseService
-	settings SettingsService
+type StatsControllerImpl struct {
+	DatabaseService DatabaseService `inject:""`
+	SettingsService SettingsService `inject:""`
 }
 
-func NewStatsController(db DatabaseService, settings SettingsService) *StatsController {
-	c := &StatsController{
-		db:       db,
-		settings: settings,
-	}
+func NewStatsController() *StatsControllerImpl {
+	c := &StatsControllerImpl{}
 	return c
 }
 
-func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
+func (c *StatsControllerImpl) LoadStats(from, to time.Time) (*models.Stats, error) {
 
 	if to.Before(from) {
 		return nil, errors.New("Invalid range.")
@@ -61,7 +56,7 @@ func (c *StatsController) LoadStats(from, to time.Time) (*models.Stats, error) {
 	return stats, nil
 }
 
-func (c *StatsController) fillQuestionStats(stats *models.Stats) error {
+func (c *StatsControllerImpl) fillQuestionStats(stats *models.Stats) error {
 
 	stats.WorstQuestionAnswers = 0
 
@@ -77,7 +72,7 @@ func (c *StatsController) fillQuestionStats(stats *models.Stats) error {
 				FROM Question 
 				WHERE datetime(Question.CreatedAt) > datetime(?, 'start of day') 
 				  AND datetime(Question.CreatedAt) < datetime(?, 'start of day', '+1 day')`
-	rows, err := c.db.Connection().Query(sqlStmt, stats.RangeFrom, stats.RangeTo, stats.RangeFrom, stats.RangeTo)
+	rows, err := c.DatabaseService.Connection().Query(sqlStmt, stats.RangeFrom, stats.RangeTo, stats.RangeFrom, stats.RangeTo)
 	if err != nil {
 		return err
 	}
@@ -119,13 +114,13 @@ func (c *StatsController) fillQuestionStats(stats *models.Stats) error {
 
 }
 
-func (c *StatsController) fillLearnUnitStats(stats *models.Stats) error {
+func (c *StatsControllerImpl) fillLearnUnitStats(stats *models.Stats) error {
 
 	sqlStmt := `SELECT LearnUnit.Correct, LearnUnit.PrevCorrect, LearnUnit.CreatedAt
 		   		FROM LearnUnit 
 		  		WHERE datetime(LearnUnit.CreatedAt) > datetime(?, 'start of day') 
 		 		  AND datetime(LearnUnit.CreatedAt) < datetime(?, 'start of day', '+1 day')`
-	rows, err := c.db.Connection().Query(sqlStmt, stats.RangeFrom, stats.RangeTo)
+	rows, err := c.DatabaseService.Connection().Query(sqlStmt, stats.RangeFrom, stats.RangeTo)
 	if err != nil {
 		return err
 	}
@@ -181,17 +176,17 @@ func (c *StatsController) fillLearnUnitStats(stats *models.Stats) error {
 
 }
 
-func (c *StatsController) fillCountStats(stats *models.Stats) error {
+func (c *StatsControllerImpl) fillCountStats(stats *models.Stats) error {
 	sqlStmt := `SELECT (SELECT COUNT(*) FROM Box) AS TotalBoxes,
 					   (SELECT COUNT(*) FROM Question) AS TotalQuestions;`
-	row := c.db.Connection().QueryRow(sqlStmt)
+	row := c.DatabaseService.Connection().QueryRow(sqlStmt)
 
 	err := row.Scan(&stats.TotalBoxes, &stats.TotalQuestions)
 	return err
 
 }
 
-func (c *StatsController) fillBoxStats(stats *models.Stats) error {
+func (c *StatsControllerImpl) fillBoxStats(stats *models.Stats) error {
 
 	sqlStmt := `SELECT max.ID, max.Name, max.Description, max.CategoryID, max.QuestionsTotal, max.QuestionsLearned, max.CreatedAt, 
 	              	   min.ID, min.Name, min.Description, min.CategoryID, min.QuestionsTotal, min.QuestionsLearned, min.CreatedAt
@@ -202,7 +197,7 @@ func (c *StatsController) fillBoxStats(stats *models.Stats) error {
           	       AND min.QuestionsTotal > 0
 				   AND (min.QuestionsLearned/min.QuestionsTotal) IN (SELECT MIN(QuestionsLearned/QuestionsTotal) FROM BoxWithMeta)
            	     LIMIT 1;`
-	row := c.db.Connection().QueryRow(sqlStmt)
+	row := c.DatabaseService.Connection().QueryRow(sqlStmt)
 
 	bestBox := models.NewBox()
 	worstBox := models.NewBox()

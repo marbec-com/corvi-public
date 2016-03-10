@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/facebookgo/inject"
 	"log"
 	"marb.ec/corvi-backend/controllers"
 	"marb.ec/corvi-backend/middleware"
@@ -15,40 +16,42 @@ const (
 	settingsFile string = "settings.yml"
 )
 
-var (
-	settingsService controllers.SettingsService
-	databaseService controllers.DatabaseService
-)
+// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
 
 func main() {
 
-	// TODO(mjb): Timer at change of day to refill and refresh QuestionHeaps of all boxes
+	g := &inject.Graph{}
 
-	// Init SettingsService
-	settingsFileName := controllers.GenerateUserDataPath(settingsFile)
-	s, err := controllers.NewYAMLSettingsService(settingsFileName)
+	// Initialize initializer
+	Initializer, err := initInitializer(g)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error while initializing Initializer", err)
 	}
-	settingsService = s
 
-	// Init DatabaseService
-	dbFile := controllers.GenerateUserDataPath(databaseFile)
-	db, err := controllers.NewSQLiteDBService(dbFile)
-	if err != nil {
-		log.Fatal(err)
-	}
-	databaseService = db
-
-	// Init Controller Singletons
-	controllers.InitControllerSingletons(db, s)
-
-	// Build Heap Cache
-	controllers.BoxCtrl().BuildHeaps()
-
-	// Init Router
+	// Initialize Router, views and routes
 	r := router.NewTreeRouter()
-	defineRoutes(r)
+	if err = initViewRoutes(r, g); err != nil {
+		log.Fatal("Error while initializing views and routes", err)
+	}
+
+	// Initialize services
+	if err = initServices(g); err != nil {
+		log.Fatal("Error while initializing serivces", err)
+	}
+
+	// Initialize controllers
+	if err = initControllers(g); err != nil {
+		log.Fatal("Error while initializing controllers", err)
+	}
+
+	// Dependency injection
+	if err := g.Populate(); err != nil {
+		log.Fatal(err)
+	}
+
+	// Create tables & build heap cache
+	Initializer.Init()
+	Initializer.PopulateDummyData()
 
 	// TODO(mjb): Restrict access to electron (via header field?)
 	webserver := requests.NewRequestHandler(r)
@@ -61,7 +64,52 @@ func main() {
 
 }
 
-func defineRoutes(r *router.TreeRouter) {
+func initInitializer(g *inject.Graph) (*controllers.Initializer, error) {
+	i := &controllers.Initializer{}
+
+	return i, g.Provide(
+		&inject.Object{Value: i},
+	)
+}
+
+func initServices(g *inject.Graph) error {
+
+	// Init SettingsService
+	settingsFileName := controllers.GenerateUserDataPath(settingsFile)
+	s, err := controllers.NewYAMLSettingsService(settingsFileName)
+	if err != nil {
+		return err
+	}
+
+	// Init DatabaseService
+	dbFile := controllers.GenerateUserDataPath(databaseFile)
+	db, err := controllers.NewSQLiteDBService(dbFile)
+	if err != nil {
+		return err
+	}
+
+	return g.Provide(
+		&inject.Object{Value: db},
+		&inject.Object{Value: s},
+	)
+}
+
+func initControllers(g *inject.Graph) error {
+
+	b := controllers.NewBoxController()
+	c := controllers.NewCategoryController()
+	q := controllers.NewQuestionController()
+	st := controllers.NewStatsController()
+
+	return g.Provide(
+		&inject.Object{Value: b},
+		&inject.Object{Value: c},
+		&inject.Object{Value: q},
+		&inject.Object{Value: st},
+	)
+}
+
+func initViewRoutes(r *router.TreeRouter, g *inject.Graph) error {
 
 	// WebSocket Notification Service
 	ns := wsnotify.NewWSNotificationService()
@@ -72,38 +120,91 @@ func defineRoutes(r *router.TreeRouter) {
 	r.Add(router.GET, "/app/*path", &controllers.FileController{})
 
 	// Category Routes
-	r.Add(router.GET, "/api/categories", &views.CategoriesView{})
-	r.Add(router.POST, "/api/categories", &views.CategoryAddView{})
-	r.Add(router.GET, "/api/category/:id", &views.CategoryView{})
-	r.Add(router.PUT, "/api/category/:id", &views.CategoryUpdateView{})
-	r.Add(router.DELETE, "/api/category/:id", &views.CategoryDeleteView{})
-	r.Add(router.GET, "/api/category/:id/boxes", &views.CategoryBoxesView{})
+	categoriesView := &views.CategoriesView{}
+	r.Add(router.GET, "/api/categories", categoriesView)
+	categoryAddView := &views.CategoryAddView{}
+	r.Add(router.POST, "/api/categories", categoryAddView)
+	categoryView := &views.CategoryView{}
+	r.Add(router.GET, "/api/category/:id", categoryView)
+	categoryUpdateView := &views.CategoryUpdateView{}
+	r.Add(router.PUT, "/api/category/:id", categoryUpdateView)
+	categoryDeleteView := &views.CategoryDeleteView{}
+	r.Add(router.DELETE, "/api/category/:id", categoryDeleteView)
+	categoryBoxesView := &views.CategoryBoxesView{}
+	r.Add(router.GET, "/api/category/:id/boxes", categoryBoxesView)
 
 	// Boxes Routes
-	r.Add(router.GET, "/api/boxes", &views.BoxesView{})
-	r.Add(router.POST, "/api/boxes", &views.BoxAddView{})
-	r.Add(router.GET, "/api/box/:id", &views.BoxView{})
-	r.Add(router.PUT, "/api/box/:id", &views.BoxUpdateView{})
-	r.Add(router.DELETE, "/api/box/:id", &views.BoxDeleteView{})
-	r.Add(router.GET, "/api/box/:id/questions", &views.BoxQuestionsView{})
-	r.Add(router.GET, "/api/box/:id/getQuestionToLearn", &views.BoxGetQuestionToLearnView{})
+	boxesView := &views.BoxesView{}
+	r.Add(router.GET, "/api/boxes", boxesView)
+	boxesAddView := &views.BoxAddView{}
+	r.Add(router.POST, "/api/boxes", boxesAddView)
+	boxView := &views.BoxView{}
+	r.Add(router.GET, "/api/box/:id", boxView)
+	boxUpdateView := &views.BoxUpdateView{}
+	r.Add(router.PUT, "/api/box/:id", boxUpdateView)
+	boxDeleteView := &views.BoxDeleteView{}
+	r.Add(router.DELETE, "/api/box/:id", boxDeleteView)
+	boxQuestionsView := &views.BoxQuestionsView{}
+	r.Add(router.GET, "/api/box/:id/questions", boxQuestionsView)
+	boxGetQuestionToLearnView := &views.BoxGetQuestionToLearnView{}
+	r.Add(router.GET, "/api/box/:id/getQuestionToLearn", boxGetQuestionToLearnView)
 
 	// Question Routes
-	r.Add(router.GET, "/api/questions", &views.QuestionsView{})
-	r.Add(router.POST, "/api/questions", &views.QuestionAddView{})
-	r.Add(router.GET, "/api/question/:id", &views.QuestionView{})
-	r.Add(router.PUT, "/api/question/:id", &views.QuestionUpdateView{})
-	r.Add(router.DELETE, "/api/question/:id", &views.QuestionDeleteView{})
-	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", &views.QuestionGiveCorrectAnswerView{})
-	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", &views.QuestionGiveWrongAnswerView{})
+	questionsView := &views.QuestionsView{}
+	r.Add(router.GET, "/api/questions", questionsView)
+	questionAddView := &views.QuestionAddView{}
+	r.Add(router.POST, "/api/questions", questionAddView)
+	questionView := &views.QuestionView{}
+	r.Add(router.GET, "/api/question/:id", questionView)
+	questionUpdateView := &views.QuestionUpdateView{}
+	r.Add(router.PUT, "/api/question/:id", questionUpdateView)
+	questionDeleteView := &views.QuestionDeleteView{}
+	r.Add(router.DELETE, "/api/question/:id", questionDeleteView)
+	questionGiveCorrectAnswerView := &views.QuestionGiveCorrectAnswerView{}
+	r.Add(router.PUT, "/api/question/:id/giveCorrectAnswer", questionGiveCorrectAnswerView)
+	questionGiveWrongAnswerView := &views.QuestionGiveWrongAnswerView{}
+	r.Add(router.PUT, "/api/question/:id/giveWrongAnswer", questionGiveWrongAnswerView)
 
 	// Statistics Routes
-	r.Add(router.GET, "/api/stats", &views.StatsView{})
+	statsView := &views.StatsView{}
+	r.Add(router.GET, "/api/stats", statsView)
 
-	// Discovery / Cloud Routes
+	// TODO(mjb): Discovery / Cloud Routes
 
 	// Settings Routes
-	r.Add(router.GET, "/api/settings", views.NewSettingsView(settingsService))
-	r.Add(router.PUT, "/api/settings", views.NewSettingsUpdateView(settingsService))
+	settingsView := &views.SettingsView{}
+	r.Add(router.GET, "/api/settings", settingsView)
 
+	settingsUpdateView := &views.SettingsUpdateView{}
+	r.Add(router.PUT, "/api/settings", settingsUpdateView)
+
+	return g.Provide(
+		&inject.Object{Value: categoriesView},
+		&inject.Object{Value: categoryAddView},
+		&inject.Object{Value: categoryView},
+		&inject.Object{Value: categoryUpdateView},
+		&inject.Object{Value: categoryDeleteView},
+		&inject.Object{Value: categoryBoxesView},
+
+		&inject.Object{Value: boxesView},
+		&inject.Object{Value: boxesAddView},
+		&inject.Object{Value: boxView},
+		&inject.Object{Value: boxUpdateView},
+		&inject.Object{Value: boxDeleteView},
+		&inject.Object{Value: boxQuestionsView},
+		&inject.Object{Value: boxGetQuestionToLearnView},
+
+		&inject.Object{Value: questionsView},
+		&inject.Object{Value: questionAddView},
+		&inject.Object{Value: questionView},
+		&inject.Object{Value: questionUpdateView},
+		&inject.Object{Value: questionDeleteView},
+		&inject.Object{Value: questionGiveCorrectAnswerView},
+		&inject.Object{Value: questionGiveWrongAnswerView},
+
+		&inject.Object{Value: statsView},
+
+		&inject.Object{Value: settingsView},
+		&inject.Object{Value: settingsUpdateView},
+	)
 }

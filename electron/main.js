@@ -13,7 +13,7 @@ let mainWindow;
 global.metaData = {
 	OperatingSystem: process.platform,
 	SystemArchitecture: process.arch,
-	CorviVersion: "0.0.2"
+	CorviVersion: "0.1.0"
 };
 
 function createWindow() {

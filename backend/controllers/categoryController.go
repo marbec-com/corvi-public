@@ -7,44 +7,40 @@ import (
 	"marb.ec/maf/events"
 )
 
-var CategoryControllerSingleton *CategoryController
-
-func CategoryCtrl() *CategoryController {
-	return CategoryControllerSingleton
+type CategoryController interface {
+	CreateTables() error
+	LoadCategories() ([]*models.Category, error)
+	LoadCategory(id uint) (*models.Category, error)
+	UpdateCategory(catID uint, cat *models.Category) error
+	AddCategory(cat *models.Category) (*models.Category, error)
+	DeleteCategory(catID uint) error
 }
 
-type CategoryController struct {
-	db       DatabaseService
-	settings SettingsService
+type CategoryControllerImpl struct {
+	DatabaseService DatabaseService `inject:""`
+	SettingsService SettingsService `inject:""`
 }
 
-func NewCategoryController(db DatabaseService, settings SettingsService) (*CategoryController, error) {
-	c := &CategoryController{
-		db:       db,
-		settings: settings,
-	}
-	err := c.createTables()
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
+func NewCategoryController() *CategoryControllerImpl {
+	c := &CategoryControllerImpl{}
+	return c
 }
 
-func (c *CategoryController) createTables() error {
+func (c *CategoryControllerImpl) CreateTables() error {
 
 	// Create table, only if it not already exists
 	sql := "CREATE TABLE IF NOT EXISTS Category (ID INTEGER PRIMARY KEY ASC NOT NULL, Name VARCHAR (255) NOT NULL, CreatedAt DATETIME NOT NULL);"
-	_, err := c.db.Connection().Exec(sql)
+	_, err := c.DatabaseService.Connection().Exec(sql)
 
 	return err
 
 }
 
-func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
+func (c *CategoryControllerImpl) LoadCategories() ([]*models.Category, error) {
 
 	// Select all categories
 	sql := "SELECT ID, Name, CreatedAt FROM Category;"
-	rows, err := c.db.Connection().Query(sql)
+	rows, err := c.DatabaseService.Connection().Query(sql)
 	if err != nil {
 		return nil, err
 	}
@@ -74,11 +70,11 @@ func (c *CategoryController) LoadCategories() ([]*models.Category, error) {
 
 }
 
-func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
+func (c *CategoryControllerImpl) LoadCategory(id uint) (*models.Category, error) {
 
 	// Select category with matching ID
 	sql := "SELECT ID, Name, CreatedAt FROM Category WHERE ID = ?;"
-	row := c.db.Connection().QueryRow(sql, id)
+	row := c.DatabaseService.Connection().QueryRow(sql, id)
 
 	// Create new Category object
 	newCat := models.NewCategory()
@@ -93,10 +89,10 @@ func (c *CategoryController) LoadCategory(id uint) (*models.Category, error) {
 
 }
 
-func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) error {
+func (c *CategoryControllerImpl) UpdateCategory(catID uint, cat *models.Category) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}
@@ -135,10 +131,10 @@ func (c *CategoryController) UpdateCategory(catID uint, cat *models.Category) er
 
 }
 
-func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category, error) {
+func (c *CategoryControllerImpl) AddCategory(cat *models.Category) (*models.Category, error) {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -175,10 +171,10 @@ func (c *CategoryController) AddCategory(cat *models.Category) (*models.Category
 
 }
 
-func (c *CategoryController) DeleteCategory(catID uint) error {
+func (c *CategoryControllerImpl) DeleteCategory(catID uint) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}

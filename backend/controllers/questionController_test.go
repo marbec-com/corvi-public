@@ -8,30 +8,34 @@ import (
 	"time"
 )
 
-func setupTestQuestionController(path string, settings *models.Settings) (DatabaseService, *QuestionController, *BoxControllerImpl, *CategoryController) {
+func setupTestQuestionController(path string, settings *models.Settings) (DatabaseService, *QuestionControllerImpl, *BoxControllerImpl, *CategoryControllerImpl) {
 
 	db := setupTestDBController(path)
 	s := NewMockSettingsService(settings)
 
-	// Make sure category tables are created
-	c, err := NewCategoryController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return nil, nil, nil, nil
+	c := NewCategoryController()
+	c.DatabaseService = db
+	c.SettingsService = s
+
+	b := NewBoxController()
+	b.DatabaseService = db
+	b.SettingsService = s
+
+	q := NewQuestionController()
+	q.DatabaseService = db
+	q.SettingsService = s
+	q.BoxController = b
+
+	if err := c.CreateTables(); err != nil {
+		log.Fatal(err)
+	}
+	if err := b.CreateTables(); err != nil {
+		log.Fatal(err)
+	}
+	if err := q.CreateTables(); err != nil {
+		log.Fatal(err)
 	}
 
-	// Make sure question tables are created
-	q, err := NewQuestionController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return nil, nil, nil, nil
-	}
-
-	b, err := NewBoxController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return nil, nil, nil, nil
-	}
 	return db, q, b, c
 
 }
@@ -67,12 +71,12 @@ func TestQuestionCtrlCreateTables(t *testing.T) {
 	defer tearDownTestDBController(db)
 
 	// Create controller
-	questionController := &QuestionController{
-		db: db,
+	questionController := &QuestionControllerImpl{
+		DatabaseService: db,
 	}
 
 	// Execute createTables()
-	err := questionController.createTables()
+	err := questionController.CreateTables()
 	if err != nil {
 		t.Log("Error while executing createTables", err)
 		t.Fail()
@@ -80,7 +84,7 @@ func TestQuestionCtrlCreateTables(t *testing.T) {
 
 	// Check SQL
 	sqlStmt := "SELECT COUNT(*) FROM sqlite_master WHERE (type = 'table' AND name = 'Question') OR (type = 'table' AND name = 'LearnUnit') OR (type = 'view' AND name = 'QuestionsLearnedToday') OR (type = 'view' AND name = 'QuestionsDue');"
-	row := questionController.db.Connection().QueryRow(sqlStmt)
+	row := questionController.DatabaseService.Connection().QueryRow(sqlStmt)
 	var count int
 	err = row.Scan(&count)
 	if err != nil || count != 4 {
@@ -167,7 +171,7 @@ func TestQuestionCtrlUpdateQuestion(t *testing.T) {
 	// Setup & Teardown
 	db, controller, _, _ := setupTestQuestionController("test_questionController.db", nil)
 	mockBoxCtrl := &MockBoxController{}
-	controller.boxCtrl = mockBoxCtrl
+	controller.BoxController = mockBoxCtrl
 	defer tearDownTestDBController(db)
 	qA, qB := insertQuestionTestData(db)
 	sub := NewMockSubscriber([]string{"boxes", "questions"})
@@ -223,7 +227,7 @@ func TestQuestionCtrlAddQuestion(t *testing.T) {
 	// Setup & Teardown
 	db, controller, _, _ := setupTestQuestionController("test_questionController.db", nil)
 	mockBoxCtrl := &MockBoxController{}
-	controller.boxCtrl = mockBoxCtrl
+	controller.BoxController = mockBoxCtrl
 	defer tearDownTestDBController(db)
 	qA, _ := insertQuestionTestData(db)
 	sub := NewMockSubscriber([]string{"stats", "questions", fmt.Sprintf("box-%d", qA.BoxID)})
@@ -291,7 +295,7 @@ func TestQuestionCtrlDeleteQuestion(t *testing.T) {
 	// Setup & Teardown
 	db, controller, _, _ := setupTestQuestionController("test_questionController.db", nil)
 	mockBoxCtrl := &MockBoxController{}
-	controller.boxCtrl = mockBoxCtrl
+	controller.BoxController = mockBoxCtrl
 	defer tearDownTestDBController(db)
 	_, qB := insertQuestionTestData(db)
 	sub := NewMockSubscriber([]string{"stats", "questions", fmt.Sprintf("box-%d", qB.BoxID)})
@@ -331,7 +335,7 @@ func TestQuestionCtrlDeleteQuestion(t *testing.T) {
 
 	// Check if there are sill LearnUnits for that question
 	sqlStmt := "SELECT COUNT(*) FROM LearnUnit WHERE QuestionID = ?;"
-	row := controller.db.Connection().QueryRow(sqlStmt, qB.ID)
+	row := controller.DatabaseService.Connection().QueryRow(sqlStmt, qB.ID)
 	var count int
 	err = row.Scan(&count)
 	if err != nil {
@@ -366,7 +370,7 @@ func TestQuestionCtrlGiveAnswerCorrect(t *testing.T) {
 	settings.RelearnUntilAccomplished = false
 	db, controller, _, _ := setupTestQuestionController("test_questionController.db", settings)
 	mockBoxCtrl := &MockBoxController{}
-	controller.boxCtrl = mockBoxCtrl
+	controller.BoxController = mockBoxCtrl
 	defer tearDownTestDBController(db)
 	qA, _ := insertQuestionTestData(db)
 	sub := NewMockSubscriber([]string{"stats", "questions", fmt.Sprintf("box-%d", qA.BoxID)})
@@ -441,7 +445,7 @@ func TestQuestionCtrlGiveAnswerWrong(t *testing.T) {
 	settings.RelearnUntilAccomplished = true
 	db, controller, _, _ := setupTestQuestionController("test_questionController.db", settings)
 	mockBoxCtrl := &MockBoxController{}
-	controller.boxCtrl = mockBoxCtrl
+	controller.BoxController = mockBoxCtrl
 	defer tearDownTestDBController(db)
 	qA, _ := insertQuestionTestData(db)
 	sub := NewMockSubscriber([]string{"stats", "questions", fmt.Sprintf("box-%d", qA.BoxID)})

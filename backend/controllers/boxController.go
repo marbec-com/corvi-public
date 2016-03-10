@@ -10,6 +10,7 @@ import (
 )
 
 type BoxController interface {
+	CreateTables() error
 	LoadBoxes() ([]*models.Box, error)
 	LoadBoxesOfCategory(id uint) ([]*models.Box, error)
 	LoadBox(id uint) (*models.Box, error)
@@ -23,45 +24,32 @@ type BoxController interface {
 	DeleteBox(boxID uint) error
 }
 
-var BoxControllerSingleton BoxController
-
-func BoxCtrl() BoxController {
-	return BoxControllerSingleton
-}
-
 type BoxControllerImpl struct {
-	db        DatabaseService
-	settings  SettingsService
-	heapCache map[uint]*models.QuestionHeap
+	DatabaseService DatabaseService `inject:""`
+	SettingsService SettingsService `inject:""`
+	heapCache       map[uint]*models.QuestionHeap
 	sync.Mutex
 }
 
-func NewBoxController(db DatabaseService, settings SettingsService) (*BoxControllerImpl, error) {
-	b := &BoxControllerImpl{
-		db:       db,
-		settings: settings,
-	}
-	err := b.createTables()
-	if err != nil {
-		return nil, err
-	}
+func NewBoxController() *BoxControllerImpl {
+	b := &BoxControllerImpl{}
 	b.heapCache = make(map[uint]*models.QuestionHeap, 0)
-	return b, nil
+	return b
 }
 
-func (c *BoxControllerImpl) createTables() error {
+func (c *BoxControllerImpl) CreateTables() error {
 
 	// Create table, only if it not already exists
 	// Includes foreign key constraint to Category table. We are not allowed to delete a Category that still has Boxes assigned.
 	sql := "CREATE TABLE IF NOT EXISTS Box (ID INTEGER PRIMARY KEY ASC NOT NULL, Name VARCHAR (255) NOT NULL, Description TEXT NOT NULL, CategoryID INTEGER REFERENCES Category (ID) NOT NULL, CreatedAt DATETIME NOT NULL);"
-	_, err := c.db.Connection().Exec(sql)
+	_, err := c.DatabaseService.Connection().Exec(sql)
 	if err != nil {
 		return err
 	}
 
 	// Create additonal view with question meta data
 	sql = "CREATE VIEW IF NOT EXISTS BoxWithMeta AS SELECT ID, Name, Description, CategoryID, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID) AS QuestionsTotal, (SELECT COUNT(*) FROM Question WHERE BoxID = Box.ID AND CorrectlyAnswered > 0) AS QuestionsLearned, CreatedAt FROM Box;"
-	_, err = c.db.Connection().Exec(sql)
+	_, err = c.DatabaseService.Connection().Exec(sql)
 
 	return err
 
@@ -78,10 +66,10 @@ func (c *BoxControllerImpl) LoadBoxesOfCategory(id uint) ([]*models.Box, error) 
 	var err error
 	if id == 0 {
 		sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta;"
-		rows, err = c.db.Connection().Query(sql)
+		rows, err = c.DatabaseService.Connection().Query(sql)
 	} else {
 		sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE CategoryID = ?;"
-		rows, err = c.db.Connection().Query(sql, id)
+		rows, err = c.DatabaseService.Connection().Query(sql, id)
 	}
 	if err != nil {
 		return nil, err
@@ -123,7 +111,7 @@ func (c *BoxControllerImpl) LoadBox(id uint) (*models.Box, error) {
 
 	// Select box with matching ID
 	sql := "SELECT ID, Name, Description, CategoryID, QuestionsTotal, QuestionsLearned, CreatedAt FROM BoxWithMeta WHERE ID = ?;"
-	row := c.db.Connection().QueryRow(sql, id)
+	row := c.DatabaseService.Connection().QueryRow(sql, id)
 
 	// Create new Category object
 	newBox := models.NewBox()
@@ -217,17 +205,17 @@ func (c *BoxControllerImpl) BuildHeap(id uint) error {
 	// If RelearnUntilAccomplished: capacity = max - correctly answered questions today
 	// else: capacity = max - answered questions today
 	sql := "SELECT COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND BoxID = ?;"
-	if c.settings.Get().RelearnUntilAccomplished {
+	if c.SettingsService.Get().RelearnUntilAccomplished {
 		sql = "SELECT COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 AND BoxID = ?;"
 	}
-	row := c.db.Connection().QueryRow(sql, id)
+	row := c.DatabaseService.Connection().QueryRow(sql, id)
 	var learned int
 	err := row.Scan(&learned)
 	if err != nil {
 		return err
 	}
 
-	capacity := int(c.settings.Get().MaxDailyQuestionsPerBox) - learned
+	capacity := int(c.SettingsService.Get().MaxDailyQuestionsPerBox) - learned
 	if capacity < 0 {
 		capacity = 0
 	}
@@ -248,7 +236,7 @@ func (c *BoxControllerImpl) BuildHeap(id uint) error {
 			      ) 
 		 ORDER BY Next ASC 
 		    LIMIT ?;`
-	if c.settings.Get().RelearnUntilAccomplished {
+	if c.SettingsService.Get().RelearnUntilAccomplished {
 		sql = `	SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt 
 				  FROM Question 
 				 WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') 
@@ -264,7 +252,7 @@ func (c *BoxControllerImpl) BuildHeap(id uint) error {
 			     LIMIT ?;`
 	}
 
-	qRows, err := c.db.Connection().Query(sql, id, id, capacity)
+	qRows, err := c.DatabaseService.Connection().Query(sql, id, id, capacity)
 	if err != nil {
 		return err
 	}
@@ -312,10 +300,10 @@ func (c *BoxControllerImpl) BuildHeaps() error {
 	// If RelearnUntilAccomplished: capacity = max - correctly answered questions today
 	// else: capacity = max - answered questions today
 	sql := "SELECT BoxID, COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') GROUP BY BoxID;"
-	if c.settings.Get().RelearnUntilAccomplished {
+	if c.SettingsService.Get().RelearnUntilAccomplished {
 		sql = "SELECT BoxID, COUNT(*) FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1 GROUP BY BoxID;"
 	}
-	rows, err := c.db.Connection().Query(sql)
+	rows, err := c.DatabaseService.Connection().Query(sql)
 	if err != nil {
 		return err
 	}
@@ -328,7 +316,7 @@ func (c *BoxControllerImpl) BuildHeaps() error {
 		if err != nil {
 			return err
 		}
-		cap := int(c.settings.Get().MaxDailyQuestionsPerBox) - count
+		cap := int(c.SettingsService.Get().MaxDailyQuestionsPerBox) - count
 		if cap < 0 {
 			cap = 0
 		}
@@ -352,7 +340,7 @@ func (c *BoxControllerImpl) BuildHeaps() error {
 					WHERE date(CreatedAt) = date('now')
 				   )
 		  ORDER BY Next ASC;`
-	if c.settings.Get().RelearnUntilAccomplished {
+	if c.SettingsService.Get().RelearnUntilAccomplished {
 		sql = `SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt 
 				 FROM Question 
 				WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') 
@@ -365,7 +353,7 @@ func (c *BoxControllerImpl) BuildHeaps() error {
 			 ORDER BY Next ASC;`
 	}
 
-	qRows, err := c.db.Connection().Query(sql)
+	qRows, err := c.DatabaseService.Connection().Query(sql)
 	if err != nil {
 		return err
 	}
@@ -388,7 +376,7 @@ func (c *BoxControllerImpl) BuildHeaps() error {
 
 		cap, ok := capacities[newQuestion.BoxID]
 		if !ok {
-			cap = c.settings.Get().MaxDailyQuestionsPerBox
+			cap = c.SettingsService.Get().MaxDailyQuestionsPerBox
 			capacities[newQuestion.BoxID] = cap
 		}
 
@@ -415,7 +403,7 @@ func (c *BoxControllerImpl) BuildHeaps() error {
 func (c *BoxControllerImpl) UpdateBox(boxID uint, box *models.Box) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}
@@ -457,7 +445,7 @@ func (c *BoxControllerImpl) UpdateBox(boxID uint, box *models.Box) error {
 func (c *BoxControllerImpl) AddBox(box *models.Box) (*models.Box, error) {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -497,7 +485,7 @@ func (c *BoxControllerImpl) AddBox(box *models.Box) (*models.Box, error) {
 func (c *BoxControllerImpl) DeleteBox(boxID uint) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}

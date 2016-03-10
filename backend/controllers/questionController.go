@@ -7,65 +7,63 @@ import (
 	"marb.ec/maf/events"
 )
 
-var QuestionControllerSingleton *QuestionController
-
-func QuestionCtrl() *QuestionController {
-	return QuestionControllerSingleton
+type QuestionController interface {
+	CreateTables() error
+	LoadQuestions() ([]*models.Question, error)
+	LoadQuestionsOfBox(id uint) ([]*models.Question, error)
+	LoadQuestion(id uint) (*models.Question, error)
+	GiveAnswer(id uint, correct bool) error
+	UpdateQuestion(qID uint, question *models.Question) error
+	AddQuestion(q *models.Question) (*models.Question, error)
+	DeleteQuestion(qID uint) error
 }
 
-type QuestionController struct {
-	db       DatabaseService
-	settings SettingsService
-	boxCtrl  BoxController
+type QuestionControllerImpl struct {
+	DatabaseService DatabaseService `inject:""`
+	SettingsService SettingsService `inject:""`
+	BoxController   BoxController   `inject:""`
 }
 
-func NewQuestionController(db DatabaseService, settings SettingsService) (*QuestionController, error) {
-	c := &QuestionController{
-		db:       db,
-		settings: settings,
-	}
-	err := c.createTables()
-	if err != nil {
-		return nil, err
-	}
-	return c, nil
+func NewQuestionController() *QuestionControllerImpl {
+	c := &QuestionControllerImpl{}
+	return c
 }
 
-func (c *QuestionController) createTables() error {
+func (c *QuestionControllerImpl) CreateTables() error {
 
 	// Create table for questions, only if it not already exists
 	sql := "CREATE TABLE IF NOT EXISTS Question (ID INTEGER PRIMARY KEY ASC NOT NULL, Question VARCHAR (255) NOT NULL, Answer TEXT NOT NULL, BoxID INTEGER REFERENCES Box (ID) ON DELETE CASCADE NOT NULL, Next DATETIME NOT NULL, CorrectlyAnswered INTEGER NOT NULL, CreatedAt DATETIME NOT NULL);"
-	_, err := c.db.Connection().Exec(sql)
+	_, err := c.DatabaseService.Connection().Exec(sql)
 	if err != nil {
 		return err
 	}
 
 	// Create table for learnunits, only if it not already exists
 	sql = "CREATE TABLE IF NOT EXISTS LearnUnit (QuestionID INTEGER REFERENCES Question (ID) ON DELETE CASCADE NOT NULL, BoxID INTEGER REFERENCES Box (ID) ON DELETE CASCADE NOT NULL, Correct BOOLEAN NOT NULL, PrevCorrect BOOLEAN NOT NULL, CreatedAt DATETIME NOT NULL);"
-	_, err = c.db.Connection().Exec(sql)
+	_, err = c.DatabaseService.Connection().Exec(sql)
 	if err != nil {
 		return err
 	}
 
 	// Create view for questions learned today
 	sql = "CREATE VIEW IF NOT EXISTS QuestionsLearnedToday AS SELECT * FROM LearnUnit WHERE date(CreatedAt) = date('now') AND Correct = 1"
-	_, err = c.db.Connection().Exec(sql)
+	_, err = c.DatabaseService.Connection().Exec(sql)
 	if err != nil {
 		return err
 	}
 
 	// Create view for questions due
 	sql = "CREATE VIEW IF NOT EXISTS QuestionsDue AS SELECT * FROM Question WHERE datetime(Next) < datetime('now', 'start of day', '+1 day') AND ID NOT IN (SELECT ID FROM QuestionsLearnedToday)"
-	_, err = c.db.Connection().Exec(sql)
+	_, err = c.DatabaseService.Connection().Exec(sql)
 
 	return err
 }
 
-func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
+func (c *QuestionControllerImpl) LoadQuestions() ([]*models.Question, error) {
 
 	// Select all questions
 	sql := "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question;"
-	rows, err := c.db.Connection().Query(sql)
+	rows, err := c.DatabaseService.Connection().Query(sql)
 	if err != nil {
 		return nil, err
 	}
@@ -96,11 +94,11 @@ func (c *QuestionController) LoadQuestions() ([]*models.Question, error) {
 
 }
 
-func (c *QuestionController) LoadQuestionsOfBox(id uint) ([]*models.Question, error) {
+func (c *QuestionControllerImpl) LoadQuestionsOfBox(id uint) ([]*models.Question, error) {
 
 	// Select all questions
 	sql := "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE BoxID = ?;"
-	rows, err := c.db.Connection().Query(sql, id)
+	rows, err := c.DatabaseService.Connection().Query(sql, id)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +129,11 @@ func (c *QuestionController) LoadQuestionsOfBox(id uint) ([]*models.Question, er
 
 }
 
-func (c *QuestionController) LoadQuestion(id uint) (*models.Question, error) {
+func (c *QuestionControllerImpl) LoadQuestion(id uint) (*models.Question, error) {
 
 	// Select question with matching ID
 	sql := "SELECT ID, Question, Answer, BoxID, Next, CorrectlyAnswered, CreatedAt FROM Question WHERE ID = ?;"
-	row := c.db.Connection().QueryRow(sql, id)
+	row := c.DatabaseService.Connection().QueryRow(sql, id)
 
 	// Create new Category object
 	newQuestion := models.NewQuestion()
@@ -150,10 +148,10 @@ func (c *QuestionController) LoadQuestion(id uint) (*models.Question, error) {
 
 }
 
-func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
+func (c *QuestionControllerImpl) GiveAnswer(id uint, correct bool) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}
@@ -225,10 +223,10 @@ func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
 	}
 
 	// If answer was incorrect and RelearnUntilAccomplished is set, readd to heap
-	if c.settings.Get().RelearnUntilAccomplished && !correct {
-		c.boxCtrl.ReAddQuestionFromHeap(question.BoxID, question.ID)
+	if c.SettingsService.Get().RelearnUntilAccomplished && !correct {
+		c.BoxController.ReAddQuestionFromHeap(question.BoxID, question.ID)
 	} else { // else remove from heap
-		c.boxCtrl.RemoveQuestionFromHeap(question.BoxID, question.ID)
+		c.BoxController.RemoveQuestionFromHeap(question.BoxID, question.ID)
 	}
 
 	// Publish Notification
@@ -240,10 +238,10 @@ func (c *QuestionController) GiveAnswer(id uint, correct bool) error {
 	return nil
 }
 
-func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question) error {
+func (c *QuestionControllerImpl) UpdateQuestion(qID uint, question *models.Question) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}
@@ -286,8 +284,8 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 
 	// Check if question was moved into another Box
 	if question.BoxID != originalBoxID {
-		c.boxCtrl.BuildHeap(question.BoxID)
-		c.boxCtrl.BuildHeap(originalBoxID)
+		c.BoxController.BuildHeap(question.BoxID)
+		c.BoxController.BuildHeap(originalBoxID)
 		events.Events().Publish(events.Topic("boxes"), c)
 	}
 
@@ -298,10 +296,10 @@ func (c *QuestionController) UpdateQuestion(qID uint, question *models.Question)
 
 }
 
-func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, error) {
+func (c *QuestionControllerImpl) AddQuestion(q *models.Question) (*models.Question, error) {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +328,7 @@ func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, 
 	}
 
 	// Rebuild Heap for Box
-	err = c.boxCtrl.BuildHeap(q.BoxID)
+	err = c.BoxController.BuildHeap(q.BoxID)
 	if err != nil {
 		return nil, err
 	}
@@ -345,10 +343,10 @@ func (c *QuestionController) AddQuestion(q *models.Question) (*models.Question, 
 
 }
 
-func (c *QuestionController) DeleteQuestion(qID uint) error {
+func (c *QuestionControllerImpl) DeleteQuestion(qID uint) error {
 
 	// Begin Transaction
-	tx, err := c.db.Connection().Begin()
+	tx, err := c.DatabaseService.Connection().Begin()
 	if err != nil {
 		return err
 	}
@@ -391,7 +389,7 @@ func (c *QuestionController) DeleteQuestion(qID uint) error {
 	}
 
 	// Rebuild Heap of box
-	c.boxCtrl.BuildHeap(boxID)
+	c.BoxController.BuildHeap(boxID)
 
 	// Publish events to force client refresh
 	events.Events().Publish(events.Topic(fmt.Sprintf("box-%d", boxID)), c)

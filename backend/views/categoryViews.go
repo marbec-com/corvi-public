@@ -10,12 +10,13 @@ import (
 	"strconv"
 )
 
-type CategoriesView struct{}
+type CategoriesView struct {
+	CategoryController controllers.CategoryController `inject:""`
+}
 
 func (v *CategoriesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	controller := controllers.CategoryCtrl()
-	categories, err := controller.LoadCategories()
+	categories, err := v.CategoryController.LoadCategories()
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -32,7 +33,9 @@ func (v *CategoriesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx 
 	}
 }
 
-type CategoryView struct{}
+type CategoryView struct {
+	CategoryController controllers.CategoryController `inject:""`
+}
 
 func (v *CategoryView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -46,8 +49,7 @@ func (v *CategoryView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	}
 
 	// Load category by ID
-	controller := controllers.CategoryCtrl()
-	category, err := controller.LoadCategory(uint(id))
+	category, err := v.CategoryController.LoadCategory(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -65,7 +67,9 @@ func (v *CategoryView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 	}
 }
 
-type CategoryBoxesView struct{}
+type CategoryBoxesView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -79,8 +83,7 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	}
 
 	// Load boxes by category ID
-	controller := controllers.BoxCtrl()
-	boxes, err := controller.LoadBoxesOfCategory(uint(id))
+	boxes, err := v.BoxController.LoadBoxesOfCategory(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -98,7 +101,9 @@ func (v *CategoryBoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, c
 	}
 }
 
-type CategoryUpdateView struct{}
+type CategoryUpdateView struct {
+	CategoryController controllers.CategoryController `inject:""`
+}
 
 func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
@@ -112,10 +117,8 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.CategoryCtrl()
-
 	// Load existing object to update
-	cat, err := controller.LoadCategory(uint(id))
+	cat, err := v.CategoryController.LoadCategory(uint(id))
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -128,7 +131,7 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	err = controller.UpdateCategory(uint(id), cat)
+	err = v.CategoryController.UpdateCategory(uint(id), cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -138,7 +141,9 @@ func (v *CategoryUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 
 }
 
-type CategoryAddView struct{}
+type CategoryAddView struct {
+	CategoryController controllers.CategoryController `inject:""`
+}
 
 func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
@@ -153,8 +158,7 @@ func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 		return
 	}
 
-	controller := controllers.CategoryCtrl()
-	cat, err = controller.AddCategory(cat)
+	cat, err = v.CategoryController.AddCategory(cat)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -168,7 +172,9 @@ func (v *CategoryAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx
 
 }
 
-type CategoryDeleteView struct{}
+type CategoryDeleteView struct {
+	CategoryController controllers.CategoryController `inject:""`
+}
 
 func (v *CategoryDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	// Parse and convert ID
@@ -180,8 +186,7 @@ func (v *CategoryDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		return
 	}
 
-	controller := controllers.CategoryCtrl()
-	err = controller.DeleteCategory(uint(id))
+	err = v.CategoryController.DeleteCategory(uint(id))
 
 	if err != nil && err.Error() == "FOREIGN KEY constraint failed" {
 		http.Error(rw, "Cannot delete a category that has still boxes assigned.", http.StatusNotFound)

@@ -8,15 +8,18 @@ import (
 	"time"
 )
 
-func setupTestCategoryController(path string, settings *models.Settings) (DatabaseService, *CategoryController) {
+func setupTestCategoryController(path string, settings *models.Settings) (DatabaseService, *CategoryControllerImpl) {
 	db := setupTestDBController(path)
 	s := NewMockSettingsService(settings)
 
-	c, err := NewCategoryController(db, s)
-	if err != nil {
-		log.Fatal("Error in Setup", err)
-		return db, nil
+	c := NewCategoryController()
+	c.DatabaseService = db
+	c.SettingsService = s
+
+	if err := c.CreateTables(); err != nil {
+		log.Fatal(err)
 	}
+
 	return db, c
 }
 
@@ -43,12 +46,12 @@ func TestCategoryCtrlCreateTables(t *testing.T) {
 	defer tearDownTestDBController(db)
 
 	// Create CategoryController
-	categoryController := &CategoryController{
-		db: db,
+	categoryController := &CategoryControllerImpl{
+		DatabaseService: db,
 	}
 
 	// Execute createTables()
-	err := categoryController.createTables()
+	err := categoryController.CreateTables()
 	if err != nil {
 		t.Log("Error while executing createTables", err)
 		t.Fail()
@@ -56,7 +59,7 @@ func TestCategoryCtrlCreateTables(t *testing.T) {
 
 	// Check SQL
 	sqlStmt := "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = 'Category';"
-	row := categoryController.db.Connection().QueryRow(sqlStmt)
+	row := categoryController.DatabaseService.Connection().QueryRow(sqlStmt)
 	var count int
 	err = row.Scan(&count)
 	if err != nil || count != 1 {

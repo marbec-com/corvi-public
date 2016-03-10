@@ -58,6 +58,10 @@ type MockBoxController struct {
 	ReAddQuestionFromHeapCount  int
 }
 
+func (c *MockBoxController) CreateTables() error {
+	return nil
+}
+
 func (c *MockBoxController) LoadBoxes() ([]*models.Box, error) {
 	return []*models.Box{}, nil
 }

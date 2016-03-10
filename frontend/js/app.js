@@ -224,7 +224,7 @@ corviApp.controller('mainController', function($scope) {
 		if ($scope.aboutWindow != null) {
 			return
 		}
-		$scope.aboutWindow = new BrowserWindow({ 'width': 320, 'height': 190, 'show': false, 'title': 'About Corvi', 'titleBarStyle': 'hidden-inset', 'resizable': false, 'minimizable': false, 'maximizable': false });
+		$scope.aboutWindow = new BrowserWindow({ 'width': 320, 'height': 200, 'show': false, 'title': 'About Corvi', 'titleBarStyle': 'hidden-inset', 'resizable': false, 'minimizable': false, 'maximizable': false });
 		$scope.aboutWindow.loadURL('http://localhost:8080/app/about.html');
 		$scope.aboutWindow.on('closed', function() {
   			$scope.aboutWindow = null;

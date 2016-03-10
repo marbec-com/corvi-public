@@ -56,7 +56,7 @@ func main() {
 	// TODO(mjb): Restrict access to electron (via header field?)
 	webserver := requests.NewRequestHandler(r)
 	webserver.SetNotFoundHandler(&middleware.NotFoundHandler{})
-	webserver.AppendGlobalPreHandler(&middleware.LogHandler{})
+	//webserver.AppendGlobalPreHandler(&middleware.LogHandler{})
 	webserver.PrependGlobalPreHandler(&middleware.PanicRecoveryHandler{})
 
 	// Start Webserver

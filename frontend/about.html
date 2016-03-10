@@ -1,0 +1,57 @@
+<!-- Copyright 2016 by Mark J. Becker, marb.ec -->
+<!doctype html>
+<html class="no-js" lang="en" ng-app="corviApp">
+
+<head>
+	<meta charset="utf-8" />
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+	
+	<base href="/app/" />
+	
+	<title>About</title>
+	
+	<link href="https://fonts.googleapis.com/css?family=Roboto:400,500,300,400italic,300italic,100,100italic,500italic,700,700italic"
+	rel="stylesheet" type="text/css" />
+	<link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="about">
+	<div class="about-top-bar"></div>
+	<p class="about-logo">Project Corvi</p>
+	<p class="about-version">Version <span id="corvi-version"></span> (<span id="corvi-platform"></span> <span id="corvi-arch"></span>)</p>
+	<p>Visit <a href="https://corvi.org">corvi.org</a> for more intormation.</p>
+	
+	<p class="about-copyright">
+		Copyright &copy; <span id="year">2015</span> by Mark J. Becker, <a href="https://marb.ec/">marb.ec</a><br />
+		All Rights Reserved.
+	</p>
+	
+	<script>
+		window.nodeRequire = require;
+		delete window.require;
+		delete window.exports;
+		delete window.module;
+	</script>
+	<script src="js/jquery.min.js"></script>
+	<script>
+		$("#year").html(new Date().getFullYear());
+		
+		var shell = window.nodeRequire('electron').shell;
+		$(document).on('click', 'a[href^="http"]', function(event) {
+			event.preventDefault();
+			shell.openExternal(this.href);
+		});
+		
+		var remote = window.nodeRequire('electron').remote;
+		var metaData = remote.getGlobal('metaData');
+		$("#corvi-version").html(metaData.CorviVersion);
+		$("#corvi-platform").html(metaData.OperatingSystem);
+		$("#corvi-arch").html(metaData.SystemArchitecture);
+		
+	</script>
+
+</body>
+
+</html>

@@ -4,6 +4,10 @@ body {
     -webkit-text-size-adjust: 100%;
 }
 
+a, button {
+	cursor: default !important;
+}
+
 .sidebar {
     background-color: #252526;
     position: fixed;
@@ -21,7 +25,7 @@ body {
     text-align: center;
     border-bottom: 1px solid #000000;
     z-index: 99999;
-    -webkit-app-region: drag;
+	-webkit-app-region: drag;
 }
 
 .logo {
@@ -254,4 +258,51 @@ body {
 	background-color: #2ba6cb;
 	color: #ffffff;
 	border-radius: 3px;
+}
+
+.about-button {
+	display: block;
+	float: right;
+	font-size: 1.4em;
+	color: #999999;
+	padding-right: 10px;
+	padding-top: 4px;
+	-webkit-app-region: no-drag;
+}
+
+.about {
+	margin: 0px;
+	background-color: #252526;
+	color: #999999;
+	text-align: center;
+}
+
+.about > .about-top-bar {
+	display: block;
+	width: 100%;
+	height: 39px;
+	-webkit-app-region: drag;
+}
+
+.about a {
+	color: #2ba6cb;
+	text-decoration: none;
+}
+.about a:hover {
+	text-decoration: underline;
+}
+
+.about > .about-copyright {
+	font-size: 0.8em;
+}
+.about > .about-version {
+	font-size: 0.9em;
+	margin-top: 0px;
+}
+.about > .about-logo {
+	margin: 0px;
+	color: #2ba6cb;
+	font-size: 1.2em;
+	font-weight: 300;	
+	text-transform: uppercase;
 }

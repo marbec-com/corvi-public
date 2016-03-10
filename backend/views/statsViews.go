@@ -11,7 +11,9 @@ import (
 
 const dateLayout = "02-01-2006"
 
-type StatsView struct{}
+type StatsView struct {
+	StatsController controllers.StatsController `inject:""`
+}
 
 func (v *StatsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -32,8 +34,7 @@ func (v *StatsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx conte
 	}
 
 	// Loads stats object
-	controller := controllers.StatsControllerInstance()
-	stats, err := controller.LoadStats(from, to)
+	stats, err := v.StatsController.LoadStats(from, to)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return

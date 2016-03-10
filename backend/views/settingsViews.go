@@ -8,11 +8,13 @@ import (
 	"net/http"
 )
 
-type SettingsView struct{}
+type SettingsView struct {
+	SettingsService controllers.SettingsService `inject:""`
+}
 
 func (v *SettingsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
-	controller := controllers.SettingsControllerInstance()
-	settings := controller.Get()
+
+	settings := v.SettingsService.Get()
 
 	rw.Header().Set("Content-Type", "application/json")
 
@@ -25,13 +27,14 @@ func (v *SettingsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx co
 
 }
 
-type SettingsUpdateView struct{}
+type SettingsUpdateView struct {
+	SettingsService controllers.SettingsService `inject:""`
+}
 
 func (v *SettingsUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
 
-	controller := controllers.SettingsControllerInstance()
-	settings := controller.Get()
+	settings := v.SettingsService.Get()
 
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&settings)
@@ -39,7 +42,7 @@ func (v *SettingsUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, 
 		http.Error(rw, err.Error(), http.StatusBadRequest)
 	}
 
-	err = controller.Update()
+	err = v.SettingsService.Update()
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}

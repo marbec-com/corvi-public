@@ -10,12 +10,13 @@ import (
 	"strconv"
 )
 
-type BoxesView struct{}
+type BoxesView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *BoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
-	controller := controllers.BoxControllerInstance()
-	boxes, err := controller.LoadBoxes()
+	boxes, err := v.BoxController.LoadBoxes()
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
@@ -32,7 +33,9 @@ func (v *BoxesView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx conte
 	}
 }
 
-type BoxView struct{}
+type BoxView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *BoxView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -46,8 +49,7 @@ func (v *BoxView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context
 	}
 
 	// Load box by ID
-	controller := controllers.BoxControllerInstance()
-	box, err := controller.LoadBox(uint(id))
+	box, err := v.BoxController.LoadBox(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -65,7 +67,9 @@ func (v *BoxView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context
 	}
 }
 
-type BoxQuestionsView struct{}
+type BoxQuestionsView struct {
+	QuestionController controllers.QuestionController `inject:""`
+}
 
 func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -79,8 +83,7 @@ func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ct
 	}
 
 	// Load questions by box ID
-	controller := controllers.BoxControllerInstance()
-	questions, err := controller.LoadQuestions(uint(id))
+	questions, err := v.QuestionController.LoadQuestionsOfBox(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -98,7 +101,9 @@ func (v *BoxQuestionsView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ct
 	}
 }
 
-type BoxGetQuestionToLearnView struct{}
+type BoxGetQuestionToLearnView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 
@@ -112,8 +117,7 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	}
 
 	// Load box by ID
-	controller := controllers.BoxControllerInstance()
-	question, err := controller.GetQuestionToLearn(uint(id))
+	question, err := v.BoxController.GetQuestionToLearn(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
@@ -136,7 +140,9 @@ func (v *BoxGetQuestionToLearnView) ServeHTTP(rw http.ResponseWriter, r *http.Re
 	}
 }
 
-type BoxUpdateView struct{}
+type BoxUpdateView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
@@ -150,10 +156,8 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		return
 	}
 
-	controller := controllers.BoxControllerInstance()
-
 	// Load existing object to update
-	box, err := controller.LoadBox(uint(id))
+	box, err := v.BoxController.LoadBox(uint(id))
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -166,7 +170,7 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		return
 	}
 
-	err = controller.UpdateBox(uint(id), box)
+	err = v.BoxController.UpdateBox(uint(id), box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -176,7 +180,9 @@ func (v *BoxUpdateView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 
 }
 
-type BoxAddView struct{}
+type BoxAddView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	defer r.Body.Close()
@@ -191,8 +197,7 @@ func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx cont
 		return
 	}
 
-	controller := controllers.BoxControllerInstance()
-	box, err = controller.AddBox(box)
+	box, err = v.BoxController.AddBox(box)
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)
 		return
@@ -206,7 +211,9 @@ func (v *BoxAddView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx cont
 
 }
 
-type BoxDeleteView struct{}
+type BoxDeleteView struct {
+	BoxController controllers.BoxController `inject:""`
+}
 
 func (v *BoxDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx context.Context, n interfaces.HandlerFunc) {
 	// Parse and convert ID
@@ -218,8 +225,7 @@ func (v *BoxDeleteView) ServeHTTP(rw http.ResponseWriter, r *http.Request, ctx c
 		return
 	}
 
-	controller := controllers.BoxControllerInstance()
-	err = controller.DeleteBox(uint(id))
+	err = v.BoxController.DeleteBox(uint(id))
 
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusNotFound)

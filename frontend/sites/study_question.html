@@ -13,12 +13,12 @@
 
 <div class="question-button-container">
 	<div class="question-button-1" ng-hide="answered">
-		<a class="button" ng-click="showSolution()">Solution</a>
+		<a class="button" ng-click="showSolution()">Solution [<i class="fa fa-long-arrow-down"></i>]</a>
 	</div>
 	<div class="question-button-2" ng-show="answered">
-		<a class="button success" ng-click="giveCorrectAnswer()">Yes</a>
+		<a class="button success" ng-click="giveCorrectAnswer()">Yes [<i class="fa fa-long-arrow-left"></i>]</a>
 	</div>
-	<div class="question-button-2">
-		<a class="button alert" ng-click="giveWrongAnswer()">No</a>
+	<div class="question-button-2" ng-show="answered">
+		<a class="button alert" ng-click="giveWrongAnswer()">No [<i class="fa fa-long-arrow-right"></i>]</a>
 	</div>
 </div>

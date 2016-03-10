@@ -1,39 +1,75 @@
 image: herzog31/corvi-build:latest
 
 variables:
-  CGO_ENABLED: "0"
-  GO_EXTLINK_ENABLED: "0"
+  CGO_ENABLED: "1"
+  GO_EXTLINK_ENABLED: "1"
   ELECTRON_VERSION: "0.36.9"
   PRODUCT_NAME: "Corvi"
   APP_BUNDLE_ID: "com.marbec.corvi"
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
-  APP_VERSION: "v0.0.2"
-  ELECTRON_CACHE: "/cache/electron"
-
-cache:
-  paths:
-    - /cache/electron
+  APP_VERSION: "v0.3.0"
+  MAC_SIGN_ID: "Mac Developer: info@marbec.com (F9QDPTH27V)"
 
 stages:
   - test
+  - release
   - build
 
-backend_test:
+backend_test_win:
+  stage: test
+  script:
+    - "ls"
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "pwd"
+    - "ls"
+    - "go get -t -v -insecure ./..."
+    - "go test -bench=. -benchmem -v -cover ./..."
+  tags:
+    - windows
+  only:
+    - master
+
+backend_test_linux:
   stage: test
   script:
     - "rm -rf $GOPATH/src/marb.ec"
     - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
     - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
     - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "pwd"
     - "ls -aslh"
     - "go get -t -v -insecure ./..."
-    - "go test -bench=. -benchmem -v -cover -coverprofile=coverage.out -covermode=count"
+    - "go test -bench=. -benchmem -v -cover ./..."
+  tags:
+    - linux
+
+backend_test_darwin:
+  stage: test
+  script:
+    - "rm -rf $GOPATH/src/marb.ec"
+    - "mkdir -p $GOPATH/src/marb.ec/corvi-backend"
+    - "mv $CI_PROJECT_DIR/backend/* $GOPATH/src/marb.ec/corvi-backend"
+    - "cd $GOPATH/src/marb.ec/corvi-backend"
+    - "pwd"
+    - "ls -aslh"
+    - "go get -t -v -insecure ./..."
+    - "go test -bench=. -benchmem -v -cover ./..."
+  tags:
+    - mac
+  only:
+    - master
 
 create_release:
-  stage: build
+  stage: release
   script:
     - "github-release release -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi $APP_VERSION\" --description \"Latest Corvi release\" --target \"master\""
+  tags:
+    - linux
+  allow_failure: true
   only:
     - master
 
@@ -49,26 +85,31 @@ build_darwin:
     - "ls -aslh"
     - "# Build Backend"
     - "go get -t -v -insecure ./..."
-    - "gox -osarch=\"darwin/amd64\" -output=\"dist-darwin64/corvi-backend\""
-    - "cd dist-darwin64"
+    - "GOOS=darwin GOARCH=amd64 go build -v -o corvi-backend"
     - "ls -aslh"
     - "# Prepare electron build"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
     - "mkdir -p $CI_PROJECT_DIR/build-darwin/src"
     - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-darwin/src/frontend"
-    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-darwin64/corvi-backend $CI_PROJECT_DIR/build-darwin/src"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/corvi-backend $CI_PROJECT_DIR/build-darwin/src"
     - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-darwin/src"
     - "mv $CI_PROJECT_DIR/build-darwin/src/package.json $CI_PROJECT_DIR/build-darwin/"
     - "cd $CI_PROJECT_DIR/build-darwin"
     - "# Electron build"
+    - "mkdir -p $CI_PROJECT_DIR/electron_download"
     - "ls -aslh"
-    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=darwin --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=\"$PRODUCT_NAME\" --version=\"$ELECTRON_VERSION\" --app-bundle-id=\"$APP_BUNDLE_ID\" --app-category-type=\"$APP_CATEGORY_TYPE\" --app-copyright=\"$APP_COPYRIGHT\" --app-version=\"$APP_VERSION\" --overwrite=true --platform=darwin --arch=x64 --out=out/ --cache=\"$CI_PROJECT_DIR/electron_download\" --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-darwin-x64"
+    - "security default-keychain -s $MAC_KEYCHAIN"
+    - "security -v unlock-keychain -p corvisign $MAC_KEYCHAIN"
+    - "codesign --deep --force --sign \"$MAC_SIGN_ID\" --keychain \"$MAC_KEYCHAIN\" \"Corvi.app\""
     - "zip --symlinks -r Corvi-$APP_VERSION.zip * >/dev/null"
     - "ls -aslh"
     - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-darwin64-$APP_VERSION.zip\" --label \"Corvi (MacOSX 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-darwin"
+  tags:
+    - mac
   only:
     - master
 
@@ -84,26 +125,28 @@ build_win:
     - "ls -aslh"
     - "# Build Backend"
     - "go get -t -v -insecure ./..."
-    - "gox -osarch=\"windows/amd64\" -output=\"dist-win/corvi-backend\""
-    - "cd dist-win"
+    - "GOOS=windows GOARCH=amd64 go build -v -o corvi-backend.exe"
     - "ls -aslh"
     - "# Prepare electron build"
     - "rm -rf $CI_PROJECT_DIR/build-win"
     - "mkdir -p $CI_PROJECT_DIR/build-win/src"
     - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-win/src/frontend"
-    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-win/corvi-backend.exe $CI_PROJECT_DIR/build-win/src"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/corvi-backend.exe $CI_PROJECT_DIR/build-win/src"
     - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-win/src"
     - "mv $CI_PROJECT_DIR/build-win/src/package.json $CI_PROJECT_DIR/build-win/"
     - "cd $CI_PROJECT_DIR/build-win"
     - "# Electron build"
+    - "mkdir -p $CI_PROJECT_DIR/electron_download"
     - "ls -aslh"
-    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=win32 --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=\"$PRODUCT_NAME\" --version=\"$ELECTRON_VERSION\" --app-bundle-id=\"$APP_BUNDLE_ID\" --app-category-type=\"$APP_CATEGORY_TYPE\" --app-copyright=\"$APP_COPYRIGHT\" --app-version=\"$APP_VERSION\" --overwrite=true --platform=win32 --arch=x64 --out=out/ --cache=\"$CI_PROJECT_DIR/electron_download\" --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-win32-x64"
     - "zip --symlinks -r Corvi-$APP_VERSION.zip * >/dev/null"
     - "ls -aslh"
     - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-win64-$APP_VERSION.zip\" --label \"Corvi (Windows 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
+  tags:
+    - windows
   only:
     - master
 
@@ -119,25 +162,27 @@ build_linux:
     - "ls -aslh"
     - "# Build Backend"
     - "go get -t -v -insecure ./..."
-    - "gox -osarch=\"linux/amd64\" -output=\"dist-linux/corvi-backend\""
-    - "cd dist-linux"
+    - "GOOS=linux GOARCH=amd64 go build -v -o corvi-backend"
     - "ls -aslh"
     - "# Prepare electron build"
     - "rm -rf $CI_PROJECT_DIR/build-linux"
     - "mkdir -p $CI_PROJECT_DIR/build-linux/src"
     - "cp -a $CI_PROJECT_DIR/frontend/. $CI_PROJECT_DIR/build-linux/src/frontend"
-    - "mv $GOPATH/src/marb.ec/corvi-backend/dist-linux/corvi-backend $CI_PROJECT_DIR/build-linux/src"
+    - "mv $GOPATH/src/marb.ec/corvi-backend/corvi-backend $CI_PROJECT_DIR/build-linux/src"
     - "cp -a $CI_PROJECT_DIR/electron/. $CI_PROJECT_DIR/build-linux/src"
     - "mv $CI_PROJECT_DIR/build-linux/src/package.json $CI_PROJECT_DIR/build-linux/"
     - "cd $CI_PROJECT_DIR/build-linux"
     - "# Electron build"
+    - "mkdir -p $CI_PROJECT_DIR/electron_download"
     - "ls -aslh"
-    - "electron-packager . Corvi --name=$PRODUCT_NAME --version=$ELECTRON_VERSION --app-bundle-id=$APP_BUNDLE_ID --app-category-type=$APP_CATEGORY_TYPE --app-copyright=$APP_COPYRIGHT --app-version=$APP_VERSION --overwrite=true --platform=linux --arch=x64 --out=out/ --cache=$ELECTRON_CACHE --ignore=\"(/node_modules|/out)\" --asar=false"
+    - "electron-packager . Corvi --name=\"$PRODUCT_NAME\" --version=\"$ELECTRON_VERSION\" --app-bundle-id=\"$APP_BUNDLE_ID\" --app-category-type=\"$APP_CATEGORY_TYPE\" --app-copyright=\"$APP_COPYRIGHT\" --app-version=\"$APP_VERSION\" --overwrite=true --platform=linux --arch=x64 --out=out/ --cache=\"$CI_PROJECT_DIR/electron_download\" --ignore=\"(/node_modules|/out)\" --asar=false"
     - "cd out/Corvi-linux-x64"
     - "zip --symlinks -r Corvi-$APP_VERSION.zip * >/dev/null"
     - "ls -aslh"
     - "github-release upload -s $GITHUB_TOKEN --user marbec-com --repo corvi-public --tag $APP_VERSION --name \"Corvi-linux64-$APP_VERSION.zip\" --label \"Corvi (Linux 64bit)\" --file \"Corvi-$APP_VERSION.zip\""
     - "# Cleanup"
     - "rm -rf $CI_PROJECT_DIR/build-win"
+  tags:
+    - linux
   only:
     - master

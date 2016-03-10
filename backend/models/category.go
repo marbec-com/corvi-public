@@ -15,3 +15,7 @@ func NewCategory() *Category {
 		CreatedAt: time.Now(),
 	}
 }
+
+func (c *Category) Equal(a *Category) bool {
+	return c.ID == a.ID && c.Name == a.Name && c.CreatedAt.Equal(a.CreatedAt)
+}

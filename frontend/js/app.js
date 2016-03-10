@@ -118,7 +118,7 @@ corviApp.controller('studyBoxController', function($scope, $log, Categories, Box
 	$scope.boxesByCatID = Boxes.BoxesByCatID;
 });
 
-corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, Boxes) {
+corviApp.controller('studyFinishedController', function($scope, $routeParams, $location, $log, $document, Boxes) {
 	
 	var id = parseInt($routeParams.box, 10);
 	if (isNaN(id)) {
@@ -129,13 +129,28 @@ corviApp.controller('studyFinishedController', function($scope, $routeParams, $l
 	$scope.boxID = id;
 	$scope.box = Boxes.BoxesByID[id];
 	
+	$scope.keyPressed = function(event) {
+		if (event.keyCode == 40) { // Down Arrow
+			$scope.getBack();
+		}
+	};
+	
+	$document.on('keyup', $scope.keyPressed);
+	$scope.$on('$destroy', function () {
+		$document.off('keyup', $scope.keyPressed);
+	});
+	
 	$scope.getBack = function() {
 		$location.path("/");
+		$scope.$apply();
 	};
 	
 });
 
-corviApp.controller('studyQuestionController', function($scope, $routeParams, $log, $location, Questions) {
+corviApp.controller('studyQuestionController', function($scope, $routeParams, $log, $location, $document, Questions) {
+	
+	$scope.answered = false;
+	$scope.question = {};
 	
 	var boxID = parseInt($routeParams.box, 10);
 	if (isNaN(boxID)) {
@@ -145,11 +160,32 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 
 	loadNewQuestion(boxID);	
 	
-	$scope.showSolution = function() {
-		$scope.answered = true;	
+	$scope.keyPressed = function(event) {
+		if (event.keyCode == 40 && !$scope.answered) { // Down Arrow
+			$scope.showSolution();
+		}
+		if (event.keyCode == 37 && $scope.answered) { // Left Arrow
+			$scope.giveCorrectAnswer();
+		}
+		if (event.keyCode == 39 && $scope.answered) { // Right Arrow
+			$scope.giveWrongAnswer();
+		}
 	};
 	
+	$scope.showSolution = function() {
+		$scope.answered = true;	
+		$scope.$apply();
+	};
+	
+	$document.on('keyup', $scope.keyPressed);
+	$scope.$on('$destroy', function () {
+		$document.off('keyup', $scope.keyPressed);
+	});
+	
 	$scope.giveCorrectAnswer = function() {
+		if (!$scope.answered) {
+			return
+		}
 		Questions.giveCorrectAnswer($scope.question.ID, function() {
 			loadNewQuestion(boxID);	
 		}, function() {
@@ -158,6 +194,9 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 	};
 	
 	$scope.giveWrongAnswer = function() {
+		if (!$scope.answered) {
+			return
+		}
 		Questions.giveWrongAnswer($scope.question.ID, function() {
 			loadNewQuestion(boxID);	
 		}, function() {
@@ -165,10 +204,9 @@ corviApp.controller('studyQuestionController', function($scope, $routeParams, $l
 		});
 	};
 	
-	function loadNewQuestion(boxID) {
+	function loadNewQuestion(boxID) {	
 		$scope.answered = false;
 		$scope.question = {};
-		
 		Questions.GetQuestionToLearn(boxID, function(data) {
 			$scope.question = data;
 		}, function() {

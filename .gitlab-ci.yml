@@ -8,7 +8,7 @@ variables:
   APP_BUNDLE_ID: "com.marbec.corvi"
   APP_CATEGORY_TYPE: "public.app-category.education"
   APP_COPYRIGHT: "Copyright 2016 by marb.ec"
-  APP_VERSION: "v0.3.0"
+  APP_VERSION: "v0.1.0"
   MAC_SIGN_ID: "Mac Developer: info@marbec.com (F9QDPTH27V)"
 
 stages:

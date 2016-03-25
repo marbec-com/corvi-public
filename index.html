@@ -176,11 +176,11 @@
 				<h3>Download</h3>
 				<hr />
 				
-				{{ site.github.releases }}
+				All: {{ site.github.releases }}
 				
-				{{ site.github.releases.latest }}
+				Latest: {{ site.github.releases.latest }}
 				
-				{{ site.github.releases.latest.assets }}
+				Assets: {{ site.github.releases.latest.assets }}
 				
 				{% for asset in site.github.releases.latest.assets %}
 					<div class="col-md-4">

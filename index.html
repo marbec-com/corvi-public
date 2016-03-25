@@ -180,7 +180,7 @@
 					<div class="col-md-4">
 						<a href="{{ asset.browser_download_url }}" class="btn btn-default btn-lg">{{ asset.label }}</a>
 						<br />
-						<span class="info">{{ site.github.releases[0].tag_name }}, {{ site.github.releases[0].size }}</span>
+						<span class="info">{{ site.github.releases[0].tag_name }}, {{ asset.size }}, {{ asset.updated_at | date_to_string }}</span>
 					</div>
 				{% endfor %}
 

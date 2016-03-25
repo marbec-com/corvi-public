@@ -176,6 +176,12 @@
 				<h3>Download</h3>
 				<hr />
 				
+				{{ site.github.releases }}
+				
+				{{ site.github.releases.latest }}
+				
+				{{ site.github.releases.latest.assets }}
+				
 				{% for asset in site.github.releases.latest.assets %}
 					<div class="col-md-4">
 						<a href="{{ asset.browser_download_url }}" class="btn btn-default btn-lg">{{ asset.label }}</a>

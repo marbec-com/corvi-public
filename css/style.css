@@ -90,13 +90,12 @@ hr {
 	background-position: center center;
 	background-color: #f4f5f7;
 	background-size: cover;
-	height: 500px;
 	background-repeat: no-repeat;
 }
 
 .header-container .row {
 	padding: 200px 0 200px 0;
-	color: #2ba6cb;
+	color: #ffffff;
 	font-size: 3.0em;
 	text-transform: uppercase;
 	text-align: center;
@@ -155,7 +154,7 @@ hr {
 	background-attachment: fixed;
 	min-height: 300px;
 	background-repeat: no-repeat;
-	color: #252526;
+	color: #2ba6cb;
 }
 
 .gallery-container .item a {
@@ -165,6 +164,10 @@ hr {
 
 .download-container {
 	text-align: center;	
+}
+
+.download-container p > a {
+	color: #2ba6cb;
 }
 
 .download-container .info {

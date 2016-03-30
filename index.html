@@ -180,9 +180,15 @@
 					<div class="col-md-4">
 						<a href="{{ asset.browser_download_url }}" class="btn btn-default btn-lg">{{ asset.label }}</a>
 						<br />
-						<span class="info">{{ site.github.releases[0].tag_name }}, {{ asset.size }}, {{ asset.updated_at | date_to_string }}</span>
+						<span class="info">{{ site.github.releases[0].tag_name }}, {{ asset.size | divided_by:1048576 }}mb, {{ asset.updated_at | date_to_string }}</span>
 					</div>
 				{% endfor %}
+					
+				<div class="clearfix"></div>
+
+				<p>
+					Source code and developer documentation of Corvi are available on <a href="https://github.com/marbec-com/corvi-public"><i class="fa fa-github"></i> GitHub</a>.
+				</p>
 
 			</div>
 		</div>

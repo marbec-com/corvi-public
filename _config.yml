@@ -9,6 +9,7 @@
 title: Project Corvi
 email: corvi@marb.ec
 baseurl: "" # the subpath of your site, e.g. /blog
+site: https://corvi.org
 url: "https://corvi.org" # the base hostname & protocol for your site
 
 # Build settings
